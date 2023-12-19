@@ -93,30 +93,12 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 func init() {
 	rootCmd.AddCommand(pushCmd)
 	pushCmd.Flags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
-
-	pushCmd.Flags().StringVar(&baseDomain, flagBaseDomain, "", "Base domain to use for the cluster")
-	viper.BindEnv(flagBaseDomain, envBaseDomain)
-	viper.BindPFlag(flagBaseDomain, pushCmd.Flags().Lookup(flagBaseDomain))
-
-	pushCmd.Flags().StringVar(&cmcRepository, flagCMCRepository, "", "Name of CMC repository")
-	viper.BindEnv(flagCMCRepository, envCMCRepository)
-	viper.BindPFlag(flagCMCRepository, pushCmd.Flags().Lookup(flagCMCRepository))
-
-	pushCmd.Flags().StringVar(&team, flagTeam, "", "Name of the team that owns the cluster")
-	viper.BindEnv(flagTeam, envTeam)
-	viper.BindPFlag(flagTeam, pushCmd.Flags().Lookup(flagTeam))
-
-	pushCmd.Flags().StringVar(&provider, flagProvider, "", "Provider of the cluster")
-	viper.BindEnv(flagProvider, envProvider)
-	viper.BindPFlag(flagProvider, pushCmd.Flags().Lookup(flagProvider))
-
-	pushCmd.Flags().StringVar(&awsRegion, flagAWSRegion, "", "AWS region of the cluster")
-	viper.BindEnv(flagAWSRegion, envAWSRegion)
-	viper.BindPFlag(flagAWSRegion, pushCmd.Flags().Lookup(flagAWSRegion))
-
-	pushCmd.Flags().StringVar(&awsAccountID, flagAWSAccountID, "", "AWS account ID of the cluster")
-	viper.BindEnv(flagAWSAccountID, envAWSAccountID)
-	viper.BindPFlag(flagAWSAccountID, pushCmd.Flags().Lookup(flagAWSAccountID))
+	pushCmd.Flags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
+	pushCmd.Flags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
+	pushCmd.Flags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
+	pushCmd.Flags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
+	pushCmd.Flags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
+	pushCmd.Flags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
 }
 
 func validatePush(cmd *cobra.Command, args []string) error {

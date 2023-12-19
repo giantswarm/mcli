@@ -59,18 +59,9 @@ func Execute() {
 func init() {
 	viper.AutomaticEnv()
 
-	rootCmd.PersistentFlags().StringVar(&githubToken, flagGithubToken, "", "Github token to use for authentication")
-	viper.BindEnv(flagGithubToken, envGithubToken)
-	viper.BindPFlag(flagGithubToken, rootCmd.PersistentFlags().Lookup(flagGithubToken))
-
-	rootCmd.PersistentFlags().StringVarP(&cluster, flagCluster, "c", "", "Name of the management cluster to operate on")
-	viper.BindEnv(flagCluster, envCluster)
-	viper.BindPFlag(flagCluster, rootCmd.PersistentFlags().Lookup(flagCluster))
-
-	rootCmd.PersistentFlags().StringVar(&installationsBranch, flagInstallationsBranch, "", "Branch to use for the installations repository")
-	viper.BindEnv(flagInstallationsBranch, envInstallationsBranch)
-	viper.BindPFlag(flagInstallationsBranch, rootCmd.PersistentFlags().Lookup(flagInstallationsBranch))
-
+	rootCmd.PersistentFlags().StringVar(&githubToken, flagGithubToken, viper.GetString(envGithubToken), "Github token to use for authentication")
+	rootCmd.PersistentFlags().StringVarP(&cluster, flagCluster, "c", viper.GetString(envCluster), "Name of the management cluster to operate on")
+	rootCmd.PersistentFlags().StringVar(&installationsBranch, flagInstallationsBranch, viper.GetString(envInstallationsBranch), "Branch to use for the installations repository")
 	rootCmd.PersistentFlags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 	rootCmd.PersistentFlags().BoolVarP(&verbose, flagVerbose, "v", false, "Display more verbose output in console output. (default: false)")
 }
