@@ -41,11 +41,6 @@ func (c *Config) Run(ctx context.Context) (*installations.Installations, error) 
 }
 
 func (c *Config) PushInstallations(ctx context.Context) (*installations.Installations, error) {
-	err := c.Validate()
-	if err != nil {
-		return nil, err
-	}
-
 	if err := c.Branch(ctx); err != nil {
 		return nil, err
 	}
