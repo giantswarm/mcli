@@ -5,8 +5,11 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/giantswarm/mcli/cmd/pull"
+	pullinstallations "github.com/giantswarm/mcli/cmd/pull/installations"
+	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/spf13/cobra"
 )
@@ -41,8 +44,42 @@ mcli pull --cluster=gigmac`,
 	},
 }
 
+// pullInstallationsCmd represents the pull installations command
+var pullInstallationsCmd = &cobra.Command{
+	Use:   "installations",
+	Short: "Pulls the current configuration of the Management Clusters installations repository entry",
+	Long: `Pulls the current configuration of a Management Clusters installations repository entry from
+installations repository. For example:
+
+mcli pull installations --cluster=gigmac`,
+	PreRun: toggleVerbose,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPull()
+		err := validate(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		i := pullinstallations.Config{
+			Cluster:             cluster,
+			Github:              client,
+			InstallationsBranch: installationsBranch,
+		}
+		installations, err := i.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to pull installations.\n%w", err)
+		}
+		return installations.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pullCmd)
+	pullCmd.AddCommand(pullInstallationsCmd)
+	pullCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 }
 
 func defaultPull() {

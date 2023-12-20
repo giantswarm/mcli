@@ -10,7 +10,9 @@ import (
 
 	"github.com/giantswarm/mcli/cmd/push"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
+	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,15 +92,69 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 	},
 }
 
+// pushInstallationsCmd represents the push installations command
+var pushInstallationsCmd = &cobra.Command{
+	Use:   "installations",
+	Short: "Pushes configuration of a Management Cluster installations repository entry",
+	Long: `Pushes configuration of a Management Cluster installations repository entry to
+installations repository. For example:
+
+mcli push installations --cluster=gigmac --input=cluster.yaml`,
+	PreRun: toggleVerbose,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPush()
+		err := validate(cmd, args)
+		if err != nil {
+			return err
+		}
+		err = validatePush(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		i := pushinstallations.Config{
+			Cluster:             cluster,
+			Github:              client,
+			InstallationsBranch: installationsBranch,
+			Flags: pushinstallations.InstallationsFlags{
+				BaseDomain:    baseDomain,
+				CMCRepository: cmcRepository,
+				Team:          team,
+				Provider:      provider,
+				AWS: pushinstallations.AWSFlags{
+					Region:                 awsRegion,
+					InstallationAWSAccount: awsAccountID,
+				},
+			},
+		}
+		if input != "" {
+			i.Input, err = installations.GetInstallationsFromFile(input)
+			if err != nil {
+				return fmt.Errorf("failed to get new installations object from input file.\n%w", err)
+			}
+		}
+		installations, err := i.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to push installations.\n%w", err)
+		}
+		return installations.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pushCmd)
-	pushCmd.Flags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
-	pushCmd.Flags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
-	pushCmd.Flags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
-	pushCmd.Flags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
-	pushCmd.Flags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
-	pushCmd.Flags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
-	pushCmd.Flags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
+	pushCmd.AddCommand(pushInstallationsCmd)
+	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
+	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
+	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
+	pushCmd.PersistentFlags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
+	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
+	pushCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
+	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
+	pushCmd.PersistentFlags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
 }
 
 func validatePush(cmd *cobra.Command, args []string) error {

@@ -49,9 +49,5 @@ func GetManagementClusterFromFile(input string) (*ManagementCluster, error) {
 		return nil, fmt.Errorf("failed to read input file %s.\n%w", input, err)
 	}
 
-	newMC, err := GetManagementCluster(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get new management cluster object from data.\n%w", err)
-	}
-	return newMC, nil
+	return GetManagementCluster(data)
 }
