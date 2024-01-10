@@ -3,7 +3,7 @@ module github.com/giantswarm/mcli
 go 1.21
 
 require (
-	github.com/google/go-github/v57 v57.0.0
+	github.com/google/go-github/v58 v58.0.0
 	github.com/google/go-github/v58 v58.0.0
 	github.com/rs/zerolog v1.31.0
 	github.com/spf13/cobra v1.8.0
