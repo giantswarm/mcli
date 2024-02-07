@@ -24,9 +24,12 @@ func (c *Config) Run(ctx context.Context) (*installations.Installations, error) 
 		Name:         key.RepositoryInstallations,
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.InstallationsBranch,
-		Path:         key.GetInstallationsPath(c.Cluster),
 	}
-	data, err := installationsRepository.GetFile(ctx)
+	if err := installationsRepository.Check(ctx); err != nil {
+		return nil, err
+	}
+
+	data, err := installationsRepository.GetFile(ctx, key.GetInstallationsPath(c.Cluster))
 	if err != nil {
 		return nil, err
 	}

@@ -6,45 +6,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/giantswarm/mcli/cmd/push"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
-
-const (
-	flagInput         = "input"
-	flagBaseDomain    = "base-domain"
-	flagCMCRepository = "cmc-repository"
-	flagTeam          = "team"
-	flagProvider      = "provider"
-	flagAWSRegion     = "aws-region"
-	flagAWSAccountID  = "aws-account-id"
-)
-
-const (
-	envBaseDomain    = "BASE_DOMAIN"
-	envCMCRepository = "CMC_REPOSITORY"
-	envTeam          = "TEAM_NAME"
-	envProvider      = "PROVIDER"
-	envAWSRegion     = "AWS_REGION"
-	envAWSAccountID  = "INSTALLATION_AWS_ACCOUNT"
-)
-
-var (
-	input         string
-	baseDomain    string
-	cmcRepository string
-	team          string
-	provider      string
-	awsRegion     string
-	awsAccountID  string
 )
 
 // pushCmd represents the push command
@@ -55,10 +22,9 @@ var pushCmd = &cobra.Command{
 relevant git repositories. For example:
 
 mcli push --cluster=gigmac --input=cluster.yaml`,
-	PreRun: toggleVerbose,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defaultPush()
-		err := validate(cmd, args)
+		err := validateRoot(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -78,6 +44,7 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 				CMCRepository: cmcRepository,
 				Team:          team,
 				Provider:      provider,
+				Customer:      customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
@@ -100,10 +67,9 @@ var pushInstallationsCmd = &cobra.Command{
 installations repository. For example:
 
 mcli push installations --cluster=gigmac --input=cluster.yaml`,
-	PreRun: toggleVerbose,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defaultPush()
-		err := validate(cmd, args)
+		err := validateRoot(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -124,6 +90,7 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 				CMCRepository: cmcRepository,
 				Team:          team,
 				Provider:      provider,
+				Customer:      customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
@@ -147,30 +114,5 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 func init() {
 	rootCmd.AddCommand(pushCmd)
 	pushCmd.AddCommand(pushInstallationsCmd)
-	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
-	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
-	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
-	pushCmd.PersistentFlags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
-	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
-	pushCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
-	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
-	pushCmd.PersistentFlags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
-}
-
-func validatePush(cmd *cobra.Command, args []string) error {
-	if input != "" {
-		_, err := os.Stat(input)
-		if err != nil {
-			return fmt.Errorf("input file %s can not be accessed.\n%w", input, err)
-		}
-		log.Debug().Msg(fmt.Sprintf("using input file %s", input))
-		return nil
-	}
-	return nil
-}
-
-func defaultPush() {
-	if installationsBranch == "" {
-		installationsBranch = key.GetDefaultInstallationsBranch(cluster)
-	}
+	addFlagsPush()
 }

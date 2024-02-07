@@ -24,6 +24,7 @@ type InstallationsFlags struct {
 	Team          string
 	Provider      string
 	AWS           AWSFlags
+	Customer      string
 }
 
 type AWSFlags struct {
@@ -102,9 +103,11 @@ func (c *Config) Pull(ctx context.Context) (*installations.Installations, error)
 		Name:         key.RepositoryInstallations,
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.InstallationsBranch,
-		Path:         key.GetInstallationsPath(c.Cluster),
 	}
-	data, err := installationsRepository.GetFile(ctx)
+	if err := installationsRepository.Check(ctx); err != nil {
+		return nil, err
+	}
+	data, err := installationsRepository.GetFile(ctx, key.GetInstallationsPath(c.Cluster))
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +139,8 @@ func (c *Config) Push(ctx context.Context, i *installations.Installations) (*ins
 		Name:         key.RepositoryInstallations,
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.InstallationsBranch,
-		Path:         key.GetInstallationsPath(c.Cluster),
 	}
-	err = installationsRepository.CreateFile(ctx, data)
+	err = installationsRepository.CreateFile(ctx, data, key.GetInstallationsPath(c.Cluster))
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +155,6 @@ func (c *Config) Branch(ctx context.Context) error {
 		Name:         key.RepositoryInstallations,
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.InstallationsBranch,
-		Path:         key.GetInstallationsPath(c.Cluster),
 	}
 	err := installationsRepository.CheckBranch(ctx)
 	if err != nil {
@@ -161,7 +162,7 @@ func (c *Config) Branch(ctx context.Context) error {
 		// check if the error is a github.ErrNotFound
 		if github.IsNotFound(err) {
 			log.Debug().Msg(fmt.Sprintf("installations branch %s not found, creating it", c.InstallationsBranch))
-			err = installationsRepository.CreateBranch(ctx)
+			err = installationsRepository.CreateBranch(ctx, key.InstallationsMainBranch)
 			if err != nil {
 				return fmt.Errorf("failed to create installations branch %s.\n%w", c.InstallationsBranch, err)
 			}
@@ -192,7 +193,7 @@ func getNewInstallationsFromFlags(flags InstallationsFlags, cluster string) (*in
 	c := installations.InstallationsConfig{
 		Base:            flags.BaseDomain,
 		Codename:        cluster,
-		Customer:        "giantswarm",
+		Customer:        flags.Customer,
 		CmcRepository:   flags.CMCRepository,
 		AccountEngineer: flags.Team,
 		Pipeline:        "testing",

@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type ManagementCluster struct {
 	Installations installations.Installations `yaml:"installations,omitempty"`
+	CMC           cmc.CMC                     `yaml:"cmc,omitempty"`
 }
 
 func (mc *ManagementCluster) Print() error {

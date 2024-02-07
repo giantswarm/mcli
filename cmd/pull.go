@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"github.com/giantswarm/mcli/cmd/pull"
+	pullcmc "github.com/giantswarm/mcli/cmd/pull/cmc"
 	pullinstallations "github.com/giantswarm/mcli/cmd/pull/installations"
 	"github.com/giantswarm/mcli/pkg/github"
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/spf13/cobra"
 )
 
@@ -22,10 +22,9 @@ var pullCmd = &cobra.Command{
 relevant git repositories. For example:
 
 mcli pull --cluster=gigmac`,
-	PreRun: toggleVerbose,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defaultPull()
-		err := validate(cmd, args)
+		err := validateRoot(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -34,6 +33,8 @@ mcli pull --cluster=gigmac`,
 			Cluster:             cluster,
 			GithubToken:         githubToken,
 			InstallationsBranch: installationsBranch,
+			CMCBranch:           cmcBranch,
+			CMCRepository:       cmcRepository,
 			Skip:                skip,
 		}
 		err = pull.Run(c, ctx)
@@ -52,10 +53,9 @@ var pullInstallationsCmd = &cobra.Command{
 installations repository. For example:
 
 mcli pull installations --cluster=gigmac`,
-	PreRun: toggleVerbose,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defaultPull()
-		err := validate(cmd, args)
+		err := validateRoot(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -76,14 +76,40 @@ mcli pull installations --cluster=gigmac`,
 	},
 }
 
+var pullCMCCmd = &cobra.Command{
+	Use:   "cmc",
+	Short: "Pulls the current configuration of the Management Clusters CMC repository entry",
+	Long: `Pulls the current configuration of a Management Clusters CMC repository entry from
+installations repository. For example:
+
+mcli pull cmc --cluster=gigmac`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPull()
+		err := validateRoot(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		c := pullcmc.Config{
+			Cluster:       cluster,
+			Github:        client,
+			CMCRepository: cmcRepository,
+			CMCBranch:     cmcBranch,
+		}
+		cmc, err := c.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to pull CMC.\n%w", err)
+		}
+		return cmc.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pullCmd)
 	pullCmd.AddCommand(pullInstallationsCmd)
-	pullCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
-}
-
-func defaultPull() {
-	if installationsBranch == "" {
-		installationsBranch = key.InstallationsMainBranch
-	}
+	pullCmd.AddCommand(pullCMCCmd)
+	addFlagsPull()
 }
