@@ -13,11 +13,6 @@ type CMC struct {
 	Contents map[string]string
 }
 
-type CMCRepo struct {
-	PostBuild flux.Kustomization `yaml:"postBuild,omitempty"`
-	MakeFile  string             `yaml:"makeFile,omitempty"`
-}
-
 func GetKustomization(data []byte) (*flux.Kustomization, error) {
 	log.Debug().Msg("getting kustomization object from data")
 	kustomization := flux.Kustomization{}
