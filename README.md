@@ -1,15 +1,39 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/giantswarm/`mcli`/tree/main.svg?style=svg&circle-token=6a77fd68819c9f0d95d09d9ba329ba5e5bf169e6)](https://dl.circleci.com/status-badge/redirect/gh/giantswarm/`mcli`/tree/main)
+
 # MCLI
 
 CLI tool for managing Giant Swarm installations.
 
-### Some suggestions for your README
+## What is MCLI?
 
-After you have created your new repository, you may want to add some of these badges to the top of your README.
+`mcli` is a golang based CLI tool for managing configuration for Giant Swarm management clusters.
+The idea is to provide a tool that allows for easier review, creation and updates of configuration data.
+Commands found inside the tool are based on scripts that are part of [mc-bootstrap](github.com/giantswarm/mc-bootstrap) with the goal to replace more and more of them as new commands are added to `mcli`.
 
-- **CircleCI:** After enabling builds for this repo via [this link](https://circleci.com/setup-project/gh/giantswarm/mcli), you can find badge code on [this page](https://app.circleci.com/settings/project/github/giantswarm/mcli/status-badges).
+## Installation
 
-- **Go reference:** use [this helper](https://pkg.go.dev/badge/) to create the markdown code.
+`mcli` can be installed as Go binary.
 
-- **Go report card:** enter the module name on the [front page](https://goreportcard.com/) and hit "Generate report". Then use this markdown code for your badge: `[![Go report card](https://goreportcard.com/badge/github.com/giantswarm/mcli)](https://goreportcard.com/report/github.com/giantswarm/mcli)`
+```nohighlight
+go install github.com/giantswarm/`mcli`@latest
+```
 
-- **Sourcegraph "used by N projects" badge**: for public Go repos only: `[![Sourcegraph](https://sourcegraph.com/github.com/giantswarm/mcli/-/badge.svg)](https://sourcegraph.com/github.com/giantswarm/mcli)`
+## Usage
+
+```nohighlight
+$ mcli pull -c <cluster-id> > config.yaml
+```
+
+Use `--help` to learn about more options.
+
+## Commands
+
+As most configuration is stored in git repositories, commands generally involve pulling from, pushing to, or creating repositories.
+If no flags or input configuration is provided, the tool will use the same environment variables as mc-bootstrap.
+
+- `mcli` pull` - Pulls the configuration of a given management cluster and prints it to stdout.
+This can be used to review the configuration before making changes or to use as a base for creating a new configuration.
+- `mcli` push` - Pushes configuration of a management cluster.
+- `mcli` create` - Creates a repository. For the time being, this is only needed to create a new customer repository.
+
+The tool will not print any logs unless it is run in `--verbose` mode.
