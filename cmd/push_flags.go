@@ -67,9 +67,15 @@ func validatePush(cmd *cobra.Command, args []string) error {
 
 func defaultPush() {
 	if installationsBranch == "" {
-		installationsBranch = key.GetDefaultInstallationsBranch(cluster)
+		installationsBranch = key.GetDefaultPRBranch(cluster)
+	}
+	if cmcBranch == "" {
+		cmcBranch = key.GetDefaultPRBranch(cluster)
 	}
 	if customer == "" {
 		customer = "giantswarm"
+	}
+	if cmcRepository == "" {
+		cmcRepository = key.GetCMCName(customer)
 	}
 }

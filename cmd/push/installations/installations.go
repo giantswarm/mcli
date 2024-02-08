@@ -130,7 +130,7 @@ func (c *Config) Push(ctx context.Context, i *installations.Installations) (*ins
 	}
 
 	log.Debug().Msg(fmt.Sprintf("pushing installations %s", c.Cluster))
-	data, err := i.GetData()
+	data, err := installations.GetData(i)
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +179,7 @@ func getNewInstallationsFromFlags(flags InstallationsFlags, cluster string) (*in
 	if flags.BaseDomain == "" ||
 		flags.CMCRepository == "" ||
 		flags.Team == "" ||
+		flags.Customer == "" ||
 		flags.Provider == "" {
 		return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
 	}
@@ -222,6 +223,7 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 		CmcRepository:   flags.CMCRepository,
 		AccountEngineer: flags.Team,
 		Provider:        flags.Provider,
+		Customer:        flags.Customer,
 	}
 	if flags.Provider == key.ProviderAWS {
 		c.AwsRegion = flags.AWS.Region
@@ -247,6 +249,7 @@ func (c *Config) Validate() error {
 		c.Flags.Team == "" &&
 		c.Flags.Provider == "" &&
 		c.Flags.AWS.Region == "" &&
+		c.Flags.Customer == "" &&
 		c.Flags.AWS.InstallationAWSAccount == "" {
 		return fmt.Errorf("no input file or flags specified.\n%w", ErrInvalidFlag)
 	}

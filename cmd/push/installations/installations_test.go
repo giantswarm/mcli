@@ -40,6 +40,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				CMCRepository: "test",
 				Team:          "testteam",
 				Provider:      "capz",
+				Customer:      "giantswarm",
 			},
 			cluster: "test",
 			expected: &installations.Installations{
@@ -60,6 +61,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				CMCRepository: "test",
 				Team:          "testteam",
 				Provider:      "capa",
+				Customer:      "test",
 				AWS: AWSFlags{
 					Region:                 "eu-west-1",
 					InstallationAWSAccount: "123456789012",
@@ -69,7 +71,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 			expected: &installations.Installations{
 				Base:            "test.com",
 				Codename:        "test",
-				Customer:        "giantswarm",
+				Customer:        "test",
 				Provider:        "capa-test",
 				Pipeline:        "testing",
 				CmcRepository:   "test",

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,7 +32,7 @@ func GetRepos(data []byte) ([]Repo, error) {
 }
 
 func GetData(repo []Repo) ([]byte, error) {
-	// marshal repositories with an indentation of 2 spaces
+	log.Debug().Msg("getting data from repositories object")
 	w := new(bytes.Buffer)
 	encoder := yaml.NewEncoder(w)
 	encoder.SetIndent(2)
