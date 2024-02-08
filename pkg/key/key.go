@@ -1,8 +1,9 @@
 package key
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 )
 
 const (
@@ -58,7 +59,7 @@ func GetCMCName(customer string) string {
 	return fmt.Sprintf("%s-management-clusters", customer)
 }
 
-func GetDefaultInstallationsBranch(cluster string) string {
+func GetDefaultPRBranch(cluster string) string {
 	return fmt.Sprintf("%s_auto_branch", cluster)
 }
 
@@ -67,7 +68,11 @@ func GetOwnershipBranch(customer string) string {
 }
 
 func GetRandom() string {
-	return fmt.Sprintf("%d", rand.Intn(32767))
+	random, err := rand.Int(rand.Reader, big.NewInt(32767))
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%d", random)
 }
 
 func IsValidRepository(repository string) bool {

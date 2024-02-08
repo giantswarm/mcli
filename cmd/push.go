@@ -7,11 +7,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/giantswarm/mcli/cmd/push"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
-	"github.com/spf13/cobra"
 )
 
 // pushCmd represents the push command

@@ -40,6 +40,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				CMCRepository: "test",
 				Team:          "testteam",
 				Provider:      "capz",
+				Customer:      "giantswarm",
 			},
 			cluster: "test",
 			expected: &installations.Installations{
@@ -60,6 +61,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				CMCRepository: "test",
 				Team:          "testteam",
 				Provider:      "capa",
+				Customer:      "test",
 				AWS: AWSFlags{
 					Region:                 "eu-west-1",
 					InstallationAWSAccount: "123456789012",
@@ -69,7 +71,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 			expected: &installations.Installations{
 				Base:            "test.com",
 				Codename:        "test",
-				Customer:        "giantswarm",
+				Customer:        "test",
 				Provider:        "capa-test",
 				Pipeline:        "testing",
 				CmcRepository:   "test",
@@ -166,6 +168,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 			name: "all flags, no current",
 			flags: InstallationsFlags{
 				BaseDomain:    "test.com",
+				Customer:      "giantswarm",
 				CMCRepository: "test",
 				Team:          "testteam",
 				Provider:      "capz",
@@ -175,7 +178,6 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Base:            "test.com",
 				Customer:        "giantswarm",
 				Provider:        "capz",
-				Pipeline:        "testing",
 				CmcRepository:   "test",
 				AccountEngineer: "testteam",
 			},
@@ -186,6 +188,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Team:          "testteam",
+				Customer:      "giantswarm",
 			},
 			current: &installations.Installations{
 				Base:            "test2.com",
@@ -199,7 +202,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Base:            "test.com",
 				CmcRepository:   "test",
 				AccountEngineer: "testteam",
-				Customer:        "giantswarm2",
+				Customer:        "giantswarm",
 				Provider:        "capv",
 				Pipeline:        "stable",
 			},

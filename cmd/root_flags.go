@@ -3,9 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 
 const (
 	envCluster             = "INSTALLATION"
-	envGithubToken         = "OPSCTL_GITHUB_TOKEN"
+	envGithubToken         = "OPSCTL_GITHUB_TOKEN" // #nosec G101
 	envInstallationsBranch = "INSTALLATIONS_BRANCH"
 	envCMCRepository       = "CMC_REPOSITORY"
 	envCMCBranch           = "CMC_BRANCH"
@@ -43,13 +44,17 @@ func addFlagsRoot() {
 	viper.AutomaticEnv()
 
 	rootCmd.PersistentFlags().StringVar(&githubToken, flagGithubToken, viper.GetString(envGithubToken), "Github token to use for authentication")
-	rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
 	rootCmd.PersistentFlags().StringVarP(&cluster, flagCluster, "c", viper.GetString(envCluster), "Name of the management cluster to operate on")
 	rootCmd.PersistentFlags().StringVar(&installationsBranch, flagInstallationsBranch, viper.GetString(envInstallationsBranch), "Branch to use for the installations repository")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, flagVerbose, "v", false, "Display more verbose output in console output. (default: false)")
 	rootCmd.PersistentFlags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
 	rootCmd.PersistentFlags().StringVar(&cmcBranch, flagCMCBranch, viper.GetString(envCMCBranch), "Branch to use for the CMC repository")
 	rootCmd.PersistentFlags().StringVar(&customer, flagCustomer, viper.GetString(envCustomer), "Name of the customer who owns the management cluster")
+
+	err := rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func validateRoot(cmd *cobra.Command, args []string) error {

@@ -1,13 +1,15 @@
 package installations
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"reflect"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 type Installations struct {
@@ -93,17 +95,20 @@ func GetInstallations(data []byte) (*Installations, error) {
 	return &installations, nil
 }
 
-func (i *Installations) GetData() ([]byte, error) {
+func GetData(i *Installations) ([]byte, error) {
 	log.Debug().Msg("getting data from installations object")
-	data, err := yaml.Marshal(i)
+	w := new(bytes.Buffer)
+	encoder := yaml.NewEncoder(w)
+	encoder.SetIndent(2)
+	err := encoder.Encode(i)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal installations object.\n%w", err)
 	}
-	return data, nil
+	return w.Bytes(), nil
 }
 
 func (i *Installations) Print() error {
-	data, err := i.GetData()
+	data, err := GetData(i)
 	if err != nil {
 		return err
 	}

@@ -1,13 +1,15 @@
 package managementcluster
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
-	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
+	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 )
 
 type ManagementCluster struct {
@@ -16,7 +18,7 @@ type ManagementCluster struct {
 }
 
 func (mc *ManagementCluster) Print() error {
-	data, err := mc.GetData()
+	data, err := GetData(mc)
 	if err != nil {
 		return err
 	}
@@ -24,13 +26,16 @@ func (mc *ManagementCluster) Print() error {
 	return nil
 }
 
-func (mc *ManagementCluster) GetData() ([]byte, error) {
+func GetData(mc *ManagementCluster) ([]byte, error) {
 	log.Debug().Msg("getting management cluster data")
-	data, err := yaml.Marshal(mc)
+	w := new(bytes.Buffer)
+	encoder := yaml.NewEncoder(w)
+	encoder.SetIndent(2)
+	err := encoder.Encode(mc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal management cluster object.\n%w", err)
 	}
-	return data, nil
+	return w.Bytes(), nil
 }
 
 func GetManagementCluster(data []byte) (*ManagementCluster, error) {
