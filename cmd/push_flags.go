@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 const (

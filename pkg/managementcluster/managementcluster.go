@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
-	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
+	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 )
 
 type ManagementCluster struct {

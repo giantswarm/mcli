@@ -5,9 +5,10 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 type Installations struct {

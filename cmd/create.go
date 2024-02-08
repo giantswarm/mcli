@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	createcmc "github.com/giantswarm/mcli/cmd/create/cmc"
 	"github.com/giantswarm/mcli/pkg/github"
-	"github.com/spf13/cobra"
 )
 
 var createCmd = &cobra.Command{

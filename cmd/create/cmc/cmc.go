@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/repositories"
-	"github.com/rs/zerolog/log"
 )
 
 const (

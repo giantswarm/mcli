@@ -7,11 +7,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/giantswarm/mcli/cmd/pull"
 	pullcmc "github.com/giantswarm/mcli/cmd/pull/cmc"
 	pullinstallations "github.com/giantswarm/mcli/cmd/pull/installations"
 	"github.com/giantswarm/mcli/pkg/github"
-	"github.com/spf13/cobra"
 )
 
 // pullCmd represents the pull command

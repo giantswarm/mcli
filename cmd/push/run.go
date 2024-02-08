@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
+
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster"
-	"github.com/rs/zerolog/log"
 )
 
 type Config struct {

@@ -21,7 +21,7 @@ go install github.com/giantswarm/`mcli`@latest
 ## Usage
 
 ```nohighlight
-$ mcli pull -c <cluster-id> > config.yaml
+$ mcli pull -c $MC_NAME > config.yaml
 ```
 
 Use `--help` to learn about more options.
