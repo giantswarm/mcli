@@ -2,11 +2,12 @@ package installations
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type Installations struct {
@@ -199,4 +200,15 @@ func (i *Installations) Validate() error {
 
 func (i *Installations) Equals(other *Installations) bool {
 	return reflect.DeepEqual(i, other)
+}
+
+func GetInstallationsFromFile(path string) (*Installations, error) {
+	log.Debug().Msg(fmt.Sprintf("getting installations object from file %s", path))
+	// read data from input file
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read input file %s.\n%w", path, err)
+	}
+
+	return GetInstallations(data)
 }

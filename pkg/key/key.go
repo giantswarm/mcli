@@ -1,11 +1,20 @@
 package key
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 const (
 	OrganizationGiantSwarm  = "giantswarm"
 	RepositoryInstallations = "installations"
+	RepositoryCMC           = "cmc"
+	RepositoryGithub        = "github"
 	InstallationsMainBranch = "master"
+	CMCMainBranch           = "main"
+	Employees               = "employees"
+	Bots                    = "bots"
+	CMCTemplateRepository   = "template-management-clusters"
 )
 
 const (
@@ -29,15 +38,36 @@ func GetValidProviders() []string {
 func GetValidRepositories() []string {
 	return []string{
 		RepositoryInstallations,
+		RepositoryCMC,
 	}
+}
+
+func CMCTemplate() string {
+	return fmt.Sprintf("%s/%s", OrganizationGiantSwarm, CMCTemplateRepository)
 }
 
 func GetInstallationsPath(cluster string) string {
 	return fmt.Sprintf("%s/cluster.yaml", cluster)
 }
 
+func GetCMCPath(cluster string) string {
+	return fmt.Sprintf("management-clusters/%s", cluster)
+}
+
+func GetCMCName(customer string) string {
+	return fmt.Sprintf("%s-management-clusters", customer)
+}
+
 func GetDefaultInstallationsBranch(cluster string) string {
 	return fmt.Sprintf("%s_auto_branch", cluster)
+}
+
+func GetOwnershipBranch(customer string) string {
+	return fmt.Sprintf("add-%s-mc-to-honeybadger-%s", customer, GetRandom())
+}
+
+func GetRandom() string {
+	return fmt.Sprintf("%d", rand.Intn(32767))
 }
 
 func IsValidRepository(repository string) bool {

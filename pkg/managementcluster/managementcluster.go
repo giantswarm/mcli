@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type ManagementCluster struct {
 	Installations installations.Installations `yaml:"installations,omitempty"`
+	CMC           cmc.CMC                     `yaml:"cmc,omitempty"`
 }
 
 func (mc *ManagementCluster) Print() error {
@@ -49,9 +51,5 @@ func GetManagementClusterFromFile(input string) (*ManagementCluster, error) {
 		return nil, fmt.Errorf("failed to read input file %s.\n%w", input, err)
 	}
 
-	newMC, err := GetManagementCluster(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get new management cluster object from data.\n%w", err)
-	}
-	return newMC, nil
+	return GetManagementCluster(data)
 }

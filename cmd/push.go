@@ -6,43 +6,12 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/giantswarm/mcli/cmd/push"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
-	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/rs/zerolog/log"
+	"github.com/giantswarm/mcli/pkg/github"
+	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
-
-const (
-	flagInput         = "input"
-	flagBaseDomain    = "base-domain"
-	flagCMCRepository = "cmc-repository"
-	flagTeam          = "team"
-	flagProvider      = "provider"
-	flagAWSRegion     = "aws-region"
-	flagAWSAccountID  = "aws-account-id"
-)
-
-const (
-	envBaseDomain    = "BASE_DOMAIN"
-	envCMCRepository = "CMC_REPOSITORY"
-	envTeam          = "TEAM_NAME"
-	envProvider      = "PROVIDER"
-	envAWSRegion     = "AWS_REGION"
-	envAWSAccountID  = "INSTALLATION_AWS_ACCOUNT"
-)
-
-var (
-	input         string
-	baseDomain    string
-	cmcRepository string
-	team          string
-	provider      string
-	awsRegion     string
-	awsAccountID  string
 )
 
 // pushCmd represents the push command
@@ -53,10 +22,9 @@ var pushCmd = &cobra.Command{
 relevant git repositories. For example:
 
 mcli push --cluster=gigmac --input=cluster.yaml`,
-	PreRun: toggleVerbose,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defaultPush()
-		err := validate(cmd, args)
+		err := validateRoot(cmd, args)
 		if err != nil {
 			return err
 		}
@@ -76,6 +44,7 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 				CMCRepository: cmcRepository,
 				Team:          team,
 				Provider:      provider,
+				Customer:      customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
@@ -90,31 +59,60 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 	},
 }
 
+// pushInstallationsCmd represents the push installations command
+var pushInstallationsCmd = &cobra.Command{
+	Use:   "installations",
+	Short: "Pushes configuration of a Management Cluster installations repository entry",
+	Long: `Pushes configuration of a Management Cluster installations repository entry to
+installations repository. For example:
+
+mcli push installations --cluster=gigmac --input=cluster.yaml`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPush()
+		err := validateRoot(cmd, args)
+		if err != nil {
+			return err
+		}
+		err = validatePush(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		i := pushinstallations.Config{
+			Cluster:             cluster,
+			Github:              client,
+			InstallationsBranch: installationsBranch,
+			Flags: pushinstallations.InstallationsFlags{
+				BaseDomain:    baseDomain,
+				CMCRepository: cmcRepository,
+				Team:          team,
+				Provider:      provider,
+				Customer:      customer,
+				AWS: pushinstallations.AWSFlags{
+					Region:                 awsRegion,
+					InstallationAWSAccount: awsAccountID,
+				},
+			},
+		}
+		if input != "" {
+			i.Input, err = installations.GetInstallationsFromFile(input)
+			if err != nil {
+				return fmt.Errorf("failed to get new installations object from input file.\n%w", err)
+			}
+		}
+		installations, err := i.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to push installations.\n%w", err)
+		}
+		return installations.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pushCmd)
-	pushCmd.Flags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
-	pushCmd.Flags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
-	pushCmd.Flags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
-	pushCmd.Flags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
-	pushCmd.Flags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
-	pushCmd.Flags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
-	pushCmd.Flags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
-}
-
-func validatePush(cmd *cobra.Command, args []string) error {
-	if input != "" {
-		_, err := os.Stat(input)
-		if err != nil {
-			return fmt.Errorf("input file %s can not be accessed.\n%w", input, err)
-		}
-		log.Debug().Msg(fmt.Sprintf("using input file %s", input))
-		return nil
-	}
-	return nil
-}
-
-func defaultPush() {
-	if installationsBranch == "" {
-		installationsBranch = key.GetDefaultInstallationsBranch(cluster)
-	}
+	pushCmd.AddCommand(pushInstallationsCmd)
+	addFlagsPush()
 }
