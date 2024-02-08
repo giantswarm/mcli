@@ -65,7 +65,7 @@ func (c *Config) Create(ctx context.Context) (*installations.Installations, erro
 	var err error
 
 	log.Debug().Msg(fmt.Sprintf("creating new installations %s", c.Cluster))
-	desiredInstallations := &installations.Installations{}
+	var desiredInstallations *installations.Installations
 	{
 		if c.Input == nil {
 			desiredInstallations, err = getNewInstallationsFromFlags(c.Flags, c.Cluster)
