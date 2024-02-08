@@ -3,7 +3,8 @@ module github.com/giantswarm/mcli
 go 1.21
 
 require (
-	github.com/fluxcd/kustomize-controller/api v1.2.1
+	github.com/fluxcd/kustomize-controller/api v1.2.2
+	github.com/google/go-github/v57 v57.0.0
 	github.com/google/go-github/v58 v58.0.0
 	github.com/rs/zerolog v1.32.0
 	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc
@@ -14,8 +15,8 @@ require (
 )
 
 require (
-	github.com/fluxcd/pkg/apis/kustomize v1.2.0 // indirect
-	github.com/fluxcd/pkg/apis/meta v1.2.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.3.0 // indirect
+	github.com/fluxcd/pkg/apis/meta v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -50,8 +51,8 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.28.4 // indirect
-	k8s.io/apimachinery v0.28.4 // indirect
+	k8s.io/apiextensions-apiserver v0.28.6 // indirect
+	k8s.io/apimachinery v0.28.6 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/utils v0.0.0-20231127182322-b307cd553661 // indirect
 	sigs.k8s.io/controller-runtime v0.16.3 // indirect
