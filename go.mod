@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/fluxcd/kustomize-controller/api v1.2.2
 	github.com/google/go-github/v57 v57.0.0
+	github.com/google/go-github/v59 v59.0.0
 	github.com/rs/zerolog v1.32.0
 	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc
 	github.com/spf13/cobra v1.8.0
