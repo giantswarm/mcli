@@ -13,6 +13,8 @@ import (
 
 type Config struct {
 	Cluster             string
+	Provider            string
+	CMCRepository       string
 	Github              *github.Github
 	InstallationsBranch string
 	Input               *installations.Installations
@@ -20,12 +22,10 @@ type Config struct {
 }
 
 type InstallationsFlags struct {
-	BaseDomain    string
-	CMCRepository string
-	Team          string
-	Provider      string
-	AWS           AWSFlags
-	Customer      string
+	BaseDomain string
+	Team       string
+	AWS        AWSFlags
+	Customer   string
 }
 
 type AWSFlags struct {
@@ -68,7 +68,7 @@ func (c *Config) Create(ctx context.Context) (*installations.Installations, erro
 	var desiredInstallations *installations.Installations
 	{
 		if c.Input == nil {
-			desiredInstallations, err = getNewInstallationsFromFlags(c.Flags, c.Cluster)
+			desiredInstallations, err = getNewInstallationsFromFlags(*c)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get new installations object from flags.\n%w", err)
 			}
@@ -84,7 +84,7 @@ func (c *Config) Update(ctx context.Context, currentInstallations *installations
 	var desiredInstallations *installations.Installations
 	{
 		if c.Input == nil {
-			desiredInstallations = overrideInstallationsWithFlags(currentInstallations, c.Flags)
+			desiredInstallations = overrideInstallationsWithFlags(currentInstallations, *c)
 		} else {
 			desiredInstallations = currentInstallations.Override(c.Input)
 		}
@@ -174,18 +174,19 @@ func (c *Config) Branch(ctx context.Context) error {
 	return nil
 }
 
-func getNewInstallationsFromFlags(flags InstallationsFlags, cluster string) (*installations.Installations, error) {
+func getNewInstallationsFromFlags(flags Config) (*installations.Installations, error) {
 	//Ensure that all the needed flags are set
-	if flags.BaseDomain == "" ||
+	if flags.Flags.BaseDomain == "" ||
 		flags.CMCRepository == "" ||
-		flags.Team == "" ||
-		flags.Customer == "" ||
-		flags.Provider == "" {
+		flags.Flags.Team == "" ||
+		flags.Flags.Customer == "" ||
+		flags.Provider == "" ||
+		flags.Cluster == "" {
 		return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
 	}
 	if flags.Provider == key.ProviderAWS {
-		if flags.AWS.Region == "" ||
-			flags.AWS.InstallationAWSAccount == "" {
+		if flags.Flags.AWS.Region == "" ||
+			flags.Flags.AWS.InstallationAWSAccount == "" {
 			return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
 		}
 	}
@@ -193,21 +194,21 @@ func getNewInstallationsFromFlags(flags InstallationsFlags, cluster string) (*in
 	log.Debug().Msg("getting new installations object from flags")
 
 	c := installations.InstallationsConfig{
-		Base:            flags.BaseDomain,
-		Codename:        cluster,
-		Customer:        flags.Customer,
+		Base:            flags.Flags.BaseDomain,
+		Codename:        flags.Cluster,
+		Customer:        flags.Flags.Customer,
 		CmcRepository:   flags.CMCRepository,
-		AccountEngineer: flags.Team,
+		AccountEngineer: flags.Flags.Team,
 		Pipeline:        "testing",
 		Provider:        fmt.Sprintf("%s-test", flags.Provider),
 	}
 	if flags.Provider == key.ProviderAWS {
-		c.AwsRegion = flags.AWS.Region
-		c.AwsHostClusterAccount = flags.AWS.InstallationAWSAccount
-		c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.AWS.InstallationAWSAccount)
+		c.AwsRegion = flags.Flags.AWS.Region
+		c.AwsHostClusterAccount = flags.Flags.AWS.InstallationAWSAccount
+		c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.Flags.AWS.InstallationAWSAccount)
 		c.AwsHostClusterCloudtrailBucket = ""
 		c.AwsHostClusterGuardDuty = false
-		c.AwsGuestClusterAccount = flags.AWS.InstallationAWSAccount
+		c.AwsGuestClusterAccount = flags.Flags.AWS.InstallationAWSAccount
 		c.AwsGuestClusterCloudtrailBucket = ""
 		c.AwsGuestClusterGuardDuty = false
 	}
@@ -215,22 +216,23 @@ func getNewInstallationsFromFlags(flags InstallationsFlags, cluster string) (*in
 	return installations.NewInstallations(c), nil
 }
 
-func overrideInstallationsWithFlags(current *installations.Installations, flags InstallationsFlags) *installations.Installations {
+func overrideInstallationsWithFlags(current *installations.Installations, flags Config) *installations.Installations {
 	log.Debug().Msg("overriding installations object with flags")
 
 	c := installations.InstallationsConfig{
-		Base:            flags.BaseDomain,
+		Codename:        flags.Cluster,
+		Base:            flags.Flags.BaseDomain,
 		CmcRepository:   flags.CMCRepository,
-		AccountEngineer: flags.Team,
+		AccountEngineer: flags.Flags.Team,
 		Provider:        flags.Provider,
-		Customer:        flags.Customer,
+		Customer:        flags.Flags.Customer,
 	}
 	if flags.Provider == key.ProviderAWS {
-		c.AwsRegion = flags.AWS.Region
-		if flags.AWS.InstallationAWSAccount != "" {
-			c.AwsHostClusterAccount = flags.AWS.InstallationAWSAccount
-			c.AwsGuestClusterAccount = flags.AWS.InstallationAWSAccount
-			c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.AWS.InstallationAWSAccount)
+		c.AwsRegion = flags.Flags.AWS.Region
+		if flags.Flags.AWS.InstallationAWSAccount != "" {
+			c.AwsHostClusterAccount = flags.Flags.AWS.InstallationAWSAccount
+			c.AwsGuestClusterAccount = flags.Flags.AWS.InstallationAWSAccount
+			c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.Flags.AWS.InstallationAWSAccount)
 		}
 	}
 	return current.Override(installations.NewInstallations(c))
@@ -245,18 +247,18 @@ func (c *Config) Validate() error {
 		return nil
 	}
 	if c.Flags.BaseDomain == "" &&
-		c.Flags.CMCRepository == "" &&
+		c.CMCRepository == "" &&
 		c.Flags.Team == "" &&
-		c.Flags.Provider == "" &&
+		c.Provider == "" &&
 		c.Flags.AWS.Region == "" &&
 		c.Flags.Customer == "" &&
 		c.Flags.AWS.InstallationAWSAccount == "" {
 		return fmt.Errorf("no input file or flags specified.\n%w", ErrInvalidFlag)
 	}
 
-	if c.Flags.Provider != "" {
-		if !key.IsValidProvider(c.Flags.Provider) {
-			return fmt.Errorf("invalid provider %s. Valid values: %s:\n%w", c.Flags.Provider, key.GetValidProviders(), ErrInvalidFlag)
+	if c.Provider != "" {
+		if !key.IsValidProvider(c.Provider) {
+			return fmt.Errorf("invalid provider %s. Valid values: %s:\n%w", c.Provider, key.GetValidProviders(), ErrInvalidFlag)
 		}
 	}
 	// todo: check format of other flags if they are set

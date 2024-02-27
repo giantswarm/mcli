@@ -10,8 +10,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/mcli/cmd/push"
+	pushcmc "github.com/giantswarm/mcli/cmd/push/cmc"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 )
 
@@ -40,16 +42,20 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 			InstallationsBranch: installationsBranch,
 			Skip:                skip,
 			Input:               input,
+			CMCBranch:           cmcBranch,
+			CMCRepository:       cmcRepository,
+			Provider:            provider,
 			InstallationsFlags: pushinstallations.InstallationsFlags{
-				BaseDomain:    baseDomain,
-				CMCRepository: cmcRepository,
-				Team:          team,
-				Provider:      provider,
-				Customer:      customer,
+				BaseDomain: baseDomain,
+				Team:       team,
+				Customer:   customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
 				},
+			},
+			CMCFlags: pushcmc.CMCFlags{
+				// TODO: Add CMC flags
 			},
 		}
 		err = push.Run(c, ctx)
@@ -86,12 +92,12 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 			Cluster:             cluster,
 			Github:              client,
 			InstallationsBranch: installationsBranch,
+			CMCRepository:       cmcRepository,
+			Provider:            provider,
 			Flags: pushinstallations.InstallationsFlags{
-				BaseDomain:    baseDomain,
-				CMCRepository: cmcRepository,
-				Team:          team,
-				Provider:      provider,
-				Customer:      customer,
+				BaseDomain: baseDomain,
+				Team:       team,
+				Customer:   customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
@@ -112,8 +118,55 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 	},
 }
 
+// pushCMCCmd represents the push CMC command
+var pushCMCCmd = &cobra.Command{
+	Use:   "cmc",
+	Short: "Pushes configuration of a Management Cluster CMC repository entry",
+	Long: `Pushes configuration of a Management Cluster CMC repository entry to
+CMC repository. For example:
+
+mcli push cmc --cluster=gigmac --input=cluster.yaml`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPush()
+		err := validateRoot(cmd, args)
+		if err != nil {
+			return err
+		}
+		err = validatePush(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		c := pushcmc.Config{
+			Cluster:       cluster,
+			Github:        client,
+			CMCRepository: cmcRepository,
+			CMCBranch:     cmcBranch,
+			Provider:      provider,
+			Flags:         pushcmc.CMCFlags{
+				// TODO: Add CMC flags
+			},
+		}
+		if input != "" {
+			c.Input, err = cmc.GetCMCFromFile(input)
+			if err != nil {
+				return fmt.Errorf("failed to get new CMC object from input file.\n%w", err)
+			}
+		}
+		cmc, err := c.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to push CMC.\n%w", err)
+		}
+		return cmc.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pushCmd)
 	pushCmd.AddCommand(pushInstallationsCmd)
+	pushCmd.AddCommand(pushCMCCmd)
 	addFlagsPush()
 }

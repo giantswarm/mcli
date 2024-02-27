@@ -10,39 +10,37 @@ import (
 
 func TestGetNewInstallationsFromFlags(t *testing.T) {
 	var testCases = []struct {
-		name    string
-		flags   InstallationsFlags
-		cluster string
+		name  string
+		flags Config
 
 		expected    *installations.Installations
 		expectError bool
 	}{
 		{
 			name:        "no flags",
-			cluster:     "test",
-			flags:       InstallationsFlags{},
+			flags:       Config{Flags: InstallationsFlags{}},
 			expectError: true,
 		},
 		{
 			name: "some flags",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
 			},
-			cluster:     "test",
+				CMCRepository: "test"},
 			expectError: true,
 		},
 		{
 			name: "all flags",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Provider:      "capz",
-				Customer:      "giantswarm",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
+				Customer:   "giantswarm",
 			},
-			cluster: "test",
+				CMCRepository: "test",
+				Provider:      "capz",
+				Cluster:       "test",
+			},
 			expected: &installations.Installations{
 				Base:            "test.com",
 				Codename:        "test",
@@ -56,18 +54,18 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		},
 		{
 			name: "all flags with AWS",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Provider:      "capa",
-				Customer:      "test",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
+				Customer:   "test",
 				AWS: AWSFlags{
 					Region:                 "eu-west-1",
 					InstallationAWSAccount: "123456789012",
 				},
 			},
-			cluster: "test",
+				CMCRepository: "test",
+				Provider:      "capa",
+				Cluster:       "test"},
 			expected: &installations.Installations{
 				Base:            "test.com",
 				Codename:        "test",
@@ -95,34 +93,35 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		},
 		{
 			name: "all flags but missing AWS flags",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Provider:      "capa",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
 			},
-			cluster:     "test",
+				CMCRepository: "test",
+				Provider:      "capa",
+				Cluster:       "test",
+			},
 			expectError: true,
 		},
 		{
 			name: "all flags but missing AWS region",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Provider:      "capa",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
 				AWS: AWSFlags{
 					InstallationAWSAccount: "123456789012",
 				},
 			},
-			cluster:     "test",
+				CMCRepository: "test",
+				Provider:      "capa",
+				Cluster:       "test"},
 			expectError: true,
 		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("case %d: %s", i, tc.name), func(t *testing.T) {
-			installation, err := getNewInstallationsFromFlags(tc.flags, tc.cluster)
+			installation, err := getNewInstallationsFromFlags(tc.flags)
 			if err != nil && !tc.expectError {
 				t.Fatalf("unexpected error: %v", err)
 			} else if err == nil && tc.expectError {
@@ -138,7 +137,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 func TestOverrideInstallationsWithFlags(t *testing.T) {
 	var testCases = []struct {
 		name    string
-		flags   InstallationsFlags
+		flags   Config
 		current *installations.Installations
 
 		expected *installations.Installations
@@ -146,17 +145,17 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		{
 			name:    "no flags, no current",
 			current: &installations.Installations{},
-			flags:   InstallationsFlags{},
+			flags:   Config{Flags: InstallationsFlags{}},
 
 			expected: &installations.Installations{},
 		},
 		{
 			name: "some flags, no current",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
 			},
+				CMCRepository: "test"},
 			current: &installations.Installations{},
 			expected: &installations.Installations{
 				Base:            "test.com",
@@ -166,15 +165,17 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		},
 		{
 			name: "all flags, no current",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				Customer:      "giantswarm",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Provider:      "capz",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Customer:   "giantswarm",
+				Team:       "testteam",
 			},
+				CMCRepository: "test",
+				Provider:      "capz",
+				Cluster:       "test"},
 			current: &installations.Installations{},
 			expected: &installations.Installations{
+				Codename:        "test",
 				Base:            "test.com",
 				Customer:        "giantswarm",
 				Provider:        "capz",
@@ -184,13 +185,14 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		},
 		{
 			name: "some flags, current values are set",
-			flags: InstallationsFlags{
-				BaseDomain:    "test.com",
-				CMCRepository: "test",
-				Team:          "testteam",
-				Customer:      "giantswarm",
+			flags: Config{Flags: InstallationsFlags{
+				BaseDomain: "test.com",
+				Team:       "testteam",
+				Customer:   "giantswarm",
 			},
+				CMCRepository: "test"},
 			current: &installations.Installations{
+				Codename:        "test2",
 				Base:            "test2.com",
 				CmcRepository:   "test2",
 				AccountEngineer: "testteam2",
@@ -199,6 +201,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Pipeline:        "stable",
 			},
 			expected: &installations.Installations{
+				Codename:        "test2",
 				Base:            "test.com",
 				CmcRepository:   "test",
 				AccountEngineer: "testteam",

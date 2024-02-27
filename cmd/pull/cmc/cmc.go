@@ -33,7 +33,10 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &cmc.CMC{
-		Contents: data,
-	}, nil
+	sops, err := cmcRepository.GetFile(ctx, cmc.SopsFile)
+	if err != nil {
+		return nil, err
+	}
+	data[cmc.SopsFile] = sops
+	return cmc.GetCMCFromMap(data), nil
 }

@@ -18,6 +18,7 @@ const (
 	flagCMCRepository       = "cmc-repository"
 	flagCMCBranch           = "cmc-branch"
 	flagCustomer            = "customer"
+	flagProvider            = "provider"
 )
 
 const (
@@ -27,6 +28,7 @@ const (
 	envCMCRepository       = "CMC_REPOSITORY"
 	envCMCBranch           = "CMC_BRANCH"
 	envCustomer            = "CUSTOMER"
+	envProvider            = "PROVIDER"
 )
 
 var (
@@ -50,6 +52,7 @@ func addFlagsRoot() {
 	rootCmd.PersistentFlags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
 	rootCmd.PersistentFlags().StringVar(&cmcBranch, flagCMCBranch, viper.GetString(envCMCBranch), "Branch to use for the CMC repository")
 	rootCmd.PersistentFlags().StringVar(&customer, flagCustomer, viper.GetString(envCustomer), "Name of the customer who owns the management cluster")
+	rootCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
 
 	err := rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
 	if err != nil {
