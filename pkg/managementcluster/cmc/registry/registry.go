@@ -1,8 +1,7 @@
 package registry
 
 type Config struct {
-	Values    string
-	AgePubKey string
+	Values string
 }
 
 func GetRegistryConfig(file string) Config {

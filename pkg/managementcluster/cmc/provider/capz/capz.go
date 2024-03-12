@@ -5,10 +5,9 @@ type Config struct {
 	IdentityUA       string
 	IdentitySP       string
 	IdentityStaticSP string
-	AgePubKey        string
 }
 
-func GetCAPZConfig(file string) Config {
+func GetCAPZConfig(sp string, ua string, staticsp string) Config {
 	return Config{}
 }
 

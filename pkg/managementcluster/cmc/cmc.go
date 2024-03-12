@@ -10,19 +10,23 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
 )
 
 type CMC struct {
 	AgePubKey                    string                       `yaml:"agePubKey"`
+	AgeKey                       string                       `yaml:"ageKey"`
 	Cluster                      string                       `yaml:"cluster"`
 	ClusterApp                   App                          `yaml:"clusterApp"`
-	DefaultApps                  App                          `yaml:"defaultApp"`
+	DefaultApps                  App                          `yaml:"defaultApps"`
 	MCAppsPreventDeletion        bool                         `yaml:"mcAppsPreventDeletion"`
 	PrivateCA                    bool                         `yaml:"privateCA"`
 	ClusterNamespace             string                       `yaml:"clusterNamespace"`
 	Provider                     Provider                     `yaml:"provider"`
-	TaylorBot                    TaylorBot                    `yaml:"taylorBot"`
-	DeployKey                    DeployKey                    `yaml:"deployKey"`
+	TaylorBotToken               string                       `yaml:"taylorBotToken"`
+	SSHdeployKey                 DeployKey                    `yaml:"sshDeployKey"`
+	CustomerDeployKey            DeployKey                    `yaml:"customerDeployKey"`
+	SharedDeployKey              DeployKey                    `yaml:"sharedDeployKey"`
 	CertManagerDNSChallenge      CertManagerDNSChallenge      `yaml:"certManagerDNSChallenge"`
 	ConfigureContainerRegistries ConfigureContainerRegistries `yaml:"configureContainerRegistries"`
 	CustomCoreDNS                bool                         `yaml:"customCoreDNS"`
@@ -35,6 +39,7 @@ type App struct {
 	Catalog string `yaml:"catalog"`
 	Version string `yaml:"version"`
 	Values  string `yaml:"values"`
+	AppName string `yaml:"appName,omitempty"`
 }
 
 type Provider struct {
@@ -71,21 +76,15 @@ type ConfigureContainerRegistries struct {
 	Values  string `yaml:"values,omitempty"`
 }
 
-type TaylorBot struct {
-	User  string `yaml:"user"`
-	Token string `yaml:"token"`
-}
-
 type DeployKey struct {
-	Key        string `yaml:"key"`
+	Passphrase string `yaml:"key"`
 	Identity   string `yaml:"identity"`
 	KnownHosts string `yaml:"knownHosts"`
 }
 
 type MCProxy struct {
-	Enabled  bool   `yaml:"enabled"`
-	HostName string `yaml:"hostName,omitempty"`
-	Port     int    `yaml:"port,omitempty"`
+	Enabled    bool   `yaml:"enabled"`
+	HTTPSProxy string `yaml:"httpsProxy,omitempty"`
 }
 
 func GetCMC(data []byte) (*CMC, error) {
@@ -115,6 +114,7 @@ func (c *CMC) Print() error {
 		return err
 	}
 	log.Debug().Msg("printing CMC object")
+	// TODO hide secrets
 	fmt.Print(string(data))
 	return nil
 }
@@ -124,11 +124,17 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.AgePubKey != "" {
 		cmc.AgePubKey = override.AgePubKey
 	}
+	if override.AgeKey != "" {
+		cmc.AgeKey = override.AgeKey
+	}
 	if override.Cluster != "" {
 		cmc.Cluster = override.Cluster
 	}
 	if override.ClusterApp.Name != "" {
 		cmc.ClusterApp.Name = override.ClusterApp.Name
+	}
+	if override.ClusterApp.AppName != "" {
+		cmc.ClusterApp.AppName = override.ClusterApp.AppName
 	}
 	if override.ClusterApp.Catalog != "" {
 		cmc.ClusterApp.Catalog = override.ClusterApp.Catalog
@@ -141,6 +147,9 @@ func (c *CMC) Override(override *CMC) *CMC {
 	}
 	if override.DefaultApps.Name != "" {
 		cmc.DefaultApps.Name = override.DefaultApps.Name
+	}
+	if override.DefaultApps.AppName != "" {
+		cmc.DefaultApps.AppName = override.DefaultApps.AppName
 	}
 	if override.DefaultApps.Catalog != "" {
 		cmc.DefaultApps.Catalog = override.DefaultApps.Catalog
@@ -182,20 +191,35 @@ func (c *CMC) Override(override *CMC) *CMC {
 			}
 		}
 	}
-	if override.TaylorBot.User != "" {
-		cmc.TaylorBot.User = override.TaylorBot.User
+	if override.TaylorBotToken != "" {
+		cmc.TaylorBotToken = override.TaylorBotToken
 	}
-	if override.TaylorBot.Token != "" {
-		cmc.TaylorBot.Token = override.TaylorBot.Token
+	if override.SSHdeployKey.Passphrase != "" {
+		cmc.SSHdeployKey.Passphrase = override.SSHdeployKey.Passphrase
 	}
-	if override.DeployKey.Key != "" {
-		cmc.DeployKey.Key = override.DeployKey.Key
+	if override.SSHdeployKey.Identity != "" {
+		cmc.SSHdeployKey.Identity = override.SSHdeployKey.Identity
 	}
-	if override.DeployKey.Identity != "" {
-		cmc.DeployKey.Identity = override.DeployKey.Identity
+	if override.SSHdeployKey.KnownHosts != "" {
+		cmc.SSHdeployKey.KnownHosts = override.SSHdeployKey.KnownHosts
 	}
-	if override.DeployKey.KnownHosts != "" {
-		cmc.DeployKey.KnownHosts = override.DeployKey.KnownHosts
+	if override.CustomerDeployKey.Passphrase != "" {
+		cmc.CustomerDeployKey.Passphrase = override.CustomerDeployKey.Passphrase
+	}
+	if override.CustomerDeployKey.Identity != "" {
+		cmc.CustomerDeployKey.Identity = override.CustomerDeployKey.Identity
+	}
+	if override.CustomerDeployKey.KnownHosts != "" {
+		cmc.CustomerDeployKey.KnownHosts = override.CustomerDeployKey.KnownHosts
+	}
+	if override.SharedDeployKey.Passphrase != "" {
+		cmc.SharedDeployKey.Passphrase = override.SharedDeployKey.Passphrase
+	}
+	if override.SharedDeployKey.Identity != "" {
+		cmc.SharedDeployKey.Identity = override.SharedDeployKey.Identity
+	}
+	if override.SharedDeployKey.KnownHosts != "" {
+		cmc.SharedDeployKey.KnownHosts = override.SharedDeployKey.KnownHosts
 	}
 	if override.CertManagerDNSChallenge.Enabled {
 		cmc.CertManagerDNSChallenge.Enabled = override.CertManagerDNSChallenge.Enabled
@@ -226,11 +250,8 @@ func (c *CMC) Override(override *CMC) *CMC {
 	}
 	if override.MCProxy.Enabled {
 		cmc.MCProxy.Enabled = override.MCProxy.Enabled
-		if override.MCProxy.HostName != "" {
-			cmc.MCProxy.HostName = override.MCProxy.HostName
-		}
-		if override.MCProxy.Port != 0 {
-			cmc.MCProxy.Port = override.MCProxy.Port
+		if override.MCProxy.HTTPSProxy != "" {
+			cmc.MCProxy.HTTPSProxy = override.MCProxy.HTTPSProxy
 		}
 	}
 	return &cmc
@@ -240,11 +261,17 @@ func (c *CMC) Validate() error {
 	if c.AgePubKey == "" {
 		return fmt.Errorf("age public key is empty")
 	}
+	if c.AgeKey == "" {
+		return fmt.Errorf("age key is empty")
+	}
 	if c.Cluster == "" {
 		return fmt.Errorf("cluster is empty")
 	}
 	if c.ClusterApp.Name == "" {
 		return fmt.Errorf("cluster app name is empty")
+	}
+	if c.ClusterApp.AppName == "" {
+		return fmt.Errorf("cluster app app name is empty")
 	}
 	if c.ClusterApp.Catalog == "" {
 		return fmt.Errorf("cluster app catalog is empty")
@@ -252,14 +279,23 @@ func (c *CMC) Validate() error {
 	if c.ClusterApp.Version == "" {
 		return fmt.Errorf("cluster app version is empty")
 	}
+	if c.ClusterApp.Values == "" {
+		return fmt.Errorf("cluster app values is empty")
+	}
 	if c.DefaultApps.Name == "" {
 		return fmt.Errorf("default app name is empty")
+	}
+	if c.DefaultApps.AppName == "" {
+		return fmt.Errorf("default app app name is empty")
 	}
 	if c.DefaultApps.Catalog == "" {
 		return fmt.Errorf("default app catalog is empty")
 	}
 	if c.DefaultApps.Version == "" {
 		return fmt.Errorf("default app version is empty")
+	}
+	if c.DefaultApps.Values == "" {
+		return fmt.Errorf("default app values is empty")
 	}
 	if c.Provider.Name == "" {
 		return fmt.Errorf("provider is empty")
@@ -283,20 +319,35 @@ func (c *CMC) Validate() error {
 			return fmt.Errorf("provider vcd cloud config is empty")
 		}
 	}
-	if c.TaylorBot.User == "" {
-		return fmt.Errorf("taylor bot user is empty")
-	}
-	if c.TaylorBot.Token == "" {
+	if c.TaylorBotToken == "" {
 		return fmt.Errorf("taylor bot token is empty")
 	}
-	if c.DeployKey.Key == "" {
-		return fmt.Errorf("deploy key is empty")
+	if c.SSHdeployKey.Passphrase == "" {
+		return fmt.Errorf("ssh deploy key passphrase is empty")
 	}
-	if c.DeployKey.Identity == "" {
-		return fmt.Errorf("deploy key identity is empty")
+	if c.SSHdeployKey.Identity == "" {
+		return fmt.Errorf("ssh deploy key identity is empty")
 	}
-	if c.DeployKey.KnownHosts == "" {
-		return fmt.Errorf("deploy key known hosts is empty")
+	if c.SSHdeployKey.KnownHosts == "" {
+		return fmt.Errorf("ssh deploy key known hosts is empty")
+	}
+	if c.CustomerDeployKey.Passphrase == "" {
+		return fmt.Errorf("customer deploy key passphrase is empty")
+	}
+	if c.CustomerDeployKey.Identity == "" {
+		return fmt.Errorf("customer deploy key identity is empty")
+	}
+	if c.CustomerDeployKey.KnownHosts == "" {
+		return fmt.Errorf("customer deploy key known hosts is empty")
+	}
+	if c.SharedDeployKey.Passphrase == "" {
+		return fmt.Errorf("shared deploy key passphrase is empty")
+	}
+	if c.SharedDeployKey.Identity == "" {
+		return fmt.Errorf("shared deploy key identity is empty")
+	}
+	if c.SharedDeployKey.KnownHosts == "" {
+		return fmt.Errorf("shared deploy key known hosts is empty")
 	}
 	if c.CertManagerDNSChallenge.Enabled {
 		if c.CertManagerDNSChallenge.Region == "" {
@@ -318,11 +369,8 @@ func (c *CMC) Validate() error {
 		}
 	}
 	if c.MCProxy.Enabled {
-		if c.MCProxy.HostName == "" {
-			return fmt.Errorf("mc proxy host name is empty")
-		}
-		if c.MCProxy.Port == 0 {
-			return fmt.Errorf("mc proxy port is empty")
+		if c.MCProxy.HTTPSProxy == "" {
+			return fmt.Errorf("mc proxy https proxy is empty")
 		}
 	}
 	return nil
@@ -330,6 +378,20 @@ func (c *CMC) Validate() error {
 
 func (c *CMC) Equals(desired *CMC) bool {
 	return reflect.DeepEqual(c, desired)
+}
+
+func (c *CMC) SetDefaultAppValues() error {
+	values, err := defaultappsvalues.GetDefaultAppsValuesFile(defaultappsvalues.Config{
+		Cluster:                 c.Cluster,
+		PrivateCA:               c.PrivateCA,
+		Provider:                c.Provider.Name,
+		CertManagerDNSChallenge: c.CertManagerDNSChallenge.Enabled,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get default apps values.\n%w", err)
+	}
+	c.DefaultApps.Values = values
+	return nil
 }
 
 func GetCMCFromFile(file string) (*CMC, error) {

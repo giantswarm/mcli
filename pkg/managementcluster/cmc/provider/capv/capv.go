@@ -3,7 +3,6 @@ package capv
 type Config struct {
 	Namespace   string
 	CloudConfig string
-	AgePubKey   string
 }
 
 func GetCAPVConfig(file string) Config {

@@ -7,11 +7,6 @@ import (
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/deploykey"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/mcproxy"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/provider/capz"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/taylorbot"
 	"github.com/rs/zerolog/log"
 )
 
@@ -26,7 +21,11 @@ type Config struct {
 }
 
 type CMCFlags struct {
+	Secrets                      SecretFlags
 	SecretFolder                 string
+	AgePubKey                    string
+	AgeKey                       string
+	TaylorBotToken               string
 	MCAppsPreventDeletion        bool
 	ClusterAppName               string
 	ClusterAppCatalog            string
@@ -43,24 +42,37 @@ type CMCFlags struct {
 	MCHTTPSProxy                 string
 }
 
-type Values struct {
-	AgePubKey         string
-	TaylorBot         taylorbot.Config
-	Deploykey         deploykey.Config
-	CertManager       certmanager.Config
-	MCProxy           mcproxy.Config
-	ClusterAppValues  string
-	DefaultAppsValues string
-	RegistryValues    string
-	CAPV              string
-	CAPVCD            string
-	CAPZ              capz.Config
+type SecretFlags struct {
+	SSHDeployKey                       DeployKey
+	CustomerDeployKey                  DeployKey
+	SharedDeployKey                    DeployKey
+	VSphereCredentials                 string
+	CloudDirectorCredentials           string
+	AzureClusterIdentityUA             string
+	AzureClusterIdentitySP             string
+	AzureSecretClusterIdentityStaticSP string
+	ContainerRegistryConfiguration     string
+	ClusterValues                      string
+	CertManagerRoute53Region           string
+	CertManagerRoute53Role             string
+	CertManagerRoute53AccessKeyID      string
+	CertManagerRoute53SecretAccessKey  string
+}
+
+type DeployKey struct {
+	Passphrase string
+	Identity   string
+	KnownHosts string
 }
 
 func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	err := c.Validate()
 	if err != nil {
 		return nil, err
+	}
+	err = c.ReadSecretFlags()
+	if err != nil {
+		return nil, fmt.Errorf("failed to set secret flags.\n%w", err)
 	}
 	return c.PushCMC(ctx)
 }
@@ -69,19 +81,23 @@ func (c *Config) PushCMC(ctx context.Context) (*cmc.CMC, error) {
 	if err := c.Branch(ctx); err != nil {
 		return nil, err
 	}
-	// pulling current installations
-	installations, err := c.Pull(ctx)
+	// pulling current cmc
+	cmc, err := c.Pull(ctx)
 	if err != nil {
-		// if there is no current installations, create a new one
+		// if there is no current cmc, create a new one
 		// check if the error is a github.ErrNotFound
 		if github.IsNotFound(err) {
-			log.Debug().Msg(fmt.Sprintf("no current installations %s found, creating a new one", c.Cluster))
+			log.Debug().Msg(fmt.Sprintf("no current %s entry for %s found, creating a new one", c.CMCRepository, c.Cluster))
 			return c.Create(ctx)
 		} else {
-			return nil, fmt.Errorf("failed to pull installations.\n%w", err)
+			return nil, fmt.Errorf("failed to pull %s entry for %s.\n%w", c.CMCRepository, c.Cluster, err)
 		}
 	}
-	return c.Update(ctx, installations)
+	cmc, err = decode(c.Flags.AgePubKey, cmc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode cmc.\n%w", err)
+	}
+	return c.Update(ctx, cmc)
 }
 
 func (c *Config) Branch(ctx context.Context) error {
@@ -97,7 +113,7 @@ func (c *Config) Branch(ctx context.Context) error {
 	if err != nil {
 		if github.IsNotFound(err) {
 			log.Debug().Msg(fmt.Sprintf("%s branch %s not found, creating it", c.CMCRepository, c.CMCBranch))
-			err = cmcRepository.CreateBranch(ctx, key.InstallationsMainBranch)
+			err = cmcRepository.CreateBranch(ctx, key.CMCMainBranch)
 			if err != nil {
 				return fmt.Errorf("failed to create %s branch %s.\n%w", c.CMCRepository, c.CMCBranch, err)
 			}
@@ -108,7 +124,7 @@ func (c *Config) Branch(ctx context.Context) error {
 	return nil
 }
 
-func (c *Config) Pull(ctx context.Context) (*cmc.CMC, error) {
+func (c *Config) Pull(ctx context.Context) (map[string]string, error) {
 	log.Debug().Msgf("pulling current %s entry for %s", c.CMCRepository, c.Cluster)
 
 	cmcRepository := github.Repository{
@@ -129,20 +145,16 @@ func (c *Config) Pull(ctx context.Context) (*cmc.CMC, error) {
 		return nil, err
 	}
 	data[cmc.SopsFile] = sops
-	return cmc.GetCMCFromMap(data), nil
+	return data, nil
 }
 
 func (c *Config) Create(ctx context.Context) (*cmc.CMC, error) {
-
+	var err error
 	log.Debug().Msg(fmt.Sprintf("creating new %s entry for %s", c.CMCRepository, c.Cluster))
 	var desiredCMC *cmc.CMC
 	{
 		if c.Input == nil {
-			v, err := c.GetValues()
-			if err != nil {
-				return nil, fmt.Errorf("failed to get values.\n%w", err)
-			}
-			desiredCMC, err = getNewCMCFromFlags(*c, v)
+			desiredCMC, err = getNewCMCFromFlags(*c)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get new %s object from flags.\n%w", c.CMCRepository, err)
 			}
@@ -150,19 +162,32 @@ func (c *Config) Create(ctx context.Context) (*cmc.CMC, error) {
 			desiredCMC = c.Input
 		}
 	}
-	return c.Push(ctx, desiredCMC)
+	template, err := c.PullTemplate()
+	if err != nil {
+		return nil, fmt.Errorf("failed to pull template.\n%w", err)
+	}
+	create, err := desiredCMC.GetMap(template)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
+	}
+	return c.Push(ctx, create)
 }
 
-func (c *Config) Update(ctx context.Context, currentCMC *cmc.CMC) (*cmc.CMC, error) {
+func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*cmc.CMC, error) {
+	var err error
 	log.Debug().Msg(fmt.Sprintf("updating %s entry for %s", c.CMCRepository, c.Cluster))
+	currentCMC, err := cmc.GetCMCFromMap(currentCMCmap, c.Cluster)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
+	}
+
 	var desiredCMC *cmc.CMC
 	{
 		if c.Input == nil {
-			v, err := c.GetValues()
+			desiredCMC, err = overrideCMCWithFlags(currentCMC, *c)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get values.\n%w", err)
+				return nil, fmt.Errorf("failed to override cmc with flags.\n%w", err)
 			}
-			desiredCMC = overrideCMCWithFlags(currentCMC, *c, v)
 		} else {
 			desiredCMC = currentCMC.Override(c.Input)
 		}
@@ -171,10 +196,26 @@ func (c *Config) Update(ctx context.Context, currentCMC *cmc.CMC) (*cmc.CMC, err
 		log.Debug().Msg(fmt.Sprintf("%s entry for %s is up to date", c.CMCRepository, c.Cluster))
 		return desiredCMC, nil
 	}
-	return c.Push(ctx, desiredCMC)
+	// if deny all netpol is being enabled, we need to get the file from the template
+	if currentCMC.DisableDenyAllNetPol && !desiredCMC.DisableDenyAllNetPol {
+		template, err := c.PullTemplateFile(cmc.DenyNetPolFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to pull template file.\n%w", err)
+		}
+		currentCMCmap[fmt.Sprintf("%s/%s", key.GetCMCPath(c.Cluster), cmc.DenyNetPolFile)] = template
+	}
+	update, err := desiredCMC.GetMap(currentCMCmap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
+	}
+	update, err = encode(desiredCMC.AgePubKey, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode cmc map.\n%w", err)
+	}
+	return c.Push(ctx, update)
 }
 
-func (c *Config) Push(ctx context.Context, desiredCMC *cmc.CMC) (*cmc.CMC, error) {
+func (c *Config) Push(ctx context.Context, desiredCMC map[string]string) (*cmc.CMC, error) {
 	log.Debug().Msg(fmt.Sprintf("pushing %s entry for %s", c.CMCRepository, c.Cluster))
 
 	cmcRepository := github.Repository{
@@ -190,7 +231,7 @@ func (c *Config) Push(ctx context.Context, desiredCMC *cmc.CMC) (*cmc.CMC, error
 	// TODO actually push the CMC
 	log.Debug().Msg("This is a dry run. No changes will be made.")
 
-	return desiredCMC, nil
+	return cmc.GetCMCFromMap(desiredCMC, c.Cluster)
 }
 
 func (c *Config) Validate() error {
@@ -212,13 +253,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func (c *Config) GetValues() (Values, error) {
-	v := Values{}
-	// TODO get values
-	return v, nil
-}
-
-func getNewCMCFromFlags(c Config, v Values) (*cmc.CMC, error) {
+func getNewCMCFromFlags(c Config) (*cmc.CMC, error) {
 	// Ensure that all the needed flags are set
 	if c.Flags.ClusterAppName == "" ||
 		c.Flags.ClusterAppCatalog == "" ||
@@ -227,54 +262,103 @@ func getNewCMCFromFlags(c Config, v Values) (*cmc.CMC, error) {
 		c.Flags.DefaultAppsCatalog == "" ||
 		c.Flags.DefaultAppsVersion == "" ||
 		c.Provider == "" ||
-		c.Cluster == "" {
+		c.Cluster == "" ||
+		c.Flags.AgePubKey == "" ||
+		c.Flags.AgeKey == "" ||
+		c.Flags.TaylorBotToken == "" {
 		return nil, fmt.Errorf("not all required flags are set\n%w", ErrInvalidFlag)
 	}
 
-	// Ensure that all the needed values are set
-	if v.AgePubKey == "" ||
-		v.TaylorBot.User == "" ||
-		v.TaylorBot.Token == "" ||
-		v.Deploykey.Key == "" ||
-		v.Deploykey.Identity == "" ||
-		v.Deploykey.KnownHosts == "" ||
-		v.ClusterAppValues == "" ||
-		v.DefaultAppsValues == "" {
+	// Ensure that all the needed secret values are set
+	if c.Flags.Secrets.SSHDeployKey.Identity == "" ||
+		c.Flags.Secrets.SSHDeployKey.KnownHosts == "" ||
+		c.Flags.Secrets.SSHDeployKey.Passphrase == "" ||
+		c.Flags.Secrets.CustomerDeployKey.Identity == "" ||
+		c.Flags.Secrets.CustomerDeployKey.KnownHosts == "" ||
+		c.Flags.Secrets.CustomerDeployKey.Passphrase == "" ||
+		c.Flags.Secrets.SharedDeployKey.Identity == "" ||
+		c.Flags.Secrets.SharedDeployKey.KnownHosts == "" ||
+		c.Flags.Secrets.SharedDeployKey.Passphrase == "" ||
+		c.Flags.Secrets.ClusterValues == "" {
 		return nil, fmt.Errorf("not all required values are set\n%w", ErrInvalidFlag)
 	}
-	return getCMC(c, v), nil
+	// Ensure that needed values for enabled features are set
+	if c.Flags.ConfigureContainerRegistries {
+		if c.Flags.Secrets.ContainerRegistryConfiguration == "" {
+			return nil, fmt.Errorf("container registry configuration is required\n%w", ErrInvalidFlag)
+		}
+	}
+	if c.Flags.CertManagerDNSChallenge {
+		if c.Flags.Secrets.CertManagerRoute53Region == "" ||
+			c.Flags.Secrets.CertManagerRoute53Role == "" ||
+			c.Flags.Secrets.CertManagerRoute53AccessKeyID == "" ||
+			c.Flags.Secrets.CertManagerRoute53SecretAccessKey == "" {
+			return nil, fmt.Errorf("cert manager dns challenge configuration is required\n%w", ErrInvalidFlag)
+		}
+	}
+	if c.Flags.MCProxyEnabled {
+		if c.Flags.MCHTTPSProxy == "" {
+			return nil, fmt.Errorf("mc proxy is enabled but no https proxy is set\n%w", ErrInvalidFlag)
+		}
+	}
+	// Ensure that needed values for the provider are set
+	if c.Provider == key.ProviderVsphere {
+		if c.Flags.Secrets.VSphereCredentials == "" {
+			return nil, fmt.Errorf("vsphere credentials are required\n%w", ErrInvalidFlag)
+		}
+	} else if c.Provider == key.ProviderVCD {
+		if c.Flags.Secrets.CloudDirectorCredentials == "" {
+			return nil, fmt.Errorf("cloud director credentials are required\n%w", ErrInvalidFlag)
+		}
+	} else if c.Provider == key.ProviderAzure {
+		if c.Flags.Secrets.AzureClusterIdentityUA == "" ||
+			c.Flags.Secrets.AzureClusterIdentitySP == "" ||
+			c.Flags.Secrets.AzureSecretClusterIdentityStaticSP == "" {
+			return nil, fmt.Errorf("azure credentials are required\n%w", ErrInvalidFlag)
+		}
+	}
+	return getCMC(c)
 }
 
-func getCMC(c Config, v Values) *cmc.CMC {
+func getCMC(c Config) (*cmc.CMC, error) {
 	newCMC := &cmc.CMC{
-		AgePubKey:        v.AgePubKey,
+		AgePubKey:        c.Flags.AgePubKey,
+		AgeKey:           c.Flags.AgeKey,
 		Cluster:          c.Cluster,
 		ClusterNamespace: c.Flags.ClusterNamespace,
 		ClusterApp: cmc.App{
 			Name:    c.Flags.ClusterAppName,
+			AppName: c.Cluster,
 			Catalog: c.Flags.ClusterAppCatalog,
 			Version: c.Flags.ClusterAppVersion,
-			Values:  v.ClusterAppValues,
+			Values:  c.Flags.Secrets.ClusterValues,
 		},
 		DefaultApps: cmc.App{
 			Name:    c.Flags.DefaultAppsName,
+			AppName: fmt.Sprintf("%s-default-apps", c.Cluster),
 			Catalog: c.Flags.DefaultAppsCatalog,
 			Version: c.Flags.DefaultAppsVersion,
-			Values:  v.DefaultAppsValues,
 		},
 		MCAppsPreventDeletion: c.Flags.MCAppsPreventDeletion,
 		PrivateCA:             c.Flags.PrivateCA,
 		Provider: cmc.Provider{
 			Name: c.Provider,
 		},
-		TaylorBot: cmc.TaylorBot{
-			User:  v.TaylorBot.User,
-			Token: v.TaylorBot.Token,
+		TaylorBotToken: c.Flags.TaylorBotToken,
+		SSHdeployKey: cmc.DeployKey{
+			Passphrase: c.Flags.Secrets.SSHDeployKey.Passphrase,
+			Identity:   c.Flags.Secrets.SSHDeployKey.Identity,
+			KnownHosts: c.Flags.Secrets.SSHDeployKey.KnownHosts,
 		},
-		DeployKey: cmc.DeployKey{
-			Key:        v.Deploykey.Key,
-			Identity:   v.Deploykey.Identity,
-			KnownHosts: v.Deploykey.KnownHosts,
+		CustomerDeployKey: cmc.DeployKey{
+			Passphrase: c.Flags.Secrets.CustomerDeployKey.Passphrase,
+			Identity:   c.Flags.Secrets.CustomerDeployKey.Identity,
+			KnownHosts: c.Flags.Secrets.CustomerDeployKey.KnownHosts,
+		},
+		SharedDeployKey: cmc.DeployKey{
+			Passphrase: c.Flags.Secrets.SharedDeployKey.Passphrase,
+			Identity:   c.Flags.Secrets.SharedDeployKey.Identity,
+			KnownHosts: c.Flags.Secrets.SharedDeployKey.KnownHosts,
 		},
 		CustomCoreDNS:        c.Flags.MCCustomCoreDNSConfig,
 		DisableDenyAllNetPol: disableDenyAllNetPol(c.Provider),
@@ -282,50 +366,98 @@ func getCMC(c Config, v Values) *cmc.CMC {
 	if c.Flags.ConfigureContainerRegistries {
 		newCMC.ConfigureContainerRegistries = cmc.ConfigureContainerRegistries{
 			Enabled: true,
-			Values:  v.RegistryValues,
+			Values:  c.Flags.Secrets.ContainerRegistryConfiguration,
 		}
 	}
 	if c.Flags.CertManagerDNSChallenge {
 		newCMC.CertManagerDNSChallenge = cmc.CertManagerDNSChallenge{
 			Enabled:         true,
-			Region:          v.CertManager.Region,
-			Role:            v.CertManager.Role,
-			AccessKeyID:     v.CertManager.AccessKeyID,
-			SecretAccessKey: v.CertManager.SecretAccessKey,
+			Region:          c.Flags.Secrets.CertManagerRoute53Region,
+			Role:            c.Flags.Secrets.CertManagerRoute53Role,
+			AccessKeyID:     c.Flags.Secrets.CertManagerRoute53AccessKeyID,
+			SecretAccessKey: c.Flags.Secrets.CertManagerRoute53SecretAccessKey,
 		}
 	}
 	if c.Flags.MCProxyEnabled {
 		newCMC.MCProxy = cmc.MCProxy{
-			Enabled:  true,
-			HostName: v.MCProxy.HostName,
-			Port:     v.MCProxy.Port,
+			Enabled:    true,
+			HTTPSProxy: c.Flags.MCHTTPSProxy,
 		}
 	}
 	if c.Provider == key.ProviderVsphere {
 		newCMC.Provider.CAPV = cmc.CAPV{
-			CloudConfig: v.CAPV,
+			CloudConfig: c.Flags.Secrets.VSphereCredentials,
 		}
 	} else if c.Provider == key.ProviderVCD {
 		newCMC.Provider.CAPVCD = cmc.CAPVCD{
-			CloudConfig: v.CAPVCD,
+			CloudConfig: c.Flags.Secrets.CloudDirectorCredentials,
 		}
 	} else if c.Provider == key.ProviderAzure {
 		newCMC.Provider.CAPZ = cmc.CAPZ{
-			IdentityUA:       v.CAPZ.IdentityUA,
-			IdentitySP:       v.CAPZ.IdentitySP,
-			IdentityStaticSP: v.CAPZ.IdentityStaticSP,
+			IdentityUA:       c.Flags.Secrets.AzureClusterIdentityUA,
+			IdentitySP:       c.Flags.Secrets.AzureClusterIdentitySP,
+			IdentityStaticSP: c.Flags.Secrets.AzureSecretClusterIdentityStaticSP,
 		}
 	}
-	return newCMC
+	if err := newCMC.SetDefaultAppValues(); err != nil {
+		return nil, fmt.Errorf("failed to set default app values.\n%w", err)
+	}
+	return newCMC, nil
 }
 
-func overrideCMCWithFlags(currentCMC *cmc.CMC, c Config, v Values) *cmc.CMC {
-	newCMC := getCMC(c, v)
-	return currentCMC.Override(newCMC)
+func overrideCMCWithFlags(currentCMC *cmc.CMC, c Config) (*cmc.CMC, error) {
+	newCMC, err := getCMC(c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmc from flags.\n%w", err)
+	}
+	return currentCMC.Override(newCMC), nil
 }
 
 func disableDenyAllNetPol(provider string) bool {
 	return provider != key.ProviderAWS &&
 		provider != key.ProviderVsphere &&
 		provider != key.ProviderVCD
+}
+
+func (c *Config) PullTemplate() (map[string]string, error) {
+	githubRepository := github.Repository{
+		Github:       c.Github,
+		Name:         key.RepositoryMCBootstrap,
+		Organization: key.OrganizationGiantSwarm,
+		Branch:       key.CMCMainBranch,
+	}
+	log.Debug().Msg(fmt.Sprintf("pulling cmc entry template from %s repository", key.RepositoryMCBootstrap))
+	err := githubRepository.CheckBranch(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("unable to check repository %s branch %s.\n%w", key.RepositoryMCBootstrap, key.CMCMainBranch, err)
+	}
+	template, err := githubRepository.GetDirectory(context.Background(), key.CMCEntryTemplatePath)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get template directory from repository %s.\n%w", key.RepositoryMCBootstrap, err)
+	}
+	//copy each value from the template into the cmc map, Replace the cmc entry template path with the cmc path
+	cmcMap := make(map[string]string)
+	for k, v := range template {
+		cmcMap[key.GetCMCPath(c.Cluster)+k[len(key.CMCEntryTemplatePath):]] = v
+	}
+	return template, nil
+}
+
+func (c *Config) PullTemplateFile(path string) (string, error) {
+	githubRepository := github.Repository{
+		Github:       c.Github,
+		Name:         key.RepositoryMCBootstrap,
+		Organization: key.OrganizationGiantSwarm,
+		Branch:       key.CMCMainBranch,
+	}
+	log.Debug().Msg(fmt.Sprintf("pulling cmc entry template file %s from %s repository", path, key.RepositoryMCBootstrap))
+	err := githubRepository.CheckBranch(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("unable to check repository %s branch %s.\n%w", key.RepositoryMCBootstrap, key.CMCMainBranch, err)
+	}
+	template, err := githubRepository.GetFile(context.Background(), fmt.Sprintf("%s/%s", key.CMCEntryTemplatePath, path))
+	if err != nil {
+		return "", fmt.Errorf("unable to get file %s from repository %s.\n%w", path, key.RepositoryMCBootstrap, err)
+	}
+	return template, nil
 }

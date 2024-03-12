@@ -1,18 +1,13 @@
 package mcproxy
 
-type Config struct {
-	HostName string
-	Port     int
+func GetHTTPSProxy(allowNetPolFile string, sourceControllerFile string) string {
+	return ""
 }
 
-func GetMCProxyConfig(allowNetPolFile string, sourceControllerFile string) Config {
-	return Config{}
-}
-
-func GetAllowNetPolFile(c Config) (string, error) {
+func GetAllowNetPolFile(httpsProxy string) (string, error) {
 	return "", nil
 }
 
-func GetSourceControllerFile(c Config) (string, error) {
+func GetSourceControllerFile(httpsProxy string) (string, error) {
 	return "", nil
 }

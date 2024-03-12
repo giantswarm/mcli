@@ -11,11 +11,24 @@ const (
 	RepositoryInstallations = "installations"
 	RepositoryCMC           = "cmc"
 	RepositoryGithub        = "github"
+	RepositoryMCBootstrap   = "mc-bootstrap"
 	InstallationsMainBranch = "master"
 	CMCMainBranch           = "main"
 	Employees               = "employees"
 	Bots                    = "bots"
 	CMCTemplateRepository   = "template-management-clusters"
+	CMCEntryTemplatePath    = "scripts/setup-cmc-branch/management-cluster-template"
+	FluxNamespace           = "flux-giantswarm"
+)
+
+const (
+	ClusterValuesFile                  = "cluster-values.yaml"
+	CommonSecretsFile                  = "common.secrets"
+	VsphereCredentialsFile             = "vsphere-cloud-config-secret.yaml"
+	CloudDirectorCredentialsFile       = "cloud-director-cloud-config-secret.yaml"
+	AzureClusterIdentitySPFile         = "azureclusteridentity-sp.yaml"
+	AzureClusterIdentityUAFile         = "azureclusteridentity-ua.yaml"
+	AzureSecretClusterIdentityStaticSP = "secret-clusteridentity-static-sp.yaml"
 )
 
 const (
@@ -65,6 +78,30 @@ func GetDefaultPRBranch(cluster string) string {
 
 func GetOwnershipBranch(customer string) string {
 	return fmt.Sprintf("add-%s-mc-to-honeybadger-%s", customer, GetRandom())
+}
+
+func GetClusterSecretFile(cluster string) string {
+	return fmt.Sprintf("%s.secrets", cluster)
+}
+
+func GetContainerRegistriesFile(cluster string) string {
+	return fmt.Sprintf("%s-container-registries-configuration.yaml", cluster)
+}
+
+func GetDeployKey(cluster string) string {
+	return fmt.Sprintf("%s-key", cluster)
+}
+
+func GetKnownHosts(cluster string) string {
+	return fmt.Sprintf("%s-known-hosts", cluster)
+}
+
+func GetPassphrase(cluster string) string {
+	return fmt.Sprintf("%s-passphrase", cluster)
+}
+
+func GetAgeKey(cluster string) string {
+	return fmt.Sprintf("%s.agekey", cluster)
 }
 
 func GetRandom() string {

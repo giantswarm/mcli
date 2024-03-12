@@ -38,5 +38,5 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 		return nil, err
 	}
 	data[cmc.SopsFile] = sops
-	return cmc.GetCMCFromMap(data), nil
+	return cmc.GetCMCFromMap(data, c.Cluster)
 }

@@ -19,6 +19,7 @@ const (
 	flagCMCBranch           = "cmc-branch"
 	flagCustomer            = "customer"
 	flagProvider            = "provider"
+	flagInput               = "input"
 )
 
 const (
@@ -40,6 +41,8 @@ var (
 	cmcRepository       string
 	cmcBranch           string
 	customer            string
+	provider            string
+	input               string
 )
 
 func addFlagsRoot() {

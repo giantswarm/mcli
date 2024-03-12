@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/age"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/clusterapps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultapps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/deploykey"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/issuer"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
@@ -21,46 +21,76 @@ import (
 )
 
 const (
-	SopsFile             = ".sops.yaml"
-	ClusterAppsFile      = "cluster-app-manifests.yaml"
-	DefaultAppsFile      = "default-apps-manifests.yaml"
-	CertManagerFile      = "cert-manager-dns01-secret.yaml"
-	KustomizationFile    = "kustomization.yaml"
-	TaylorBotFile        = "github-giantswarm-https-credentials.yaml"
-	DeployKeyFile        = "giantswarm-clusters-ssh-credentials.yaml"
-	VSphereFile          = "vsphere-cloud-config-secret.yaml"
-	CloudDirectorFile    = "cloud-director-cloud-config-secret.yaml"
-	AzureFile            = "secret-clusteridentity-static-sp.yaml"
-	IssuerFile           = "private-cluster-issuer.yaml"
-	RegistryFile         = "container-registries-configuration-secret.yaml"
-	CoreDNSFile          = "coredns-configmap.yaml"
-	DenyNetPolFile       = "deny-all-policies.yaml"
-	AllowNetPolFile      = "networkpolicy-egress-to-proxy.yaml"
-	SourceControllerFile = "kustomization-post-build-proxy.yaml"
+	SopsFile              = ".sops.yaml"
+	AgeKeyFile            = "age_secret_keys.yaml"
+	ClusterAppsFile       = "cluster-app-manifests.yaml"
+	DefaultAppsFile       = "default-apps-manifests.yaml"
+	CertManagerFile       = "cert-manager-dns01-secret.yaml"
+	KustomizationFile     = "kustomization.yaml"
+	TaylorBotFile         = "github-giantswarm-https-credentials.yaml"
+	SSHdeployKeyFile      = "giantswarm-clusters-ssh-credentials.yaml"
+	CustomerDeployKeyFile = "configs-ssh-credentials.yaml"
+	SharedDeployKeyFile   = "shared-configs-ssh-credentials.yaml"
+	IssuerFile            = "private-cluster-issuer.yaml"
+	RegistryFile          = "container-registries-configuration-secret.yaml"
+	CoreDNSFile           = "coredns-configmap.yaml"
+	DenyNetPolFile        = "deny-all-policies.yaml"
+	AllowNetPolFile       = "networkpolicy-egress-to-proxy.yaml"
+	SourceControllerFile  = "kustomization-post-build-proxy.yaml"
 )
 
-func GetCMCFromMap(data map[string]string) *CMC {
-	sopsConfig := sops.GetSopsConfig(data[SopsFile])
+func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
+	sopsConfig, err := sops.GetSopsConfig(data[SopsFile], cluster)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sops config.\n%w", err)
+	}
 
 	path := key.GetCMCPath(sopsConfig.Cluster)
 
-	clusterAppsConfig := clusterapps.GetClusterAppsConfig(data[fmt.Sprintf("%s/%s", path, ClusterAppsFile)])
-	defaultAppsConfig := defaultapps.GetDefaultAppsConfig(data[fmt.Sprintf("%s/%s", path, DefaultAppsFile)])
-	taylorBotConfig := taylorbot.GetTaylorBotConfig(data[fmt.Sprintf("%s/%s", path, TaylorBotFile)])
-	deployKeyConfig := deploykey.GetDeployKeyConfig(data[fmt.Sprintf("%s/%s", path, DeployKeyFile)])
+	clusterAppsConfig, err := apps.GetClusterAppsConfig(data[fmt.Sprintf("%s/%s", path, ClusterAppsFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster apps config.\n%w", err)
+	}
+	defaultAppsConfig, err := apps.GetDefaultAppsConfig(data[fmt.Sprintf("%s/%s", path, DefaultAppsFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get default apps config.\n%w", err)
+	}
+	taylorBotToken, err := taylorbot.GetTaylorBotToken(data[fmt.Sprintf("%s/%s", path, TaylorBotFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get taylor bot token.\n%w", err)
+	}
+	sshDeployKeyConfig, err := deploykey.GetDeployKeyConfig(data[fmt.Sprintf("%s/%s", path, SSHdeployKeyFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ssh deploy key config.\n%w", err)
+	}
+	customerDeployKeyConfig, err := deploykey.GetDeployKeyConfig(data[fmt.Sprintf("%s/%s", path, CustomerDeployKeyFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get customer deploy key config.\n%w", err)
+	}
+	sharedDeployKeyConfig, err := deploykey.GetDeployKeyConfig(data[fmt.Sprintf("%s/%s", path, SharedDeployKeyFile)])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get shared deploy key config.\n%w", err)
+	}
+	ageKey, err := age.GetAgeKey(data[fmt.Sprintf("%s/%s", path, AgeKeyFile)], cluster)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get age key.\n%w", err)
+	}
 	kustomizationConfig := kustomization.GetKustomizationConfig(data[fmt.Sprintf("%s/%s", path, KustomizationFile)])
 
 	cmc := CMC{
 		Cluster:   sopsConfig.Cluster,
 		AgePubKey: sopsConfig.AgePubKey,
+		AgeKey:    ageKey,
 		ClusterApp: App{
 			Name:    clusterAppsConfig.Name,
+			AppName: clusterAppsConfig.AppName,
 			Catalog: clusterAppsConfig.Catalog,
 			Version: clusterAppsConfig.Version,
 			Values:  clusterAppsConfig.Values,
 		},
 		DefaultApps: App{
 			Name:    defaultAppsConfig.Name,
+			AppName: defaultAppsConfig.AppName,
 			Catalog: defaultAppsConfig.Catalog,
 			Version: defaultAppsConfig.Version,
 			Values:  defaultAppsConfig.Values,
@@ -73,14 +103,21 @@ func GetCMCFromMap(data map[string]string) *CMC {
 		CustomCoreDNS:         kustomizationConfig.CustomCoreDNS,
 		DisableDenyAllNetPol:  kustomizationConfig.DisableDenyAllNetPol,
 		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion || defaultAppsConfig.MCAppsPreventDeletion,
-		TaylorBot: TaylorBot{
-			User:  taylorBotConfig.User,
-			Token: taylorBotConfig.Token,
+		TaylorBotToken:        taylorBotToken,
+		SSHdeployKey: DeployKey{
+			Passphrase: sshDeployKeyConfig.Passphrase,
+			Identity:   sshDeployKeyConfig.Identity,
+			KnownHosts: sshDeployKeyConfig.KnownHosts,
 		},
-		DeployKey: DeployKey{
-			Key:        deployKeyConfig.Key,
-			Identity:   deployKeyConfig.Identity,
-			KnownHosts: deployKeyConfig.KnownHosts,
+		CustomerDeployKey: DeployKey{
+			Passphrase: customerDeployKeyConfig.Passphrase,
+			Identity:   customerDeployKeyConfig.Identity,
+			KnownHosts: customerDeployKeyConfig.KnownHosts,
+		},
+		SharedDeployKey: DeployKey{
+			Passphrase: sharedDeployKeyConfig.Passphrase,
+			Identity:   sharedDeployKeyConfig.Identity,
+			KnownHosts: sharedDeployKeyConfig.KnownHosts,
 		},
 	}
 
@@ -104,251 +141,355 @@ func GetCMCFromMap(data map[string]string) *CMC {
 	}
 
 	if kustomizationConfig.MCProxy {
-		mcProxy := mcproxy.GetMCProxyConfig(data[fmt.Sprintf("%s/%s", path, AllowNetPolFile)], data[fmt.Sprintf("%s/%s", path, SourceControllerFile)])
+		httpsProxy := mcproxy.GetHTTPSProxy(data[fmt.Sprintf("%s/%s", path, AllowNetPolFile)], data[fmt.Sprintf("%s/%s", path, SourceControllerFile)])
 		cmc.MCProxy = MCProxy{
-			Enabled:  true,
-			HostName: mcProxy.HostName,
-			Port:     mcProxy.Port,
+			Enabled:    true,
+			HTTPSProxy: httpsProxy,
 		}
 	}
 
 	if clusterAppsConfig.Provider == key.ProviderVsphere {
-		capvConfig := capv.GetCAPVConfig(data[fmt.Sprintf("%s/%s", path, VSphereFile)])
+		capvConfig := capv.GetCAPVConfig(data[fmt.Sprintf("%s/%s", path, key.VsphereCredentialsFile)])
 		cmc.Provider.CAPV.CloudConfig = capvConfig.CloudConfig
 	} else if clusterAppsConfig.Provider == key.ProviderAzure {
-		capzConfig := capz.GetCAPZConfig(data[fmt.Sprintf("%s/%s", path, AzureFile)])
+		capzConfig := capz.GetCAPZConfig(
+			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)],
+			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)],
+			data[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)])
 		cmc.Provider.CAPZ.IdentityUA = capzConfig.IdentityUA
 		cmc.Provider.CAPZ.IdentitySP = capzConfig.IdentitySP
 		cmc.Provider.CAPZ.IdentityStaticSP = capzConfig.IdentityStaticSP
 	} else if clusterAppsConfig.Provider == key.ProviderVCD {
-		capvcdConfig := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, CloudDirectorFile)])
+		capvcdConfig := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, key.CloudDirectorCredentialsFile)])
 		cmc.Provider.CAPVCD.CloudConfig = capvcdConfig.CloudConfig
 	}
-	return &cmc
+	return &cmc, nil
 }
 
 func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
-	sopsFile, err := c.GetSopsFile()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sops file.\n%w", err)
-	}
-	cmcTemplate[SopsFile] = sopsFile
-
+	var err error
 	path := key.GetCMCPath(c.Cluster)
 
-	clusterAppsFile, err := c.GetClusterAppsFile()
+	cmcTemplate, err = c.GetSops(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cluster apps file.\n%w", err)
+		return nil, fmt.Errorf("failed to add sops file.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, ClusterAppsFile)] = clusterAppsFile
-	//todo: how do we deal with the values files??
-
-	defaultAppsFile, err := c.GetDefaultAppsFile()
+	cmcTemplate, err = c.GetProviders(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get default apps file.\n%w", err)
+		return nil, fmt.Errorf("failed to add provider files.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, DefaultAppsFile)] = defaultAppsFile
-
-	if c.CertManagerDNSChallenge.Enabled {
-		certManagerFile, err := c.GetCertManagerFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get cert-manager file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, CertManagerFile)] = certManagerFile
-	}
-
-	taylorBotFile, err := c.GetTaylorBotFile()
+	cmcTemplate, err = c.GetPrivateCA(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get taylorbot file.\n%w", err)
+		return nil, fmt.Errorf("failed to add private CA files.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, TaylorBotFile)] = taylorBotFile
-
-	deployKeyFile, err := c.GetDeployKeyFile()
+	cmcTemplate, err = c.GetConfigureContainerRegistries(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get deploy key file.\n%w", err)
+		return nil, fmt.Errorf("failed to add configure container registries files.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, DeployKeyFile)] = deployKeyFile
-
-	if c.Provider.Name == key.ProviderVsphere {
-		capvFile, err := c.GetCAPVFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get CAPV file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, VSphereFile)] = capvFile
-	} else if c.Provider.Name == key.ProviderAzure {
-		capzFile, err := c.GetCAPZFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, AzureFile)] = capzFile
-	} else if c.Provider.Name == key.ProviderVCD {
-		capvcdFile, err := c.GetCAPVCDFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get CAPVCD file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, CloudDirectorFile)] = capvcdFile
+	cmcTemplate, err = c.GetCustomCoreDNS(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add custom coreDNS files.\n%w", err)
 	}
-	if c.PrivateCA {
-		issuerFile, err := c.GetIssuerFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get issuer file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, IssuerFile)] = issuerFile
+	cmcTemplate, err = c.GetDenyNetPol(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove deny netpol files.\n%w", err)
 	}
-	if c.ConfigureContainerRegistries.Enabled {
-		registryFile, err := c.GetRegistryFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get registry file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, RegistryFile)] = registryFile
+	cmcTemplate, err = c.GetMCProxy(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add mcproxy files.\n%w", err)
 	}
-	if c.CustomCoreDNS {
-		coreDNSFile, err := c.GetCoreDNSFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get coreDNS file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, CoreDNSFile)] = coreDNSFile
+	cmcTemplate, err = c.GetClusterApps(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add cluster apps files.\n%w", err)
 	}
-	if c.DisableDenyAllNetPol {
-		// remove deny all network policy entry from map
-		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, DenyNetPolFile))
+	cmcTemplate, err = c.GetDefaultApps(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add default apps files.\n%w", err)
 	}
-	if c.MCProxy.Enabled {
-		allowNetPolFile, err := c.GetAllowNetPolFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get allow netpol file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, AllowNetPolFile)] = allowNetPolFile
-
-		sourceControllerFile, err := c.GetSourceControllerFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get source controller file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, SourceControllerFile)] = sourceControllerFile
+	cmcTemplate, err = c.GetCertManager(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add cert manager files.\n%w", err)
+	}
+	cmcTemplate, err = c.GetTaylorBot(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add taylor bot files.\n%w", err)
+	}
+	cmcTemplate, err = c.GetDeployKey(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add deploy key files.\n%w", err)
+	}
+	cmcTemplate, err = c.GetKustomization(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add kustomization file.\n%w", err)
+	}
+	cmcTemplate, err = c.GetAge(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add age file.\n%w", err)
 	}
 
 	return cmcTemplate, nil
 }
 
-func (c *CMC) GetSopsFile() (string, error) {
-	return sops.GetSopsFile(sops.Config{
-		Cluster:   c.Cluster,
-		AgePubKey: c.AgePubKey,
+// DeployKey
+func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	deployKeyFile, err := deploykey.GetDeployKeyFile(deploykey.Config{
+		Name:       "giantswarm-clusters-ssh-credentials",
+		Passphrase: c.SSHdeployKey.Passphrase,
+		Identity:   c.SSHdeployKey.Identity,
+		KnownHosts: c.SSHdeployKey.KnownHosts,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ssh deploy key file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, SSHdeployKeyFile)] = deployKeyFile
+
+	deployKeyFile, err = deploykey.GetDeployKeyFile(deploykey.Config{
+		Name:       "configs-ssh-credentials",
+		Passphrase: c.CustomerDeployKey.Passphrase,
+		Identity:   c.CustomerDeployKey.Identity,
+		KnownHosts: c.CustomerDeployKey.KnownHosts,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get customer ssh deploy key file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, CustomerDeployKeyFile)] = deployKeyFile
+
+	deployKeyFile, err = deploykey.GetDeployKeyFile(deploykey.Config{
+		Name:       "shared-configs-ssh-credentials",
+		Passphrase: c.SharedDeployKey.Passphrase,
+		Identity:   c.SharedDeployKey.Identity,
+		KnownHosts: c.SharedDeployKey.KnownHosts,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get shared ssh deploy key file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, SharedDeployKeyFile)] = deployKeyFile
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetClusterAppsFile() (string, error) {
-	return clusterapps.GetClusterAppsFile(clusterapps.Config{
+// Age
+func (c *CMC) GetAge(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	ageFile, err := age.GetAgeFile(age.Config{
+		Cluster: c.Cluster,
+		AgeKey:  c.AgeKey,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get age file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, AgeKeyFile)] = ageFile
+	return cmcTemplate, nil
+}
+
+// Providers
+func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.Provider.Name == key.ProviderVsphere {
+		capvFile, err := capv.GetCAPVFile(capv.Config{
+			Namespace:   c.ClusterNamespace,
+			CloudConfig: c.Provider.CAPV.CloudConfig,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPV file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.VsphereCredentialsFile)] = capvFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.VsphereCredentialsFile))
+	}
+	if c.Provider.Name == key.ProviderAzure {
+		capzFile, err := capz.GetCAPZFile(capz.Config{
+			Namespace:        c.ClusterNamespace,
+			IdentityUA:       c.Provider.CAPZ.IdentityUA,
+			IdentitySP:       c.Provider.CAPZ.IdentitySP,
+			IdentityStaticSP: c.Provider.CAPZ.IdentityStaticSP,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)] = capzFile
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)] = c.Provider.CAPZ.IdentitySP
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)] = c.Provider.CAPZ.IdentityUA
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP))
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile))
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile))
+	}
+	if c.Provider.Name == key.ProviderVCD {
+		capvcdFile, err := capvcd.GetCAPVCDFile(capvcd.Config{
+			Namespace:   c.ClusterNamespace,
+			CloudConfig: c.Provider.CAPVCD.CloudConfig,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPVCD file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.CloudDirectorCredentialsFile)] = capvcdFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.CloudDirectorCredentialsFile))
+	}
+	return cmcTemplate, nil
+}
+
+// PrivateCA
+func (c *CMC) GetPrivateCA(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.PrivateCA {
+		issuerFile, err := issuer.GetIssuerFile()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get issuer file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, IssuerFile)] = issuerFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, IssuerFile))
+	}
+	return cmcTemplate, nil
+}
+
+// CustomCoreDNS
+func (c *CMC) GetCustomCoreDNS(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.CustomCoreDNS {
+		coreDNSFile, err := coredns.GetCoreDNSFile()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get coreDNS file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, CoreDNSFile)] = coreDNSFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, CoreDNSFile))
+	}
+	return cmcTemplate, nil
+}
+
+// DenyNetPol
+func (c *CMC) GetDenyNetPol(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.DisableDenyAllNetPol {
+		// remove deny all network policy entry from map
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, DenyNetPolFile))
+	}
+	return cmcTemplate, nil
+}
+
+// Sops
+func (c *CMC) GetSops(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	sopsFile, err := sops.GetSopsFile(sops.Config{
+		Cluster:   c.Cluster,
+		AgePubKey: c.AgePubKey,
+	}, cmcTemplate[SopsFile])
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sops file.\n%w", err)
+	}
+	cmcTemplate[SopsFile] = sopsFile
+	return cmcTemplate, nil
+}
+
+// ClusterApps
+func (c *CMC) GetClusterApps(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	clusterAppsFile, err := apps.GetClusterAppsFile(apps.Config{
 		Cluster:                      c.Cluster,
 		Namespace:                    c.ClusterNamespace,
 		ConfigureContainerRegistries: c.ConfigureContainerRegistries.Enabled,
 		Provider:                     c.Provider.Name,
 		MCAppsPreventDeletion:        c.MCAppsPreventDeletion,
 		Name:                         c.ClusterApp.Name,
+		AppName:                      c.ClusterApp.AppName,
 		Catalog:                      c.ClusterApp.Catalog,
 		Version:                      c.ClusterApp.Version,
 		Values:                       c.ClusterApp.Values,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster apps file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, ClusterAppsFile)] = clusterAppsFile
+	//todo: how do we deal with the values files??
+
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetDefaultAppsFile() (string, error) {
-	return defaultapps.GetDefaultAppsFile(defaultapps.Config{
-		Cluster:                 c.Cluster,
-		Namespace:               c.ClusterNamespace,
-		PrivateCA:               c.PrivateCA,
-		Provider:                c.Provider.Name,
-		CertManagerDNSChallenge: c.CertManagerDNSChallenge.Enabled,
-		MCAppsPreventDeletion:   c.MCAppsPreventDeletion,
-		Name:                    c.DefaultApps.Name,
-		Catalog:                 c.DefaultApps.Catalog,
-		Version:                 c.DefaultApps.Version,
-		Values:                  c.DefaultApps.Values,
+// DefaultApps
+func (c *CMC) GetDefaultApps(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	defaultAppsFile, err := apps.GetDefaultAppsFile(apps.Config{
+		Cluster:               c.Cluster,
+		Namespace:             c.ClusterNamespace,
+		Provider:              c.Provider.Name,
+		MCAppsPreventDeletion: c.MCAppsPreventDeletion,
+		Name:                  c.DefaultApps.Name,
+		AppName:               c.DefaultApps.AppName,
+		Catalog:               c.DefaultApps.Catalog,
+		Version:               c.DefaultApps.Version,
+		Values:                c.DefaultApps.Values,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get default apps file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, DefaultAppsFile)] = defaultAppsFile
+
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetCertManagerFile() (string, error) {
-	return certmanager.GetCertManagerFile(certmanager.Config{
-		Region:          c.CertManagerDNSChallenge.Region,
-		Role:            c.CertManagerDNSChallenge.Role,
-		AccessKeyID:     c.CertManagerDNSChallenge.AccessKeyID,
-		SecretAccessKey: c.CertManagerDNSChallenge.SecretAccessKey,
-	})
+// CertManager
+func (c *CMC) GetCertManager(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.CertManagerDNSChallenge.Enabled {
+		certManagerFile, err := certmanager.GetCertManagerFile(certmanager.Config{
+			Region:          c.CertManagerDNSChallenge.Region,
+			Role:            c.CertManagerDNSChallenge.Role,
+			AccessKeyID:     c.CertManagerDNSChallenge.AccessKeyID,
+			SecretAccessKey: c.CertManagerDNSChallenge.SecretAccessKey,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cert-manager file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, CertManagerFile)] = certManagerFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, CertManagerFile))
+	}
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetTaylorBotFile() (string, error) {
-	return taylorbot.GetTaylorBotFile(taylorbot.Config{
-		User:      c.TaylorBot.User,
-		Token:     c.TaylorBot.Token,
-		AgePubKey: c.AgePubKey,
-	})
+// TaylorBot
+func (c *CMC) GetTaylorBot(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	taylorBotToken, err := taylorbot.GetTaylorBotToken(c.TaylorBotToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get taylorbot file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, TaylorBotFile)] = taylorBotToken
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetDeployKeyFile() (string, error) {
-	return deploykey.GetDeployKeyFile(deploykey.Config{
-		Key:        c.DeployKey.Key,
-		Identity:   c.DeployKey.Identity,
-		KnownHosts: c.DeployKey.KnownHosts,
-		AgePubKey:  c.AgePubKey,
-	})
+// MCProxy
+func (c *CMC) GetMCProxy(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.MCProxy.Enabled {
+		allowNetPolFile, err := mcproxy.GetAllowNetPolFile(c.MCProxy.HTTPSProxy)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get allow netpol file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, AllowNetPolFile)] = allowNetPolFile
+
+		sourceControllerFile, err := mcproxy.GetSourceControllerFile(c.MCProxy.HTTPSProxy)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get source controller file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, SourceControllerFile)] = sourceControllerFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, AllowNetPolFile))
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, SourceControllerFile))
+	}
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetCAPVFile() (string, error) {
-	return capv.GetCAPVFile(capv.Config{
-		Namespace:   c.ClusterNamespace,
-		CloudConfig: c.Provider.CAPV.CloudConfig,
-		AgePubKey:   c.AgePubKey,
-	})
+// ConfigureContainerRegistries
+func (c *CMC) GetConfigureContainerRegistries(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	if c.ConfigureContainerRegistries.Enabled {
+		registryFile, err := registry.GetRegistryFile(registry.Config{
+			Values: c.ConfigureContainerRegistries.Values,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get registry file.\n%w", err)
+		}
+		cmcTemplate[fmt.Sprintf("%s/%s", path, RegistryFile)] = registryFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, RegistryFile))
+	}
+	return cmcTemplate, nil
 }
 
-func (c *CMC) GetCAPZFile() (string, error) {
-	return capz.GetCAPZFile(capz.Config{
-		Namespace:        c.ClusterNamespace,
-		IdentityUA:       c.Provider.CAPZ.IdentityUA,
-		IdentitySP:       c.Provider.CAPZ.IdentitySP,
-		IdentityStaticSP: c.Provider.CAPZ.IdentityStaticSP,
-		AgePubKey:        c.AgePubKey,
-	})
-}
-
-func (c *CMC) GetCAPVCDFile() (string, error) {
-	return capvcd.GetCAPVCDFile(capvcd.Config{
-		Namespace:   c.ClusterNamespace,
-		CloudConfig: c.Provider.CAPVCD.CloudConfig,
-		AgePubKey:   c.AgePubKey,
-	})
-}
-
-func (c *CMC) GetIssuerFile() (string, error) {
-	return issuer.GetIssuerFile()
-}
-
-func (c *CMC) GetRegistryFile() (string, error) {
-	return registry.GetRegistryFile(registry.Config{
-		Values:    c.ConfigureContainerRegistries.Values,
-		AgePubKey: c.AgePubKey,
-	})
-}
-
-func (c *CMC) GetCoreDNSFile() (string, error) {
-	return coredns.GetCoreDNSFile()
-}
-
-func (c *CMC) GetAllowNetPolFile() (string, error) {
-	return mcproxy.GetAllowNetPolFile(mcproxy.Config{
-		HostName: c.MCProxy.HostName,
-		Port:     c.MCProxy.Port,
-	})
-}
-
-func (c *CMC) GetSourceControllerFile() (string, error) {
-	return mcproxy.GetSourceControllerFile(mcproxy.Config{
-		HostName: c.MCProxy.HostName,
-		Port:     c.MCProxy.Port,
-	})
-}
-
-func (c *CMC) GetKustomizationFile() (string, error) {
-	return kustomization.GetKustomizationFile(kustomization.Config{
+// Kustomization
+func (c *CMC) GetKustomization(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	kustomizationFile, err := kustomization.GetKustomizationFile(kustomization.Config{
 		CertManagerDNSChallenge:      c.CertManagerDNSChallenge.Enabled,
 		Provider:                     c.Provider.Name,
 		PrivateCA:                    c.PrivateCA,
@@ -357,4 +498,9 @@ func (c *CMC) GetKustomizationFile() (string, error) {
 		DisableDenyAllNetPol:         c.DisableDenyAllNetPol,
 		MCProxy:                      c.MCProxy.Enabled,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kustomization file.\n%w", err)
+	}
+	cmcTemplate[fmt.Sprintf("%s/%s", path, KustomizationFile)] = kustomizationFile
+	return cmcTemplate, nil
 }
