@@ -126,7 +126,7 @@ func (c *Config) SetSecretFlags(secrets map[string]string) error {
 			}
 		case CertManagerRoleKey:
 			if c.Flags.Secrets.CertManagerRoute53Role == "" {
-				c.Flags.Secrets.CertManagerRoute53Role = v
+				c.Flags.Secrets.CertManagerRoute53Role = fmt.Sprintf("%s-%s", v, c.Cluster)
 			}
 		case CertManagerAccessKey:
 			if c.Flags.Secrets.CertManagerRoute53AccessKeyID == "" {

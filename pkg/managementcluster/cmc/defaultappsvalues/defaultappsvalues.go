@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,6 +43,8 @@ type ExtraConfig struct {
 }
 
 func GetDefaultAppsValuesFile(c Config) (string, error) {
+	log.Debug().Msg("Creating default apps values")
+
 	defaultAppsValues := DefaultAppsValues{
 		ClusterName:       c.Cluster,
 		Organization:      "giantswarm",
@@ -56,7 +59,7 @@ func GetDefaultAppsValuesFile(c Config) (string, error) {
 	if c.CertManagerDNSChallenge {
 		defaultAppsValues.UserConfig.CertManager.ExtraConfigs = append(defaultAppsValues.UserConfig.CertManager.ExtraConfigs, ExtraConfig{
 			Kind: "secret",
-			Name: fmt.Sprintf("%s--cert-manager-user-secrets", c.Cluster),
+			Name: key.GetCertManagerSecretName(c.Cluster),
 		})
 	}
 	// marshal the object to yaml

@@ -91,7 +91,7 @@ var (
 	defaultAppsVersion           string
 	privateCA                    bool
 	certManagerDNSChallenge      bool
-	mcCustomCoreDNSConfig        bool
+	mcCustomCoreDNSConfig        string
 	mcProxyEnabled               bool
 	mcHTTPSProxy                 string
 	agePubKey                    string
@@ -170,7 +170,7 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&defaultAppsVersion, flagDefaultAppsVersion, viper.GetString(envDefaultAppsVersion), "Version of the default apps")
 	pushCmd.PersistentFlags().BoolVar(&privateCA, flagPrivateCA, viper.GetBool(envPrivateCA), "Use private CA")
 	pushCmd.PersistentFlags().BoolVar(&certManagerDNSChallenge, flagCertManagerDNSChallenge, viper.GetBool(envCertManagerDNSChallenge), "Use cert-manager DNS01 challenge")
-	pushCmd.PersistentFlags().BoolVar(&mcCustomCoreDNSConfig, flagMCCustomCoreDNSConfig, viper.GetBool(envMCCustomCoreDNSConfig), "Use custom CoreDNS config")
+	pushCmd.PersistentFlags().StringVar(&mcCustomCoreDNSConfig, flagMCCustomCoreDNSConfig, viper.GetString(envMCCustomCoreDNSConfig), "Custom CoreDNS configuration")
 	pushCmd.PersistentFlags().BoolVar(&mcProxyEnabled, flagMCProxyEnabled, viper.GetBool(envMCProxyEnabled), "Use proxy")
 	pushCmd.PersistentFlags().StringVar(&mcHTTPSProxy, flagMCHTTPSProxy, viper.GetString(envMCHTTPSProxy), "HTTPS proxy to use")
 	pushCmd.PersistentFlags().StringVar(&agePubKey, flagAgePubKey, viper.GetString(envAgePubKey), "Age public key for the cluster")

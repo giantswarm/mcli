@@ -3,6 +3,7 @@ package pushcmc
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
@@ -37,7 +38,7 @@ type CMCFlags struct {
 	DefaultAppsVersion           string
 	PrivateCA                    bool
 	CertManagerDNSChallenge      bool
-	MCCustomCoreDNSConfig        bool
+	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
 	MCHTTPSProxy                 string
 }
@@ -360,7 +361,6 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			Identity:   c.Flags.Secrets.SharedDeployKey.Identity,
 			KnownHosts: c.Flags.Secrets.SharedDeployKey.KnownHosts,
 		},
-		CustomCoreDNS:        c.Flags.MCCustomCoreDNSConfig,
 		DisableDenyAllNetPol: disableDenyAllNetPol(c.Provider),
 	}
 	if c.Flags.ConfigureContainerRegistries {
@@ -380,10 +380,18 @@ func getCMC(c Config) (*cmc.CMC, error) {
 	}
 	if c.Flags.MCProxyEnabled {
 		newCMC.MCProxy = cmc.MCProxy{
-			Enabled:    true,
-			HTTPSProxy: c.Flags.MCHTTPSProxy,
+			Enabled:  true,
+			Hostname: strings.Split(strings.Split(c.Flags.MCHTTPSProxy, "/")[2], ":")[0],
+			Port:     strings.Split(strings.Split(c.Flags.MCHTTPSProxy, "/")[2], ":")[1],
 		}
 	}
+	if c.Flags.MCCustomCoreDNSConfig != "" {
+		newCMC.CustomCoreDNS = cmc.CustomCoreDNS{
+			Enabled: true,
+			Values:  c.Flags.MCCustomCoreDNSConfig,
+		}
+	}
+
 	if c.Provider == key.ProviderVsphere {
 		newCMC.Provider.CAPV = cmc.CAPV{
 			CloudConfig: c.Flags.Secrets.VSphereCredentials,

@@ -100,7 +100,6 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 			Name: clusterAppsConfig.Provider,
 		},
 		PrivateCA:             kustomizationConfig.PrivateCA,
-		CustomCoreDNS:         kustomizationConfig.CustomCoreDNS,
 		DisableDenyAllNetPol:  kustomizationConfig.DisableDenyAllNetPol,
 		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion || defaultAppsConfig.MCAppsPreventDeletion,
 		TaylorBotToken:        taylorBotToken,
@@ -122,15 +121,32 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 	}
 
 	if kustomizationConfig.ConfigureContainerRegistries {
-		registryConfig := registry.GetRegistryConfig(data[fmt.Sprintf("%s/%s", path, RegistryFile)])
+		registryConfig, err := registry.GetRegistryConfig(data[fmt.Sprintf("%s/%s", path, RegistryFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get registry config.\n%w", err)
+		}
 		cmc.ConfigureContainerRegistries = ConfigureContainerRegistries{
 			Enabled: true,
-			Values:  registryConfig.Values,
+			Values:  registryConfig,
+		}
+	}
+
+	if kustomizationConfig.CustomCoreDNS {
+		coreDNSConfig, err := coredns.GetCoreDNSValues(data[fmt.Sprintf("%s/%s", path, CoreDNSFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get coreDNS config.\n%w", err)
+		}
+		cmc.CustomCoreDNS = CustomCoreDNS{
+			Enabled: true,
+			Values:  coreDNSConfig,
 		}
 	}
 
 	if kustomizationConfig.CertManagerDNSChallenge {
-		certManagerConfig := certmanager.GetCertManagerConfig(data[fmt.Sprintf("%s/%s", path, CertManagerFile)])
+		certManagerConfig, err := certmanager.GetCertManagerConfig(data[fmt.Sprintf("%s/%s", path, CertManagerFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cert manager config.\n%w", err)
+		}
 		cmc.CertManagerDNSChallenge = CertManagerDNSChallenge{
 			Enabled:         true,
 			Region:          certManagerConfig.Region,
@@ -141,10 +157,14 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 	}
 
 	if kustomizationConfig.MCProxy {
-		httpsProxy := mcproxy.GetHTTPSProxy(data[fmt.Sprintf("%s/%s", path, AllowNetPolFile)], data[fmt.Sprintf("%s/%s", path, SourceControllerFile)])
+		httpsProxy, err := mcproxy.GetHTTPSProxy(data[fmt.Sprintf("%s/%s", path, SourceControllerFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get https proxy.\n%w", err)
+		}
 		cmc.MCProxy = MCProxy{
-			Enabled:    true,
-			HTTPSProxy: httpsProxy,
+			Enabled:  true,
+			Hostname: httpsProxy.Hostname,
+			Port:     httpsProxy.Port,
 		}
 	}
 
@@ -330,11 +350,8 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 // PrivateCA
 func (c *CMC) GetPrivateCA(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	if c.PrivateCA {
-		issuerFile, err := issuer.GetIssuerFile()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get issuer file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, IssuerFile)] = issuerFile
+		issuerfile := issuer.GetIssuerFile()
+		cmcTemplate[fmt.Sprintf("%s/%s", path, IssuerFile)] = issuerfile
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, IssuerFile))
 	}
@@ -343,8 +360,8 @@ func (c *CMC) GetPrivateCA(cmcTemplate map[string]string, path string) (map[stri
 
 // CustomCoreDNS
 func (c *CMC) GetCustomCoreDNS(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	if c.CustomCoreDNS {
-		coreDNSFile, err := coredns.GetCoreDNSFile()
+	if c.CustomCoreDNS.Enabled {
+		coreDNSFile, err := coredns.GetCoreDNSFile(c.CustomCoreDNS.Values)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get coreDNS file.\n%w", err)
 		}
@@ -425,10 +442,12 @@ func (c *CMC) GetDefaultApps(cmcTemplate map[string]string, path string) (map[st
 func (c *CMC) GetCertManager(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	if c.CertManagerDNSChallenge.Enabled {
 		certManagerFile, err := certmanager.GetCertManagerFile(certmanager.Config{
-			Region:          c.CertManagerDNSChallenge.Region,
-			Role:            c.CertManagerDNSChallenge.Role,
-			AccessKeyID:     c.CertManagerDNSChallenge.AccessKeyID,
-			SecretAccessKey: c.CertManagerDNSChallenge.SecretAccessKey,
+			Cluster:          c.Cluster,
+			ClusterNamespace: c.ClusterNamespace,
+			Region:           c.CertManagerDNSChallenge.Region,
+			Role:             c.CertManagerDNSChallenge.Role,
+			AccessKeyID:      c.CertManagerDNSChallenge.AccessKeyID,
+			SecretAccessKey:  c.CertManagerDNSChallenge.SecretAccessKey,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get cert-manager file.\n%w", err)
@@ -453,17 +472,17 @@ func (c *CMC) GetTaylorBot(cmcTemplate map[string]string, path string) (map[stri
 // MCProxy
 func (c *CMC) GetMCProxy(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	if c.MCProxy.Enabled {
-		allowNetPolFile, err := mcproxy.GetAllowNetPolFile(c.MCProxy.HTTPSProxy)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get allow netpol file.\n%w", err)
-		}
+		allowNetPolFile := mcproxy.GetAllowNetPolFile(mcproxy.Config{
+			Hostname: c.MCProxy.Hostname,
+			Port:     c.MCProxy.Port,
+		})
 		cmcTemplate[fmt.Sprintf("%s/%s", path, AllowNetPolFile)] = allowNetPolFile
 
-		sourceControllerFile, err := mcproxy.GetSourceControllerFile(c.MCProxy.HTTPSProxy)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get source controller file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, SourceControllerFile)] = sourceControllerFile
+		kustomization := mcproxy.GetKustomization(mcproxy.Config{
+			Hostname: c.MCProxy.Hostname,
+			Port:     c.MCProxy.Port,
+		})
+		cmcTemplate[fmt.Sprintf("%s/%s", path, SourceControllerFile)] = kustomization
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, AllowNetPolFile))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, SourceControllerFile))
@@ -474,9 +493,7 @@ func (c *CMC) GetMCProxy(cmcTemplate map[string]string, path string) (map[string
 // ConfigureContainerRegistries
 func (c *CMC) GetConfigureContainerRegistries(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	if c.ConfigureContainerRegistries.Enabled {
-		registryFile, err := registry.GetRegistryFile(registry.Config{
-			Values: c.ConfigureContainerRegistries.Values,
-		})
+		registryFile, err := registry.GetRegistryFile(c.ConfigureContainerRegistries.Values)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get registry file.\n%w", err)
 		}
@@ -494,7 +511,7 @@ func (c *CMC) GetKustomization(cmcTemplate map[string]string, path string) (map[
 		Provider:                     c.Provider.Name,
 		PrivateCA:                    c.PrivateCA,
 		ConfigureContainerRegistries: c.ConfigureContainerRegistries.Enabled,
-		CustomCoreDNS:                c.CustomCoreDNS,
+		CustomCoreDNS:                c.CustomCoreDNS.Enabled,
 		DisableDenyAllNetPol:         c.DisableDenyAllNetPol,
 		MCProxy:                      c.MCProxy.Enabled,
 	})

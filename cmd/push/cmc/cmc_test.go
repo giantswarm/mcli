@@ -529,8 +529,9 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					KnownHosts: "test-deploy",
 				},
 				MCProxy: cmc.MCProxy{
-					Enabled:    true,
-					HTTPSProxy: "test-mc-https-proxy",
+					Enabled:  true,
+					Hostname: "test-mc-https-proxy",
+					Port:     "443",
 				},
 			},
 		},

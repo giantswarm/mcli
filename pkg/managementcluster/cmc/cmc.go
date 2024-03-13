@@ -29,7 +29,7 @@ type CMC struct {
 	SharedDeployKey              DeployKey                    `yaml:"sharedDeployKey"`
 	CertManagerDNSChallenge      CertManagerDNSChallenge      `yaml:"certManagerDNSChallenge"`
 	ConfigureContainerRegistries ConfigureContainerRegistries `yaml:"configureContainerRegistries"`
-	CustomCoreDNS                bool                         `yaml:"customCoreDNS"`
+	CustomCoreDNS                CustomCoreDNS                `yaml:"customCoreDNS"`
 	DisableDenyAllNetPol         bool                         `yaml:"disableDenyAllNetPol"`
 	MCProxy                      MCProxy                      `yaml:"mcProxy"`
 }
@@ -76,6 +76,11 @@ type ConfigureContainerRegistries struct {
 	Values  string `yaml:"values,omitempty"`
 }
 
+type CustomCoreDNS struct {
+	Enabled bool   `yaml:"enabled"`
+	Values  string `yaml:"values,omitempty"`
+}
+
 type DeployKey struct {
 	Passphrase string `yaml:"key"`
 	Identity   string `yaml:"identity"`
@@ -83,8 +88,9 @@ type DeployKey struct {
 }
 
 type MCProxy struct {
-	Enabled    bool   `yaml:"enabled"`
-	HTTPSProxy string `yaml:"httpsProxy,omitempty"`
+	Enabled  bool   `yaml:"enabled"`
+	Hostname string `yaml:"hostname,omitempty"`
+	Port     string `yaml:"port,omitempty"`
 }
 
 func GetCMC(data []byte) (*CMC, error) {
@@ -242,16 +248,19 @@ func (c *CMC) Override(override *CMC) *CMC {
 			cmc.ConfigureContainerRegistries.Values = override.ConfigureContainerRegistries.Values
 		}
 	}
-	if override.CustomCoreDNS {
-		cmc.CustomCoreDNS = override.CustomCoreDNS
+	if override.CustomCoreDNS.Enabled {
+		cmc.CustomCoreDNS.Values = override.CustomCoreDNS.Values
 	}
 	if override.DisableDenyAllNetPol {
 		cmc.DisableDenyAllNetPol = override.DisableDenyAllNetPol
 	}
 	if override.MCProxy.Enabled {
 		cmc.MCProxy.Enabled = override.MCProxy.Enabled
-		if override.MCProxy.HTTPSProxy != "" {
-			cmc.MCProxy.HTTPSProxy = override.MCProxy.HTTPSProxy
+		if override.MCProxy.Hostname != "" {
+			cmc.MCProxy.Hostname = override.MCProxy.Hostname
+		}
+		if override.MCProxy.Port != "" {
+			cmc.MCProxy.Port = override.MCProxy.Port
 		}
 	}
 	return &cmc
@@ -368,9 +377,17 @@ func (c *CMC) Validate() error {
 			return fmt.Errorf("configure container registries values is empty")
 		}
 	}
+	if c.CustomCoreDNS.Enabled {
+		if c.CustomCoreDNS.Values == "" {
+			return fmt.Errorf("custom core dns values is empty")
+		}
+	}
 	if c.MCProxy.Enabled {
-		if c.MCProxy.HTTPSProxy == "" {
-			return fmt.Errorf("mc proxy https proxy is empty")
+		if c.MCProxy.Hostname == "" {
+			return fmt.Errorf("mc proxy hostname is empty")
+		}
+		if c.MCProxy.Port == "" {
+			return fmt.Errorf("mc proxy port is empty")
 		}
 	}
 	return nil

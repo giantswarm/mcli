@@ -88,6 +88,10 @@ func GetContainerRegistriesFile(cluster string) string {
 	return fmt.Sprintf("%s-container-registries-configuration.yaml", cluster)
 }
 
+func GetCertManagerSecretName(cluster string) string {
+	return fmt.Sprintf("%s--cert-manager-user-secrets", cluster)
+}
+
 func GetDeployKey(cluster string) string {
 	return fmt.Sprintf("%s-key", cluster)
 }
