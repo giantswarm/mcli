@@ -172,10 +172,13 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 		capvConfig := capv.GetCAPVConfig(data[fmt.Sprintf("%s/%s", path, key.VsphereCredentialsFile)])
 		cmc.Provider.CAPV.CloudConfig = capvConfig.CloudConfig
 	} else if clusterAppsConfig.Provider == key.ProviderAzure {
-		capzConfig := capz.GetCAPZConfig(
+		capzConfig, err := capz.GetCAPZConfig(
 			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)],
 			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)],
 			data[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPZ config.\n%w", err)
+		}
 		cmc.Provider.CAPZ.ClientID = capzConfig.ClientID
 		cmc.Provider.CAPZ.ClientSecret = capzConfig.ClientSecret
 		cmc.Provider.CAPZ.TenantID = capzConfig.TenantID
@@ -327,8 +330,14 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 			UATenantID:   c.Provider.CAPZ.UATenantID,
 			UAResourceID: c.Provider.CAPZ.UAResourceID,
 		}
-		capzUAFile := capz.GetCAPZUAFile(capzconfig)
-		capzSPFile := capz.GetCAPZSPFile(capzconfig)
+		capzUAFile, err := capz.GetCAPZUAFile(capzconfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
+		}
+		capzSPFile, err := capz.GetCAPZSPFile(capzconfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
+		}
 		capzStaticSPFile, err := capz.GetCAPZSecret(capzconfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)

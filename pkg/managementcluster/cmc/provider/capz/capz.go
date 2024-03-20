@@ -7,6 +7,11 @@ import (
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/cluster-api-provider-azure/api/v1beta1"
+)
+
+const (
+	secretName = "cluster-identity-secret-static"
 )
 
 type Config struct {
@@ -19,8 +24,31 @@ type Config struct {
 	TenantID     string
 }
 
-func GetCAPZConfig(sp string, ua string, staticsp string) Config {
-	return Config{}
+func GetCAPZConfig(sp string, ua string, staticsp string) (Config, error) {
+	secret := v1.Secret{}
+	err := yaml.Unmarshal([]byte(sp), &secret)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to unmarshal static-sp object.\n%w", err)
+	}
+	uaCR := v1beta1.AzureClusterIdentity{}
+	err = yaml.Unmarshal([]byte(ua), &uaCR)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to unmarshal UA object.\n%w", err)
+	}
+	spCR := v1beta1.AzureClusterIdentity{}
+	err = yaml.Unmarshal([]byte(staticsp), &spCR)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to unmarshal static-sp object.\n%w", err)
+	}
+	return Config{
+		Namespace:    uaCR.Namespace,
+		UAClientID:   uaCR.Spec.ClientID,
+		UATenantID:   uaCR.Spec.TenantID,
+		UAResourceID: uaCR.Spec.ResourceID,
+		ClientID:     spCR.Spec.ClientID,
+		ClientSecret: string(secret.Data["clientSecret"]),
+		TenantID:     spCR.Spec.TenantID,
+	}, nil
 }
 
 func GetCAPZSecret(c Config) (string, error) {
@@ -28,7 +56,7 @@ func GetCAPZSecret(c Config) (string, error) {
 	secret := v1.Secret{
 		Type: v1.SecretTypeOpaque,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "cluster-identity-secret-static-sp",
+			Name:      secretName,
 			Namespace: c.Namespace,
 			Labels: map[string]string{
 				"clusterctl.cluster.x-k8s.io/move": "true",
@@ -45,44 +73,60 @@ func GetCAPZSecret(c Config) (string, error) {
 	return string(data), nil
 }
 
-func GetCAPZSPFile(c Config) string {
+func GetCAPZSPFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ SP file")
-	return getAzureClusterIdentityManualSP(c.Namespace, c.ClientID, c.TenantID)
+	sp := v1beta1.AzureClusterIdentity{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "infrastructure.cluster.x-k8s.io/v1beta1",
+			Kind:       "AzureClusterIdentity",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-identity-static-sp",
+			Namespace: c.Namespace,
+			Labels: map[string]string{
+				"clusterctl.cluster.x-k8s.io/move": "true",
+			},
+		},
+		Spec: v1beta1.AzureClusterIdentitySpec{
+			AllowedNamespaces: &v1beta1.AllowedNamespaces{},
+			ClientID:          c.ClientID,
+			ClientSecret: v1.SecretReference{
+				Name:      secretName,
+				Namespace: "org-giantswarm",
+			},
+			TenantID: c.TenantID,
+			Type:     "ManualServicePrincipal",
+		},
+	}
+	data, err := yaml.Marshal(sp)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal static-sp object.\n%w", err)
+	}
+	return string(data), nil
 }
 
-func GetCAPZUAFile(c Config) string {
+func GetCAPZUAFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ UA file")
-	return getAzureClusterIdentityUA(c.Namespace, c.UAClientID, c.UATenantID, c.UAResourceID)
-}
-
-func getAzureClusterIdentityUA(namespace string, clientID string, tenantID string, resourceID string) string {
-	return fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-kind: AzureClusterIdentity
-metadata:
-  name: cluster-identity
-  namespace: %s
-spec:
-  allowedNamespaces: {}
-  clientID: %s
-  tenantID: %s
-  resourceID: %s
-  type: UserAssignedMSI`, namespace, clientID, tenantID, resourceID)
-}
-
-func getAzureClusterIdentityManualSP(namespace string, clientID string, tenantID string) string {
-	return fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-kind: AzureClusterIdentity
-metadata:
-  name: cluster-identity-static-sp
-  namespace: %s
-  labels:
-	clusterctl.cluster.x-k8s.io/move: "true"
-spec:
-  allowedNamespaces: {}
-  clientID: %s
-  clientSecret:
-	name: cluster-identity-secret-static-sp
-	namespace: org-giantswarm
-  tenantID: %s
-  type: ManualServicePrincipal`, namespace, clientID, tenantID)
+	ua := v1beta1.AzureClusterIdentity{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "infrastructure.cluster.x-k8s.io/v1beta1",
+			Kind:       "AzureClusterIdentity",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-identity",
+			Namespace: c.Namespace,
+		},
+		Spec: v1beta1.AzureClusterIdentitySpec{
+			AllowedNamespaces: &v1beta1.AllowedNamespaces{},
+			ClientID:          c.UAClientID,
+			TenantID:          c.UATenantID,
+			ResourceID:        c.UAResourceID,
+			Type:              "UserAssignedMSI",
+		},
+	}
+	data, err := yaml.Marshal(ua)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal UA object.\n%w", err)
+	}
+	return string(data), nil
 }
