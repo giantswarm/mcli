@@ -10,10 +10,24 @@ import (
 )
 
 const (
-	CertManagerRegionKey = "cert_manager_route53_region"
-	CertManagerRoleKey   = "cert_manager_route53_role_base"
-	CertManagerAccessKey = "cert_manager_route53_accesskey"
-	CertManagerSecretKey = "cert_manager_route53_secretaccesskey"
+	CertManagerRegionKey         = "cert_manager_route53_region"
+	CertManagerRoleKey           = "cert_manager_route53_role_base"
+	CertManagerAccessKey         = "cert_manager_route53_accesskey"
+	CertManagerSecretKey         = "cert_manager_route53_secretaccesskey"
+	CloudDirectorRefreshTokenKey = "REFRESH_TOKEN"
+	AzureClientIDKey             = "clientId"
+	AzureClientSecretKey         = "clientSecret"
+	AzureTenantIDKey             = "tenantId"
+	azureClientIDUA              = "UA_clientId"
+	azureTenantIDUA              = "UA_tenantId"
+	azureResourceIDUA            = "UA_id"
+)
+
+const (
+	CloudDirectorCredentialsFile = "cloud-director.sh"
+	VsphereCredentialsFile       = "vsphere-credentials.yaml"
+	AzureCredentialsFile         = "capz.secrets.sh"
+	AzureIdentityFile            = "capz.identity.sh"
 )
 
 func GetSecrets(cluster string) []string {
@@ -78,33 +92,44 @@ func (c *Config) ReadSecretFlags() error {
 	}
 
 	if c.Provider == key.ProviderVsphere {
-		vsphereCredentialsFile, err := c.ReadFileFromSecretFolder(key.VsphereCredentialsFile)
+		vsphereCredentialsFile, err := c.ReadFileFromSecretFolder(VsphereCredentialsFile)
 		if err != nil {
 			return err
 		}
-		secrets[key.VsphereCredentialsFile] = vsphereCredentialsFile
+		secrets[VsphereCredentialsFile] = vsphereCredentialsFile
 	} else if c.Provider == key.ProviderVCD {
-		vcdCredentialsFile, err := c.ReadFileFromSecretFolder(key.CloudDirectorCredentialsFile)
+		vcdCredentialsFile, err := c.ReadFileFromSecretFolder(CloudDirectorCredentialsFile)
 		if err != nil {
 			return err
 		}
-		secrets[key.CloudDirectorCredentialsFile] = vcdCredentialsFile
+		vcdFlags, err := readFlagsFromFile(vcdCredentialsFile)
+		if err != nil {
+			return err
+		}
+		secrets[CloudDirectorRefreshTokenKey] = vcdFlags[CloudDirectorRefreshTokenKey]
 	} else if c.Provider == key.ProviderAzure {
-		azureClusterIdentityUA, err := c.ReadFileFromSecretFolder(key.AzureClusterIdentityUAFile)
+		azureCredentialsFile, err := c.ReadFileFromSecretFolder(AzureCredentialsFile)
 		if err != nil {
 			return err
 		}
-		azureClusterStaticSP, err := c.ReadFileFromSecretFolder(key.AzureSecretClusterIdentityStaticSP)
+		azureFlags, err := readFlagsFromFile(azureCredentialsFile)
 		if err != nil {
 			return err
 		}
-		azureClusterIdentitySP, err := c.ReadFileFromSecretFolder(key.AzureClusterIdentitySPFile)
+		secrets[AzureClientIDKey] = azureFlags[AzureClientIDKey]
+		secrets[AzureClientSecretKey] = azureFlags[AzureClientSecretKey]
+		secrets[AzureTenantIDKey] = azureFlags[AzureTenantIDKey]
+		azureIdentityFile, err := c.ReadFileFromSecretFolder(AzureIdentityFile)
 		if err != nil {
 			return err
 		}
-		secrets[key.AzureClusterIdentityUAFile] = azureClusterIdentityUA
-		secrets[key.AzureSecretClusterIdentityStaticSP] = azureClusterStaticSP
-		secrets[key.AzureClusterIdentitySPFile] = azureClusterIdentitySP
+		azureIdentityFlags, err := readFlagsFromFile(azureIdentityFile)
+		if err != nil {
+			return err
+		}
+		secrets[azureClientIDUA] = azureIdentityFlags[azureClientIDUA]
+		secrets[azureTenantIDUA] = azureIdentityFlags[azureTenantIDUA]
+		secrets[azureResourceIDUA] = azureIdentityFlags[azureResourceIDUA]
 	}
 
 	if c.Flags.ConfigureContainerRegistries {
@@ -173,25 +198,37 @@ func (c *Config) SetSecretFlags(secrets map[string]string) error {
 			if c.Flags.Secrets.SharedDeployKey.Passphrase == "" {
 				c.Flags.Secrets.SharedDeployKey.Passphrase = v
 			}
-		case key.VsphereCredentialsFile:
+		case VsphereCredentialsFile:
 			if c.Flags.Secrets.VSphereCredentials == "" {
 				c.Flags.Secrets.VSphereCredentials = v
 			}
-		case key.CloudDirectorCredentialsFile:
-			if c.Flags.Secrets.CloudDirectorCredentials == "" {
-				c.Flags.Secrets.CloudDirectorCredentials = v
+		case CloudDirectorRefreshTokenKey:
+			if c.Flags.Secrets.CloudDirectorRefreshToken == "" {
+				c.Flags.Secrets.CloudDirectorRefreshToken = v
 			}
-		case key.AzureClusterIdentityUAFile:
-			if c.Flags.Secrets.AzureClusterIdentityUA == "" {
-				c.Flags.Secrets.AzureClusterIdentityUA = v
+		case AzureClientIDKey:
+			if c.Flags.Secrets.Azure.ClientID == "" {
+				c.Flags.Secrets.Azure.ClientID = v
 			}
-		case key.AzureSecretClusterIdentityStaticSP:
-			if c.Flags.Secrets.AzureSecretClusterIdentityStaticSP == "" {
-				c.Flags.Secrets.AzureSecretClusterIdentityStaticSP = v
+		case AzureClientSecretKey:
+			if c.Flags.Secrets.Azure.ClientSecret == "" {
+				c.Flags.Secrets.Azure.ClientSecret = v
 			}
-		case key.AzureClusterIdentitySPFile:
-			if c.Flags.Secrets.AzureClusterIdentitySP == "" {
-				c.Flags.Secrets.AzureClusterIdentitySP = v
+		case AzureTenantIDKey:
+			if c.Flags.Secrets.Azure.TenantID == "" {
+				c.Flags.Secrets.Azure.TenantID = v
+			}
+		case azureClientIDUA:
+			if c.Flags.Secrets.Azure.UAClientID == "" {
+				c.Flags.Secrets.Azure.UAClientID = v
+			}
+		case azureTenantIDUA:
+			if c.Flags.Secrets.Azure.UATenantID == "" {
+				c.Flags.Secrets.Azure.UATenantID = v
+			}
+		case azureResourceIDUA:
+			if c.Flags.Secrets.Azure.UAResourceID == "" {
+				c.Flags.Secrets.Azure.UAResourceID = v
 			}
 		case key.GetContainerRegistriesFile(c.Cluster):
 			if c.Flags.Secrets.ContainerRegistryConfiguration == "" {

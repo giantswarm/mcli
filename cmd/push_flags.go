@@ -100,50 +100,56 @@ var (
 
 // extra cmc flags that are read from the secrets folder and not exposed
 const (
-	flagDeployKey                          = "deploy-key-passphrase"
-	flagDeployKeyIdentity                  = "deploy-key-identity"
-	flagDeployKeyKnownHosts                = "deploy-key-known-hosts"
-	flagCustomerDeployKey                  = "customer-deploy-key-passphrase"
-	flagCustomerDeployKeyIdentity          = "customer-deploy-key-identity"
-	flagCustomerDeployKeyKnownHosts        = "customer-deploy-key-known-hosts"
-	flagSharedDeployKey                    = "shared-deploy-key-passphrase"
-	flagSharedDeployKeyIdentity            = "shared-deploy-key-identity"
-	flagSharedDeployKeyKnownHosts          = "shared-deploy-key-known-hosts"
-	flagVSphereCredentials                 = "vsphere-credentials"
-	flagCloudDirectorCredentials           = "cloud-director-credentials"
-	flagAzureClusterIdentityUA             = "azure-cluster-identity-ua"
-	flagAzureClusterIdentitySP             = "azure-cluster-identity-sp"
-	flagAzureSecretClusterIdentityStaticSP = "azure-secret-cluster-identity-static-sp"
-	flagContainerRegistryConfiguration     = "container-registry-configuration"
-	flagClusterValues                      = "cluster-values"
-	flagCertManagerRoute53Region           = "cert-manager-route53-region"
-	flagCertManagerRoute53Role             = "cert-manager-route53-role"
-	flagCertManagerRoute53AccessKeyID      = "cert-manager-route53-access-key-id"
-	flagCertManagerRoute53SecretAccessKey  = "cert-manager-route53-secret-access-key"
+	flagDeployKey                         = "deploy-key-passphrase"
+	flagDeployKeyIdentity                 = "deploy-key-identity"
+	flagDeployKeyKnownHosts               = "deploy-key-known-hosts"
+	flagCustomerDeployKey                 = "customer-deploy-key-passphrase"
+	flagCustomerDeployKeyIdentity         = "customer-deploy-key-identity"
+	flagCustomerDeployKeyKnownHosts       = "customer-deploy-key-known-hosts"
+	flagSharedDeployKey                   = "shared-deploy-key-passphrase"
+	flagSharedDeployKeyIdentity           = "shared-deploy-key-identity"
+	flagSharedDeployKeyKnownHosts         = "shared-deploy-key-known-hosts"
+	flagVSphereCredentials                = "vsphere-credentials"
+	flagCloudDirectorRefreshToken         = "cloud-director-refresh-token"
+	flagAzureUAClientID                   = "azure-ua-client-id"
+	flagAzureUATenantID                   = "azure-ua-tenant-id"
+	flagAzureUAResourceID                 = "azure-ua-resource-id"
+	flagAzureClientID                     = "azure-client-id"
+	flagAzureTenantID                     = "azure-tenant-id"
+	flagAzureClientSecret                 = "azure-client-secret"
+	flagContainerRegistryConfiguration    = "container-registry-configuration"
+	flagClusterValues                     = "cluster-values"
+	flagCertManagerRoute53Region          = "cert-manager-route53-region"
+	flagCertManagerRoute53Role            = "cert-manager-route53-role"
+	flagCertManagerRoute53AccessKeyID     = "cert-manager-route53-access-key-id"
+	flagCertManagerRoute53SecretAccessKey = "cert-manager-route53-secret-access-key"
 )
 
 var (
-	taylorBotToken                     string
-	deployKeyPassphrase                string
-	deployKeyIdentity                  string
-	deployKeyKnownHosts                string
-	customerDeployKeyPassphrase        string
-	customerDeployKeyIdentity          string
-	customerDeployKeyKnownHosts        string
-	sharedDeployKeyPassphrase          string
-	sharedDeployKeyIdentity            string
-	sharedDeployKeyKnownHosts          string
-	vSphereCredentials                 string
-	cloudDirectorCredentials           string
-	azureClusterIdentityUA             string
-	azureClusterIdentitySP             string
-	azureSecretClusterIdentityStaticSP string
-	containerRegistryConfiguration     string
-	clusterValues                      string
-	certManagerRoute53Region           string
-	certManagerRoute53Role             string
-	certManagerRoute53AccessKeyID      string
-	certManagerRoute53SecretAccessKey  string
+	taylorBotToken                    string
+	deployKeyPassphrase               string
+	deployKeyIdentity                 string
+	deployKeyKnownHosts               string
+	customerDeployKeyPassphrase       string
+	customerDeployKeyIdentity         string
+	customerDeployKeyKnownHosts       string
+	sharedDeployKeyPassphrase         string
+	sharedDeployKeyIdentity           string
+	sharedDeployKeyKnownHosts         string
+	vSphereCredentials                string
+	cloudDirectorRefreshToken         string
+	azureUAClientID                   string
+	azureUATenantID                   string
+	azureUAResourceID                 string
+	azureClientID                     string
+	azureTenantID                     string
+	azureClientSecret                 string
+	containerRegistryConfiguration    string
+	clusterValues                     string
+	certManagerRoute53Region          string
+	certManagerRoute53Role            string
+	certManagerRoute53AccessKeyID     string
+	certManagerRoute53SecretAccessKey string
 )
 
 func addFlagsPush() {
@@ -196,70 +202,49 @@ func addFlagsPush() {
 		panic(err)
 	}
 	pushCmd.PersistentFlags().StringVar(&deployKeyIdentity, flagDeployKeyIdentity, "", "Deploy key identity")
-	err = pushCmd.PersistentFlags().MarkHidden(flagDeployKeyIdentity)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&deployKeyKnownHosts, flagDeployKeyKnownHosts, "", "Deploy key known hosts")
-	err = pushCmd.PersistentFlags().MarkHidden(flagDeployKeyKnownHosts)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&customerDeployKeyPassphrase, flagCustomerDeployKey, "", "Customer deploy key")
 	err = pushCmd.PersistentFlags().MarkHidden(flagCustomerDeployKey)
 	if err != nil {
 		panic(err)
 	}
 	pushCmd.PersistentFlags().StringVar(&customerDeployKeyIdentity, flagCustomerDeployKeyIdentity, "", "Customer deploy key identity")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCustomerDeployKeyIdentity)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&customerDeployKeyKnownHosts, flagCustomerDeployKeyKnownHosts, "", "Customer deploy key known hosts")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCustomerDeployKeyKnownHosts)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&sharedDeployKeyPassphrase, flagSharedDeployKey, "", "Shared deploy key")
 	err = pushCmd.PersistentFlags().MarkHidden(flagSharedDeployKey)
 	if err != nil {
 		panic(err)
 	}
 	pushCmd.PersistentFlags().StringVar(&sharedDeployKeyIdentity, flagSharedDeployKeyIdentity, "", "Shared deploy key identity")
-	err = pushCmd.PersistentFlags().MarkHidden(flagSharedDeployKeyIdentity)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&sharedDeployKeyKnownHosts, flagSharedDeployKeyKnownHosts, "", "Shared deploy key known hosts")
-	err = pushCmd.PersistentFlags().MarkHidden(flagSharedDeployKeyKnownHosts)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&vSphereCredentials, flagVSphereCredentials, "", "vSphere credentials")
 	err = pushCmd.PersistentFlags().MarkHidden(flagVSphereCredentials)
 	if err != nil {
 		panic(err)
 	}
-	pushCmd.PersistentFlags().StringVar(&cloudDirectorCredentials, flagCloudDirectorCredentials, "", "Cloud Director credentials")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCloudDirectorCredentials)
+	pushCmd.PersistentFlags().StringVar(&cloudDirectorRefreshToken, flagCloudDirectorRefreshToken, "", "Cloud Director refresh token")
+	err = pushCmd.PersistentFlags().MarkHidden(flagCloudDirectorRefreshToken)
 	if err != nil {
 		panic(err)
 	}
-	pushCmd.PersistentFlags().StringVar(&azureClusterIdentityUA, flagAzureClusterIdentityUA, "", "Azure cluster identity user-assigned")
-	err = pushCmd.PersistentFlags().MarkHidden(flagAzureClusterIdentityUA)
+
+	pushCmd.PersistentFlags().StringVar(&azureUAClientID, flagAzureUAClientID, "", "Azure UA client ID")
+	pushCmd.PersistentFlags().StringVar(&azureUATenantID, flagAzureUATenantID, "", "Azure UA tenant ID")
+	pushCmd.PersistentFlags().StringVar(&azureUAResourceID, flagAzureUAResourceID, "", "Azure UA resource ID")
+	pushCmd.PersistentFlags().StringVar(&azureClientID, flagAzureClientID, "", "Azure client ID")
+	pushCmd.PersistentFlags().StringVar(&azureTenantID, flagAzureTenantID, "", "Azure tenant ID")
+	pushCmd.PersistentFlags().StringVar(&azureClientSecret, flagAzureClientSecret, "", "Azure client secret")
+	err = pushCmd.PersistentFlags().MarkHidden(flagAzureClientSecret)
 	if err != nil {
 		panic(err)
 	}
-	pushCmd.PersistentFlags().StringVar(&azureClusterIdentitySP, flagAzureClusterIdentitySP, "", "Azure cluster identity service principal")
-	err = pushCmd.PersistentFlags().MarkHidden(flagAzureClusterIdentitySP)
-	if err != nil {
-		panic(err)
-	}
-	pushCmd.PersistentFlags().StringVar(&azureSecretClusterIdentityStaticSP, flagAzureSecretClusterIdentityStaticSP, "", "Azure secret cluster identity static service principal")
-	err = pushCmd.PersistentFlags().MarkHidden(flagAzureSecretClusterIdentityStaticSP)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&containerRegistryConfiguration, flagContainerRegistryConfiguration, "", "Container registry configuration")
 	err = pushCmd.PersistentFlags().MarkHidden(flagContainerRegistryConfiguration)
 	if err != nil {
@@ -271,20 +256,11 @@ func addFlagsPush() {
 		panic(err)
 	}
 	pushCmd.PersistentFlags().StringVar(&certManagerRoute53Region, flagCertManagerRoute53Region, "", "Cert Manager Route53 region")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCertManagerRoute53Region)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&certManagerRoute53Role, flagCertManagerRoute53Role, "", "Cert Manager Route53 role")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCertManagerRoute53Role)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&certManagerRoute53AccessKeyID, flagCertManagerRoute53AccessKeyID, "", "Cert Manager Route53 access key ID")
-	err = pushCmd.PersistentFlags().MarkHidden(flagCertManagerRoute53AccessKeyID)
-	if err != nil {
-		panic(err)
-	}
+
 	pushCmd.PersistentFlags().StringVar(&certManagerRoute53SecretAccessKey, flagCertManagerRoute53SecretAccessKey, "", "Cert Manager Route53 secret access key")
 	err = pushCmd.PersistentFlags().MarkHidden(flagCertManagerRoute53SecretAccessKey)
 	if err != nil {

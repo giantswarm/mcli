@@ -54,13 +54,16 @@ type CAPV struct {
 }
 
 type CAPZ struct {
-	IdentityUA       string `yaml:"identityUA"`
-	IdentitySP       string `yaml:"identitySP"`
-	IdentityStaticSP string `yaml:"identityStaticSP"`
+	UAClientID   string `yaml:"uaClientID"`
+	UATenantID   string `yaml:"uaTenantID"`
+	UAResourceID string `yaml:"uaResourceID"`
+	ClientID     string `yaml:"clientID"`
+	ClientSecret string `yaml:"clientSecret"`
+	TenantID     string `yaml:"tenantID"`
 }
 
 type CAPVCD struct {
-	CloudConfig string `yaml:"cloudConfig"`
+	RefreshToken string `yaml:"refreshToken"`
 }
 
 type CertManagerDNSChallenge struct {
@@ -182,18 +185,27 @@ func (c *CMC) Override(override *CMC) *CMC {
 				cmc.Provider.CAPV.CloudConfig = override.Provider.CAPV.CloudConfig
 			}
 		} else if override.Provider.Name == key.ProviderAzure {
-			if override.Provider.CAPZ.IdentityUA != "" {
-				cmc.Provider.CAPZ.IdentityUA = override.Provider.CAPZ.IdentityUA
+			if override.Provider.CAPZ.UAClientID != "" {
+				cmc.Provider.CAPZ.UAClientID = override.Provider.CAPZ.UAClientID
 			}
-			if override.Provider.CAPZ.IdentitySP != "" {
-				cmc.Provider.CAPZ.IdentitySP = override.Provider.CAPZ.IdentitySP
+			if override.Provider.CAPZ.UATenantID != "" {
+				cmc.Provider.CAPZ.UATenantID = override.Provider.CAPZ.UATenantID
 			}
-			if override.Provider.CAPZ.IdentityStaticSP != "" {
-				cmc.Provider.CAPZ.IdentityStaticSP = override.Provider.CAPZ.IdentityStaticSP
+			if override.Provider.CAPZ.UAResourceID != "" {
+				cmc.Provider.CAPZ.UAResourceID = override.Provider.CAPZ.UAResourceID
+			}
+			if override.Provider.CAPZ.ClientID != "" {
+				cmc.Provider.CAPZ.ClientID = override.Provider.CAPZ.ClientID
+			}
+			if override.Provider.CAPZ.ClientSecret != "" {
+				cmc.Provider.CAPZ.ClientSecret = override.Provider.CAPZ.ClientSecret
+			}
+			if override.Provider.CAPZ.TenantID != "" {
+				cmc.Provider.CAPZ.TenantID = override.Provider.CAPZ.TenantID
 			}
 		} else if override.Provider.Name == key.ProviderVCD {
-			if override.Provider.CAPVCD.CloudConfig != "" {
-				cmc.Provider.CAPVCD.CloudConfig = override.Provider.CAPVCD.CloudConfig
+			if override.Provider.CAPVCD.RefreshToken != "" {
+				cmc.Provider.CAPVCD.RefreshToken = override.Provider.CAPVCD.RefreshToken
 			}
 		}
 	}
@@ -314,17 +326,26 @@ func (c *CMC) Validate() error {
 			return fmt.Errorf("provider vsphere cloud config is empty")
 		}
 	} else if c.Provider.Name == key.ProviderAzure {
-		if c.Provider.CAPZ.IdentityUA == "" {
-			return fmt.Errorf("provider azure identity user-assigned is empty")
+		if c.Provider.CAPZ.UAClientID == "" {
+			return fmt.Errorf("provider azure ua client id is empty")
 		}
-		if c.Provider.CAPZ.IdentitySP == "" {
-			return fmt.Errorf("provider azure identity service principal is empty")
+		if c.Provider.CAPZ.UATenantID == "" {
+			return fmt.Errorf("provider azure ua tenant id is empty")
 		}
-		if c.Provider.CAPZ.IdentityStaticSP == "" {
-			return fmt.Errorf("provider azure identity static service principal is empty")
+		if c.Provider.CAPZ.UAResourceID == "" {
+			return fmt.Errorf("provider azure ua resource id is empty")
+		}
+		if c.Provider.CAPZ.ClientID == "" {
+			return fmt.Errorf("provider azure client id is empty")
+		}
+		if c.Provider.CAPZ.ClientSecret == "" {
+			return fmt.Errorf("provider azure client secret is empty")
+		}
+		if c.Provider.CAPZ.TenantID == "" {
+			return fmt.Errorf("provider azure tenant id is empty")
 		}
 	} else if c.Provider.Name == key.ProviderVCD {
-		if c.Provider.CAPVCD.CloudConfig == "" {
+		if c.Provider.CAPVCD.RefreshToken == "" {
 			return fmt.Errorf("provider vcd cloud config is empty")
 		}
 	}

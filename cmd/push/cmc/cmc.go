@@ -44,20 +44,27 @@ type CMCFlags struct {
 }
 
 type SecretFlags struct {
-	SSHDeployKey                       DeployKey
-	CustomerDeployKey                  DeployKey
-	SharedDeployKey                    DeployKey
-	VSphereCredentials                 string
-	CloudDirectorCredentials           string
-	AzureClusterIdentityUA             string
-	AzureClusterIdentitySP             string
-	AzureSecretClusterIdentityStaticSP string
-	ContainerRegistryConfiguration     string
-	ClusterValues                      string
-	CertManagerRoute53Region           string
-	CertManagerRoute53Role             string
-	CertManagerRoute53AccessKeyID      string
-	CertManagerRoute53SecretAccessKey  string
+	SSHDeployKey                      DeployKey
+	CustomerDeployKey                 DeployKey
+	SharedDeployKey                   DeployKey
+	VSphereCredentials                string
+	CloudDirectorRefreshToken         string
+	Azure                             AzureFlags
+	ContainerRegistryConfiguration    string
+	ClusterValues                     string
+	CertManagerRoute53Region          string
+	CertManagerRoute53Role            string
+	CertManagerRoute53AccessKeyID     string
+	CertManagerRoute53SecretAccessKey string
+}
+
+type AzureFlags struct {
+	UAClientID   string
+	UATenantID   string
+	UAResourceID string
+	ClientID     string
+	TenantID     string
+	ClientSecret string
 }
 
 type DeployKey struct {
@@ -308,13 +315,16 @@ func getNewCMCFromFlags(c Config) (*cmc.CMC, error) {
 			return nil, fmt.Errorf("vsphere credentials are required\n%w", ErrInvalidFlag)
 		}
 	} else if c.Provider == key.ProviderVCD {
-		if c.Flags.Secrets.CloudDirectorCredentials == "" {
-			return nil, fmt.Errorf("cloud director credentials are required\n%w", ErrInvalidFlag)
+		if c.Flags.Secrets.CloudDirectorRefreshToken == "" {
+			return nil, fmt.Errorf("cloud director refresh token is required\n%w", ErrInvalidFlag)
 		}
 	} else if c.Provider == key.ProviderAzure {
-		if c.Flags.Secrets.AzureClusterIdentityUA == "" ||
-			c.Flags.Secrets.AzureClusterIdentitySP == "" ||
-			c.Flags.Secrets.AzureSecretClusterIdentityStaticSP == "" {
+		if c.Flags.Secrets.Azure.ClientID == "" ||
+			c.Flags.Secrets.Azure.TenantID == "" ||
+			c.Flags.Secrets.Azure.ClientSecret == "" ||
+			c.Flags.Secrets.Azure.UAClientID == "" ||
+			c.Flags.Secrets.Azure.UATenantID == "" ||
+			c.Flags.Secrets.Azure.UAResourceID == "" {
 			return nil, fmt.Errorf("azure credentials are required\n%w", ErrInvalidFlag)
 		}
 	}
@@ -398,13 +408,16 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		}
 	} else if c.Provider == key.ProviderVCD {
 		newCMC.Provider.CAPVCD = cmc.CAPVCD{
-			CloudConfig: c.Flags.Secrets.CloudDirectorCredentials,
+			RefreshToken: c.Flags.Secrets.CloudDirectorRefreshToken,
 		}
 	} else if c.Provider == key.ProviderAzure {
 		newCMC.Provider.CAPZ = cmc.CAPZ{
-			IdentityUA:       c.Flags.Secrets.AzureClusterIdentityUA,
-			IdentitySP:       c.Flags.Secrets.AzureClusterIdentitySP,
-			IdentityStaticSP: c.Flags.Secrets.AzureSecretClusterIdentityStaticSP,
+			ClientID:     c.Flags.Secrets.Azure.ClientID,
+			TenantID:     c.Flags.Secrets.Azure.TenantID,
+			ClientSecret: c.Flags.Secrets.Azure.ClientSecret,
+			UAClientID:   c.Flags.Secrets.Azure.UAClientID,
+			UATenantID:   c.Flags.Secrets.Azure.UATenantID,
+			UAResourceID: c.Flags.Secrets.Azure.UAResourceID,
 		}
 	}
 	if err := newCMC.SetDefaultAppValues(); err != nil {

@@ -53,6 +53,7 @@ spec:
 }
 
 func GetKustomization(c Config) string {
+	log.Debug().Msg("Creating Kustomization for proxy")
 	return fmt.Sprintf(`apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:

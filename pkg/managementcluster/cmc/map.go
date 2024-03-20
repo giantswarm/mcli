@@ -176,12 +176,15 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)],
 			data[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)],
 			data[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)])
-		cmc.Provider.CAPZ.IdentityUA = capzConfig.IdentityUA
-		cmc.Provider.CAPZ.IdentitySP = capzConfig.IdentitySP
-		cmc.Provider.CAPZ.IdentityStaticSP = capzConfig.IdentityStaticSP
+		cmc.Provider.CAPZ.ClientID = capzConfig.ClientID
+		cmc.Provider.CAPZ.ClientSecret = capzConfig.ClientSecret
+		cmc.Provider.CAPZ.TenantID = capzConfig.TenantID
+		cmc.Provider.CAPZ.UAClientID = capzConfig.UAClientID
+		cmc.Provider.CAPZ.UATenantID = capzConfig.UATenantID
+		cmc.Provider.CAPZ.UAResourceID = capzConfig.UAResourceID
 	} else if clusterAppsConfig.Provider == key.ProviderVCD {
 		capvcdConfig := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, key.CloudDirectorCredentialsFile)])
-		cmc.Provider.CAPVCD.CloudConfig = capvcdConfig.CloudConfig
+		cmc.Provider.CAPVCD.RefreshToken = capvcdConfig.RefreshToken
 	}
 	return &cmc, nil
 }
@@ -315,18 +318,24 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.VsphereCredentialsFile))
 	}
 	if c.Provider.Name == key.ProviderAzure {
-		capzFile, err := capz.GetCAPZFile(capz.Config{
-			Namespace:        c.ClusterNamespace,
-			IdentityUA:       c.Provider.CAPZ.IdentityUA,
-			IdentitySP:       c.Provider.CAPZ.IdentitySP,
-			IdentityStaticSP: c.Provider.CAPZ.IdentityStaticSP,
-		})
+		capzconfig := capz.Config{
+			Namespace:    c.ClusterNamespace,
+			ClientID:     c.Provider.CAPZ.ClientID,
+			ClientSecret: c.Provider.CAPZ.ClientSecret,
+			TenantID:     c.Provider.CAPZ.TenantID,
+			UAClientID:   c.Provider.CAPZ.UAClientID,
+			UATenantID:   c.Provider.CAPZ.UATenantID,
+			UAResourceID: c.Provider.CAPZ.UAResourceID,
+		}
+		capzUAFile := capz.GetCAPZUAFile(capzconfig)
+		capzSPFile := capz.GetCAPZSPFile(capzconfig)
+		capzStaticSPFile, err := capz.GetCAPZSecret(capzconfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
 		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)] = capzFile
-		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)] = c.Provider.CAPZ.IdentitySP
-		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)] = c.Provider.CAPZ.IdentityUA
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP)] = capzStaticSPFile
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile)] = capzSPFile
+		cmcTemplate[fmt.Sprintf("%s/%s", path, key.AzureClusterIdentityUAFile)] = capzUAFile
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.AzureSecretClusterIdentityStaticSP))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, key.AzureClusterIdentitySPFile))
@@ -334,8 +343,8 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 	}
 	if c.Provider.Name == key.ProviderVCD {
 		capvcdFile, err := capvcd.GetCAPVCDFile(capvcd.Config{
-			Namespace:   c.ClusterNamespace,
-			CloudConfig: c.Provider.CAPVCD.CloudConfig,
+			Namespace:    c.ClusterNamespace,
+			RefreshToken: c.Provider.CAPVCD.RefreshToken,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPVCD file.\n%w", err)
