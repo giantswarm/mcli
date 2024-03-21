@@ -22,13 +22,8 @@ const (
 )
 
 const (
-	ClusterValuesFile                  = "cluster-values.yaml"
-	CommonSecretsFile                  = "common.secrets"
-	VsphereCredentialsFile             = "vsphere-cloud-config-secret.yaml"
-	CloudDirectorCredentialsFile       = "cloud-director-cloud-config-secret.yaml"
-	AzureClusterIdentitySPFile         = "azureclusteridentity-sp.yaml"
-	AzureClusterIdentityUAFile         = "azureclusteridentity-ua.yaml"
-	AzureSecretClusterIdentityStaticSP = "secret-clusteridentity-static-sp.yaml"
+	ClusterValuesFile = "cluster-values.yaml"
+	CommonSecretsFile = "common.secrets"
 )
 
 const (
@@ -89,7 +84,7 @@ func GetContainerRegistriesFile(cluster string) string {
 }
 
 func GetCertManagerSecretName(cluster string) string {
-	return fmt.Sprintf("%s--cert-manager-user-secrets", cluster)
+	return fmt.Sprintf("%s-cert-manager-user-secrets", cluster)
 }
 
 func GetDeployKey(cluster string) string {

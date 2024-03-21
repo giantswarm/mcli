@@ -45,6 +45,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -73,19 +74,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -106,6 +121,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -133,7 +149,8 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 							UAResourceID: "test-ua-resource-id",
 						},
 					},
-				}},
+				},
+			},
 			expected: &cmc.CMC{
 				Provider: cmc.Provider{
 					Name: "capz",
@@ -149,19 +166,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\nuserConfig:\n  externalDNS:\n    configMap:\n      values: |-\n        hostNetwork: true\n        flavor: capi\n        provider: azure\n        clusterID: {{ .Values.clusterName }}\n        crd:\n          install: false\n        externalDNS:\n          namespaceFilter: \\\"\\\"\n          sources:\n          - ingress\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -183,6 +214,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -202,7 +234,8 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 							KnownHosts: "test-deploy",
 						},
 					},
-				}},
+				},
+			},
 			expectError: true,
 		},
 		{
@@ -219,6 +252,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion:      "3.4.5",
 					ClusterNamespace:        "test",
 					AgePubKey:               "test-age-pub-key",
+					AgeKey:                  "test-age-key",
 					TaylorBotToken:          "test-taylor-bot-token",
 					CertManagerDNSChallenge: true,
 					Secrets: SecretFlags{
@@ -252,19 +286,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\nuserConfig:\n  certManager:\n    extraConfigs:\n    - kind: secret\n      name: test-cert-manager-user-secrets\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -292,6 +340,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -324,19 +373,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -357,6 +420,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -389,19 +453,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -422,6 +500,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion:           "3.4.5",
 					ClusterNamespace:             "test",
 					AgePubKey:                    "test-age-pub-key",
+					AgeKey:                       "test-age-key",
 					TaylorBotToken:               "test-taylor-bot-token",
 					ConfigureContainerRegistries: true,
 					Secrets: SecretFlags{
@@ -452,19 +531,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -489,9 +582,10 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					MCProxyEnabled:     true,
-					MCHTTPSProxy:       "test-mc-https-proxy",
+					MCHTTPSProxy:       "http://test-mc-https-proxy:443",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
 						SSHDeployKey: DeployKey{
@@ -519,19 +613,33 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				Cluster: "test",
 				ClusterApp: cmc.App{
 					Name:    "test-app",
+					AppName: "test",
 					Catalog: "test-catalog",
 					Version: "1.2.3",
 					Values:  "test-values",
 				},
 				DefaultApps: cmc.App{
 					Name:    "test-default-apps",
+					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 				},
 				AgePubKey:        "test-age-pub-key",
+				AgeKey:           "test-age-key",
 				TaylorBotToken:   "test-taylor-bot-token",
 				ClusterNamespace: "test",
 				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
 					Passphrase: "test-deploy-key-passphrase",
 					Identity:   "test-deploy-key-identity",
 					KnownHosts: "test-deploy",
@@ -557,6 +665,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -594,6 +703,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
@@ -631,6 +741,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion:           "3.4.5",
 					ClusterNamespace:             "test",
 					AgePubKey:                    "test-age-pub-key",
+					AgeKey:                       "test-age-key",
 					TaylorBotToken:               "test-taylor-bot-token",
 					ConfigureContainerRegistries: true,
 					Secrets: SecretFlags{
@@ -669,6 +780,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					DefaultAppsVersion: "3.4.5",
 					ClusterNamespace:   "test",
 					AgePubKey:          "test-age-pub-key",
+					AgeKey:             "test-age-key",
 					TaylorBotToken:     "test-taylor-bot-token",
 					MCProxyEnabled:     true,
 					Secrets: SecretFlags{
@@ -704,7 +816,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				t.Fatalf("expected error, got nil")
 			}
 			if !reflect.DeepEqual(installation, tc.expected) {
-				t.Fatalf("expected %#v, got %#v", tc.expected, installation)
+				t.Fatalf("expected %v, got %v", tc.expected, installation)
 			}
 		})
 	}

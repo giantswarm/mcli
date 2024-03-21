@@ -98,32 +98,23 @@ func (c *Config) ReadSecretFlags() error {
 		}
 		secrets[VsphereCredentialsFile] = vsphereCredentialsFile
 	} else if c.Provider == key.ProviderVCD {
-		vcdCredentialsFile, err := c.ReadFileFromSecretFolder(CloudDirectorCredentialsFile)
-		if err != nil {
-			return err
-		}
-		vcdFlags, err := readFlagsFromFile(vcdCredentialsFile)
+		clouddirectorfile := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, CloudDirectorCredentialsFile)
+		vcdFlags, err := readFlagsFromFile(clouddirectorfile)
 		if err != nil {
 			return err
 		}
 		secrets[CloudDirectorRefreshTokenKey] = vcdFlags[CloudDirectorRefreshTokenKey]
 	} else if c.Provider == key.ProviderAzure {
-		azureCredentialsFile, err := c.ReadFileFromSecretFolder(AzureCredentialsFile)
-		if err != nil {
-			return err
-		}
-		azureFlags, err := readFlagsFromFile(azureCredentialsFile)
+		azurefile := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, AzureCredentialsFile)
+		azureFlags, err := readFlagsFromFile(azurefile)
 		if err != nil {
 			return err
 		}
 		secrets[AzureClientIDKey] = azureFlags[AzureClientIDKey]
 		secrets[AzureClientSecretKey] = azureFlags[AzureClientSecretKey]
 		secrets[AzureTenantIDKey] = azureFlags[AzureTenantIDKey]
-		azureIdentityFile, err := c.ReadFileFromSecretFolder(AzureIdentityFile)
-		if err != nil {
-			return err
-		}
-		azureIdentityFlags, err := readFlagsFromFile(azureIdentityFile)
+		azureidentity := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, AzureIdentityFile)
+		azureIdentityFlags, err := readFlagsFromFile(azureidentity)
 		if err != nil {
 			return err
 		}

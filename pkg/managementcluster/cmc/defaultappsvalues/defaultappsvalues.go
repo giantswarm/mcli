@@ -19,27 +19,27 @@ type DefaultAppsValues struct {
 	ClusterName       string     `yaml:"clusterName"`
 	Organization      string     `yaml:"organization"`
 	ManagementCluster string     `yaml:"managementCluster"`
-	UserConfig        UserConfig `yaml:"userConfig"`
-	Apps              string     `yaml:"apps"`
+	UserConfig        UserConfig `yaml:"userConfig,omitempty"`
+	Apps              string     `yaml:"apps,omitempty"`
 }
 
 type UserConfig struct {
-	CertManager App `yaml:"certManager"`
-	ExternalDNS App `yaml:"externalDNS"`
+	CertManager App `yaml:"certManager,omitempty"`
+	ExternalDNS App `yaml:"externalDNS,omitempty"`
 }
 
 type App struct {
-	ConfigMap    ConfigMap     `yaml:"configMap"`
-	ExtraConfigs []ExtraConfig `yaml:"extraConfigs"`
+	ConfigMap    ConfigMap     `yaml:"configMap,omitempty"`
+	ExtraConfigs []ExtraConfig `yaml:"extraConfigs,omitempty"`
 }
 
 type ConfigMap struct {
-	Values string `yaml:"values"`
+	Values string `yaml:"values,omitempty"`
 }
 
 type ExtraConfig struct {
-	Kind string `yaml:"kind"`
-	Name string `yaml:"name"`
+	Kind string `yaml:"kind,omitempty"`
+	Name string `yaml:"name,omitempty"`
 }
 
 func GetDefaultAppsValuesFile(c Config) (string, error) {

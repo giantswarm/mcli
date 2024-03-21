@@ -263,73 +263,138 @@ func (c *Config) Validate() error {
 }
 
 func getNewCMCFromFlags(c Config) (*cmc.CMC, error) {
+	err := c.EnsureFlagsAreSet()
+	if err != nil {
+		return nil, fmt.Errorf("failed to ensure flags are set.\n%w", err)
+	}
+	return getCMC(c)
+}
+
+func (c *Config) EnsureFlagsAreSet() error {
 	// Ensure that all the needed flags are set
-	if c.Flags.ClusterAppName == "" ||
-		c.Flags.ClusterAppCatalog == "" ||
-		c.Flags.ClusterAppVersion == "" ||
-		c.Flags.DefaultAppsName == "" ||
-		c.Flags.DefaultAppsCatalog == "" ||
-		c.Flags.DefaultAppsVersion == "" ||
-		c.Provider == "" ||
-		c.Cluster == "" ||
-		c.Flags.AgePubKey == "" ||
-		c.Flags.AgeKey == "" ||
-		c.Flags.TaylorBotToken == "" {
-		return nil, fmt.Errorf("not all required flags are set\n%w", ErrInvalidFlag)
+	if c.Flags.ClusterAppName == "" {
+		return fmt.Errorf("cluster app name is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.ClusterAppCatalog == "" {
+		return fmt.Errorf("cluster app catalog is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.ClusterAppVersion == "" {
+		return fmt.Errorf("cluster app version is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.DefaultAppsName == "" {
+		return fmt.Errorf("default apps name is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.DefaultAppsCatalog == "" {
+		return fmt.Errorf("default apps catalog is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.DefaultAppsVersion == "" {
+		return fmt.Errorf("default apps version is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.ClusterNamespace == "" {
+		return fmt.Errorf("cluster namespace is required\n%w", ErrInvalidFlag)
+	}
+	if c.Provider == "" {
+		return fmt.Errorf("provider is required\n%w", ErrInvalidFlag)
+	}
+	if c.Cluster == "" {
+		return fmt.Errorf("cluster is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.AgePubKey == "" {
+		return fmt.Errorf("age public key is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.AgeKey == "" {
+		return fmt.Errorf("age key is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.TaylorBotToken == "" {
+		return fmt.Errorf("taylor bot token is required\n%w", ErrInvalidFlag)
 	}
 
 	// Ensure that all the needed secret values are set
-	if c.Flags.Secrets.SSHDeployKey.Identity == "" ||
-		c.Flags.Secrets.SSHDeployKey.KnownHosts == "" ||
-		c.Flags.Secrets.SSHDeployKey.Passphrase == "" ||
-		c.Flags.Secrets.CustomerDeployKey.Identity == "" ||
-		c.Flags.Secrets.CustomerDeployKey.KnownHosts == "" ||
-		c.Flags.Secrets.CustomerDeployKey.Passphrase == "" ||
-		c.Flags.Secrets.SharedDeployKey.Identity == "" ||
-		c.Flags.Secrets.SharedDeployKey.KnownHosts == "" ||
-		c.Flags.Secrets.SharedDeployKey.Passphrase == "" ||
-		c.Flags.Secrets.ClusterValues == "" {
-		return nil, fmt.Errorf("not all required values are set\n%w", ErrInvalidFlag)
+	if c.Flags.Secrets.SSHDeployKey.Identity == "" {
+		return fmt.Errorf("ssh deploy key identity is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.SSHDeployKey.KnownHosts == "" {
+		return fmt.Errorf("ssh deploy key known hosts is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.SSHDeployKey.Passphrase == "" {
+		return fmt.Errorf("ssh deploy key passphrase is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.CustomerDeployKey.Identity == "" {
+		return fmt.Errorf("customer deploy key identity is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.CustomerDeployKey.KnownHosts == "" {
+		return fmt.Errorf("customer deploy key known hosts is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.CustomerDeployKey.Passphrase == "" {
+		return fmt.Errorf("customer deploy key passphrase is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.SharedDeployKey.Identity == "" {
+		return fmt.Errorf("shared deploy key identity is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.SharedDeployKey.KnownHosts == "" {
+		return fmt.Errorf("shared deploy key known hosts is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.SharedDeployKey.Passphrase == "" {
+		return fmt.Errorf("shared deploy key passphrase is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.Secrets.ClusterValues == "" {
+		return fmt.Errorf("cluster values are required\n%w", ErrInvalidFlag)
 	}
 	// Ensure that needed values for enabled features are set
 	if c.Flags.ConfigureContainerRegistries {
 		if c.Flags.Secrets.ContainerRegistryConfiguration == "" {
-			return nil, fmt.Errorf("container registry configuration is required\n%w", ErrInvalidFlag)
+			return fmt.Errorf("container registry configuration is required\n%w", ErrInvalidFlag)
 		}
 	}
 	if c.Flags.CertManagerDNSChallenge {
-		if c.Flags.Secrets.CertManagerRoute53Region == "" ||
-			c.Flags.Secrets.CertManagerRoute53Role == "" ||
-			c.Flags.Secrets.CertManagerRoute53AccessKeyID == "" ||
-			c.Flags.Secrets.CertManagerRoute53SecretAccessKey == "" {
-			return nil, fmt.Errorf("cert manager dns challenge configuration is required\n%w", ErrInvalidFlag)
+		if c.Flags.Secrets.CertManagerRoute53Region == "" {
+			return fmt.Errorf("cert manager route53 region is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.CertManagerRoute53Role == "" {
+			return fmt.Errorf("cert manager route53 role is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.CertManagerRoute53AccessKeyID == "" {
+			return fmt.Errorf("cert manager route53 access key id is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.CertManagerRoute53SecretAccessKey == "" {
+			return fmt.Errorf("cert manager route53 secret access key is required\n%w", ErrInvalidFlag)
 		}
 	}
 	if c.Flags.MCProxyEnabled {
 		if c.Flags.MCHTTPSProxy == "" {
-			return nil, fmt.Errorf("mc proxy is enabled but no https proxy is set\n%w", ErrInvalidFlag)
+			return fmt.Errorf("mc https proxy is required\n%w", ErrInvalidFlag)
 		}
 	}
 	// Ensure that needed values for the provider are set
 	if c.Provider == key.ProviderVsphere {
 		if c.Flags.Secrets.VSphereCredentials == "" {
-			return nil, fmt.Errorf("vsphere credentials are required\n%w", ErrInvalidFlag)
+			return fmt.Errorf("vsphere credentials are required\n%w", ErrInvalidFlag)
 		}
 	} else if c.Provider == key.ProviderVCD {
 		if c.Flags.Secrets.CloudDirectorRefreshToken == "" {
-			return nil, fmt.Errorf("cloud director refresh token is required\n%w", ErrInvalidFlag)
+			return fmt.Errorf("cloud director refresh token is required\n%w", ErrInvalidFlag)
 		}
 	} else if c.Provider == key.ProviderAzure {
-		if c.Flags.Secrets.Azure.ClientID == "" ||
-			c.Flags.Secrets.Azure.TenantID == "" ||
-			c.Flags.Secrets.Azure.ClientSecret == "" ||
-			c.Flags.Secrets.Azure.UAClientID == "" ||
-			c.Flags.Secrets.Azure.UATenantID == "" ||
-			c.Flags.Secrets.Azure.UAResourceID == "" {
-			return nil, fmt.Errorf("azure credentials are required\n%w", ErrInvalidFlag)
+		if c.Flags.Secrets.Azure.ClientID == "" {
+			return fmt.Errorf("azure client id is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.Azure.TenantID == "" {
+			return fmt.Errorf("azure tenant id is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.Azure.ClientSecret == "" {
+			return fmt.Errorf("azure client secret is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.Azure.UAClientID == "" {
+			return fmt.Errorf("azure user assigned client id is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.Azure.UATenantID == "" {
+			return fmt.Errorf("azure user assigned tenant id is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.Secrets.Azure.UAResourceID == "" {
+			return fmt.Errorf("azure user assigned resource id is required\n%w", ErrInvalidFlag)
 		}
 	}
-	return getCMC(c)
+	return nil
 }
 
 func getCMC(c Config) (*cmc.CMC, error) {
@@ -390,10 +455,18 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		}
 	}
 	if c.Flags.MCProxyEnabled {
+		proxy := strings.Split(c.Flags.MCHTTPSProxy, "/")
+		if len(proxy) != 3 {
+			return nil, fmt.Errorf("invalid mc https proxy format %s. Expected format: http://<hostname>:<port>.\n%w", c.Flags.MCHTTPSProxy, ErrInvalidFlag)
+		}
+		host := strings.Split(proxy[2], ":")
+		if len(host) != 2 {
+			return nil, fmt.Errorf("invalid mc https proxy format %s. Expected format: http://<hostname>:<port>.\n%w", c.Flags.MCHTTPSProxy, ErrInvalidFlag)
+		}
 		newCMC.MCProxy = cmc.MCProxy{
 			Enabled:  true,
-			Hostname: strings.Split(strings.Split(c.Flags.MCHTTPSProxy, "/")[2], ":")[0],
-			Port:     strings.Split(strings.Split(c.Flags.MCHTTPSProxy, "/")[2], ":")[1],
+			Hostname: host[0],
+			Port:     host[1],
 		}
 	}
 	if c.Flags.MCCustomCoreDNSConfig != "" {
