@@ -8,6 +8,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/rs/zerolog/log"
 )
 
@@ -206,11 +207,11 @@ func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*
 	}
 	// if deny all netpol is being enabled, we need to get the file from the template
 	if currentCMC.DisableDenyAllNetPol && !desiredCMC.DisableDenyAllNetPol {
-		template, err := c.PullTemplateFile(cmc.DenyNetPolFile)
+		template, err := c.PullTemplateFile(kustomization.DenyNetPolFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to pull template file.\n%w", err)
 		}
-		currentCMCmap[fmt.Sprintf("%s/%s", key.GetCMCPath(c.Cluster), cmc.DenyNetPolFile)] = template
+		currentCMCmap[fmt.Sprintf("%s/%s", key.GetCMCPath(c.Cluster), kustomization.DenyNetPolFile)] = template
 	}
 	update, err := desiredCMC.GetMap(currentCMCmap)
 	if err != nil {
