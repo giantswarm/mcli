@@ -22,12 +22,8 @@ type Config struct {
 
 func GetAgeKey(file string, cluster string) (string, error) {
 	log.Debug().Msg("Getting Age key")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
-	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal Age object.\n%w", err)
-	}
-	return string(secret.Data[key.GetAgeKey(cluster)]), nil
+
+	return key.GetSecretValue(key.GetAgeKey(cluster), file)
 }
 
 func GetAgeFile(c Config) (string, error) {

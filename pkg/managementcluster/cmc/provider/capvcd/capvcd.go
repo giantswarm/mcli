@@ -4,10 +4,15 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	RefreshTokenKey = "refreshToken"
 )
 
 type Config struct {
@@ -15,17 +20,10 @@ type Config struct {
 	RefreshToken string
 }
 
-func GetCAPVCDConfig(file string) Config {
+func GetCAPVCDConfig(file string) (string, error) {
 	log.Debug().Msg("Getting CAPVCD config")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
-	if err != nil {
-		log.Error().Msgf("failed to unmarshal CAPVCD object.\n%v", err)
-	}
-	return Config{
-		Namespace:    secret.ObjectMeta.Namespace,
-		RefreshToken: string(secret.Data["refreshToken"]),
-	}
+
+	return key.GetSecretValue(RefreshTokenKey, file)
 }
 
 func GetCAPVCDFile(c Config) (string, error) {
@@ -43,7 +41,7 @@ func GetCAPVCDFile(c Config) (string, error) {
 			},
 		},
 		Data: map[string][]byte{
-			"refreshToken": []byte(refreshToken),
+			RefreshTokenKey: []byte(refreshToken),
 		},
 	}
 	data, err := yaml.Marshal(secret)

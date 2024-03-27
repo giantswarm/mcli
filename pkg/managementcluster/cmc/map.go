@@ -16,7 +16,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/provider/capvcd"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/provider/capz"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/registry"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/sops"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/sopsfile"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/taylorbot"
 )
 
@@ -25,7 +25,7 @@ const (
 )
 
 func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
-	sopsConfig, err := sops.GetSopsConfig(data[SopsFile], cluster)
+	sopsConfig, err := sopsfile.GetSopsConfig(data[SopsFile], cluster)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sops config.\n%w", err)
 	}
@@ -156,10 +156,13 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 		}
 	}
 
-	if clusterAppsConfig.Provider == key.ProviderVsphere {
-		capvConfig := capv.GetCAPVConfig(data[fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile)])
-		cmc.Provider.CAPV.CloudConfig = capvConfig.CloudConfig
-	} else if clusterAppsConfig.Provider == key.ProviderAzure {
+	if key.IsProviderVsphere(clusterAppsConfig.Provider) {
+		capvConfig, err := capv.GetCAPVConfig(data[fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPV config.\n%w", err)
+		}
+		cmc.Provider.CAPV.CloudConfig = capvConfig
+	} else if key.IsProviderAzure(clusterAppsConfig.Provider) {
 		capzConfig, err := capz.GetCAPZConfig(
 			data[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentitySPFile)],
 			data[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentityUAFile)],
@@ -173,9 +176,12 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 		cmc.Provider.CAPZ.UAClientID = capzConfig.UAClientID
 		cmc.Provider.CAPZ.UATenantID = capzConfig.UATenantID
 		cmc.Provider.CAPZ.UAResourceID = capzConfig.UAResourceID
-	} else if clusterAppsConfig.Provider == key.ProviderVCD {
-		capvcdConfig := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)])
-		cmc.Provider.CAPVCD.RefreshToken = capvcdConfig.RefreshToken
+	} else if key.IsProviderVCD(clusterAppsConfig.Provider) {
+		refreshtoken, err := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get CAPVCD config.\n%w", err)
+		}
+		cmc.Provider.CAPVCD.RefreshToken = refreshtoken
 	}
 	return &cmc, nil
 }
@@ -296,7 +302,7 @@ func (c *CMC) GetAge(cmcTemplate map[string]string, path string) (map[string]str
 
 // Providers
 func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	if c.Provider.Name == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider.Name) {
 		capvFile, err := capv.GetCAPVFile(capv.Config{
 			Namespace:   c.ClusterNamespace,
 			CloudConfig: c.Provider.CAPV.CloudConfig,
@@ -308,7 +314,7 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile))
 	}
-	if c.Provider.Name == key.ProviderAzure {
+	if key.IsProviderAzure(c.Provider.Name) {
 		capzconfig := capz.Config{
 			Namespace:    c.ClusterNamespace,
 			ClientID:     c.Provider.CAPZ.ClientID,
@@ -338,7 +344,7 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentitySPFile))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentityUAFile))
 	}
-	if c.Provider.Name == key.ProviderVCD {
+	if key.IsProviderVCD(c.Provider.Name) {
 		capvcdFile, err := capvcd.GetCAPVCDFile(capvcd.Config{
 			Namespace:    c.ClusterNamespace,
 			RefreshToken: c.Provider.CAPVCD.RefreshToken,
@@ -389,7 +395,7 @@ func (c *CMC) GetDenyNetPol(cmcTemplate map[string]string, path string) (map[str
 
 // Sops
 func (c *CMC) GetSops(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	sopsFile, err := sops.GetSopsFile(sops.Config{
+	sopsFile, err := sopsfile.GetSopsFile(sopsfile.Config{
 		Cluster:   c.Cluster,
 		AgePubKey: c.AgePubKey,
 	}, cmcTemplate[SopsFile])

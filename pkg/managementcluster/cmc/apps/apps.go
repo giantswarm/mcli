@@ -18,6 +18,7 @@ import (
 
 const (
 	ContainerRegistrySecretName = "container-registries-configuration"
+	ValuesKey                   = "values"
 )
 
 type Config struct {
@@ -54,7 +55,7 @@ func GetClusterAppsFile(c Config) (string, error) {
 			Namespace: "default",
 		})
 	}
-	if c.Provider == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider) {
 		log.Debug().Msg(fmt.Sprintf("Configuring vsphere credentials for %s", c.Name))
 		app.Spec.UserConfig.Secret.Name = "vsphere-credentials"
 		app.Spec.UserConfig.Secret.Namespace = "org-giantswarm"
@@ -72,7 +73,7 @@ func GetClusterAppsFile(c Config) (string, error) {
 
 // the inverse of GetClusterAppsFile
 func GetClusterAppsConfig(file string) (Config, error) {
-	log.Debug().Msg(fmt.Sprintf("Getting the cluster apps config from %s", file))
+	log.Debug().Msg("Getting the cluster apps config")
 
 	return GetAppsConfig(file)
 }
@@ -108,7 +109,7 @@ func GetDefaultAppsFile(c Config) (string, error) {
 }
 
 func GetDefaultAppsConfig(file string) (Config, error) {
-	log.Debug().Msg(fmt.Sprintf("Getting the default apps config from %s", file))
+	log.Debug().Msg("Getting the default apps config")
 
 	return GetAppsConfig(file)
 }
@@ -163,8 +164,9 @@ func GetUserConfigMap(c Config) (*v1.ConfigMap, error) {
 func GetAppsConfig(file string) (Config, error) {
 	var app applicationv1alpha1.App
 	var userConfigConfigMap v1.ConfigMap
+	var name, namespace string
 
-	log.Debug().Msg(fmt.Sprintf("Getting the apps config from %s", file))
+	log.Debug().Msg("Getting the apps config")
 	files := strings.Split(file, "---")
 	for _, f := range files {
 		if strings.Contains(f, "kind: ConfigMap") {
@@ -175,18 +177,37 @@ func GetAppsConfig(file string) (Config, error) {
 			if err := yaml.Unmarshal([]byte(f), &app); err != nil {
 				return Config{}, fmt.Errorf("failed to unmarshal app CR for %s.\n%w", file, err)
 			}
+			// get the name and namespace from the app CR - metadata is removed during unmarshalling
+			// todo: make this a bit more elegant
+			name, namespace = key.GetNamespacedName(f)
 		}
 	}
 	return Config{
-		Cluster:               app.Labels[label.Cluster],
-		Name:                  app.Name,
+		Name:                  name,
 		AppName:               app.Spec.Name,
 		Catalog:               app.Spec.Catalog,
 		Version:               app.Spec.Version,
-		Namespace:             app.Namespace,
-		Values:                userConfigConfigMap.Data["values.yaml"],
-		MCAppsPreventDeletion: app.Labels[label.PreventDeletion] == "true",
+		Namespace:             namespace,
+		Values:                userConfigConfigMap.Data[ValuesKey],
+		MCAppsPreventDeletion: userConfigConfigMap.Labels[label.PreventDeletion] == "true",
+		Provider:              getProvider(app.Spec.Name),
 	}, nil
+}
+
+func getProvider(appName string) string {
+	if strings.Contains(appName, "aws") {
+		return key.ProviderAWS
+	}
+	if strings.Contains(appName, "azure") {
+		return key.ProviderAzure
+	}
+	if strings.Contains(appName, key.ProviderVsphere) {
+		return key.ProviderVsphere
+	}
+	if strings.Contains(appName, key.ProviderVCD) {
+		return key.ProviderVCD
+	}
+	return ""
 }
 
 func GetAppCRYaml(c Config, configmapName string) ([]byte, error) {

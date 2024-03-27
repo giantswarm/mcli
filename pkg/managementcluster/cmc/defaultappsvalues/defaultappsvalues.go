@@ -53,7 +53,7 @@ func GetDefaultAppsValuesFile(c Config) (string, error) {
 	if c.PrivateCA {
 		defaultAppsValues.UserConfig.CertManager.ConfigMap.Values = GetCertManagerConfig()
 	}
-	if c.Provider == key.ProviderAzure {
+	if key.IsProviderAzure(c.Provider) {
 		defaultAppsValues.UserConfig.ExternalDNS.ConfigMap.Values = GetExternalDNSConfig()
 	}
 	if c.CertManagerDNSChallenge {

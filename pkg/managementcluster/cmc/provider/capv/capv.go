@@ -3,28 +3,26 @@ package capv
 import (
 	"fmt"
 
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	CloudConfigKey = "values.yaml"
+)
+
 type Config struct {
-	Namespace   string
 	CloudConfig string
+	Namespace   string
 }
 
-func GetCAPVConfig(file string) Config {
+func GetCAPVConfig(file string) (string, error) {
 	log.Debug().Msg("Getting CAPV config")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
-	if err != nil {
-		log.Error().Msgf("failed to unmarshal CAPV object.\n%v", err)
-	}
-	return Config{
-		Namespace:   secret.ObjectMeta.Namespace,
-		CloudConfig: string(secret.Data["values.yaml"]),
-	}
+
+	return key.GetSecretValue(CloudConfigKey, file)
 }
 
 func GetCAPVFile(c Config) (string, error) {
@@ -39,7 +37,7 @@ func GetCAPVFile(c Config) (string, error) {
 			},
 		},
 		Data: map[string][]byte{
-			"values.yaml": []byte(c.CloudConfig),
+			CloudConfigKey: []byte(c.CloudConfig),
 		},
 	}
 	data, err := yaml.Marshal(secret)

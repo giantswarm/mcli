@@ -366,15 +366,15 @@ func (c *Config) EnsureFlagsAreSet() error {
 		}
 	}
 	// Ensure that needed values for the provider are set
-	if c.Provider == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider) {
 		if c.Flags.Secrets.VSphereCredentials == "" {
 			return fmt.Errorf("vsphere credentials are required\n%w", ErrInvalidFlag)
 		}
-	} else if c.Provider == key.ProviderVCD {
+	} else if key.IsProviderVCD(c.Provider) {
 		if c.Flags.Secrets.CloudDirectorRefreshToken == "" {
 			return fmt.Errorf("cloud director refresh token is required\n%w", ErrInvalidFlag)
 		}
-	} else if c.Provider == key.ProviderAzure {
+	} else if key.IsProviderAzure(c.Provider) {
 		if c.Flags.Secrets.Azure.ClientID == "" {
 			return fmt.Errorf("azure client id is required\n%w", ErrInvalidFlag)
 		}
@@ -476,15 +476,15 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		}
 	}
 
-	if c.Provider == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider) {
 		newCMC.Provider.CAPV = cmc.CAPV{
 			CloudConfig: c.Flags.Secrets.VSphereCredentials,
 		}
-	} else if c.Provider == key.ProviderVCD {
+	} else if key.IsProviderVCD(c.Provider) {
 		newCMC.Provider.CAPVCD = cmc.CAPVCD{
 			RefreshToken: c.Flags.Secrets.CloudDirectorRefreshToken,
 		}
-	} else if c.Provider == key.ProviderAzure {
+	} else if key.IsProviderAzure(c.Provider) {
 		newCMC.Provider.CAPZ = cmc.CAPZ{
 			ClientID:     c.Flags.Secrets.Azure.ClientID,
 			TenantID:     c.Flags.Secrets.Azure.TenantID,
@@ -509,9 +509,9 @@ func overrideCMCWithFlags(currentCMC *cmc.CMC, c Config) (*cmc.CMC, error) {
 }
 
 func disableDenyAllNetPol(provider string) bool {
-	return provider != key.ProviderAWS &&
-		provider != key.ProviderVsphere &&
-		provider != key.ProviderVCD
+	return !key.IsProviderAWS(provider) &&
+		!key.IsProviderVsphere(provider) &&
+		!key.IsProviderVCD(provider)
 }
 
 func (c *Config) PullTemplate() (map[string]string, error) {

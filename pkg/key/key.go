@@ -34,6 +34,28 @@ const (
 	ProviderGCP     = "gcp"
 )
 
+// sometimes providers are called differently.
+// todo: identify cases and add const for them
+func IsProviderAWS(provider string) bool {
+	return provider == ProviderAWS || provider == "aws"
+}
+
+func IsProviderAzure(provider string) bool {
+	return provider == ProviderAzure || provider == "azure"
+}
+
+func IsProviderVCD(provider string) bool {
+	return provider == ProviderVCD || provider == "capvcd"
+}
+
+func IsProviderVsphere(provider string) bool {
+	return provider == ProviderVsphere || provider == "capv"
+}
+
+func IsProviderGCP(provider string) bool {
+	return provider == ProviderGCP
+}
+
 func GetValidProviders() []string {
 	return []string{
 		ProviderAWS,

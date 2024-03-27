@@ -20,6 +20,7 @@ const (
 	flagCustomer            = "customer"
 	flagProvider            = "provider"
 	flagInput               = "input"
+	flagAgeKey              = "age-key"
 )
 
 const (
@@ -30,6 +31,7 @@ const (
 	envCMCBranch           = "CMC_BRANCH"
 	envCustomer            = "CUSTOMER"
 	envProvider            = "PROVIDER"
+	envAgeKey              = "SOPS_AGE_KEY"
 )
 
 var (
@@ -43,6 +45,7 @@ var (
 	customer            string
 	provider            string
 	input               string
+	ageKey              string
 )
 
 func addFlagsRoot() {
@@ -56,8 +59,13 @@ func addFlagsRoot() {
 	rootCmd.PersistentFlags().StringVar(&cmcBranch, flagCMCBranch, viper.GetString(envCMCBranch), "Branch to use for the CMC repository")
 	rootCmd.PersistentFlags().StringVar(&customer, flagCustomer, viper.GetString(envCustomer), "Name of the customer who owns the management cluster")
 	rootCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
+	rootCmd.PersistentFlags().StringVar(&ageKey, flagAgeKey, viper.GetString(envAgeKey), "Age key for the cluster")
 
 	err := rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
+	if err != nil {
+		panic(err)
+	}
+	err = rootCmd.PersistentFlags().MarkHidden(flagAgeKey)
 	if err != nil {
 		panic(err)
 	}
@@ -75,6 +83,9 @@ func validateRoot(cmd *cobra.Command, args []string) error {
 	}
 	if cmcBranch == "" {
 		return invalidFlagError(flagCMCBranch)
+	}
+	if ageKey == "" {
+		return invalidFlagError(flagAgeKey)
 	}
 	for _, repository := range skip {
 		if !key.IsValidRepository(repository) {

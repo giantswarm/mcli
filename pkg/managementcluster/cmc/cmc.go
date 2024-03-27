@@ -180,11 +180,11 @@ func (c *CMC) Override(override *CMC) *CMC {
 	}
 	if override.Provider.Name != "" {
 		cmc.Provider.Name = override.Provider.Name
-		if override.Provider.Name == key.ProviderVsphere {
+		if key.IsProviderVsphere(override.Provider.Name) {
 			if override.Provider.CAPV.CloudConfig != "" {
 				cmc.Provider.CAPV.CloudConfig = override.Provider.CAPV.CloudConfig
 			}
-		} else if override.Provider.Name == key.ProviderAzure {
+		} else if key.IsProviderAzure(override.Provider.Name) {
 			if override.Provider.CAPZ.UAClientID != "" {
 				cmc.Provider.CAPZ.UAClientID = override.Provider.CAPZ.UAClientID
 			}
@@ -203,7 +203,7 @@ func (c *CMC) Override(override *CMC) *CMC {
 			if override.Provider.CAPZ.TenantID != "" {
 				cmc.Provider.CAPZ.TenantID = override.Provider.CAPZ.TenantID
 			}
-		} else if override.Provider.Name == key.ProviderVCD {
+		} else if key.IsProviderVCD(override.Provider.Name) {
 			if override.Provider.CAPVCD.RefreshToken != "" {
 				cmc.Provider.CAPVCD.RefreshToken = override.Provider.CAPVCD.RefreshToken
 			}
@@ -321,11 +321,11 @@ func (c *CMC) Validate() error {
 	if c.Provider.Name == "" {
 		return fmt.Errorf("provider is empty")
 	}
-	if c.Provider.Name == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider.Name) {
 		if c.Provider.CAPV.CloudConfig == "" {
 			return fmt.Errorf("provider vsphere cloud config is empty")
 		}
-	} else if c.Provider.Name == key.ProviderAzure {
+	} else if key.IsProviderAzure(c.Provider.Name) {
 		if c.Provider.CAPZ.UAClientID == "" {
 			return fmt.Errorf("provider azure ua client id is empty")
 		}
@@ -344,7 +344,7 @@ func (c *CMC) Validate() error {
 		if c.Provider.CAPZ.TenantID == "" {
 			return fmt.Errorf("provider azure tenant id is empty")
 		}
-	} else if c.Provider.Name == key.ProviderVCD {
+	} else if key.IsProviderVCD(c.Provider.Name) {
 		if c.Provider.CAPVCD.RefreshToken == "" {
 			return fmt.Errorf("provider vcd cloud config is empty")
 		}

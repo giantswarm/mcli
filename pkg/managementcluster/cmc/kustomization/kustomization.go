@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	AgeKeyFile            = "age_secret_keys.yaml"
+	AgeKeyFile            = "age-secret-keys.yaml"
 	ClusterAppsFile       = "cluster-app-manifests.yaml"
 	DefaultAppsFile       = "default-apps-manifests.yaml"
 	KustomizationFile     = "kustomization.yaml"
@@ -97,11 +97,11 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 	if c.CertManagerDNSChallenge {
 		k.Resources = append(k.Resources, CertManagerFile)
 	}
-	if c.Provider == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider) {
 		k.Resources = append(k.Resources, VsphereCredentialsFile)
-	} else if c.Provider == key.ProviderVCD {
+	} else if key.IsProviderVCD(c.Provider) {
 		k.Resources = append(k.Resources, CloudDirectorCredentialsFile)
-	} else if c.Provider == key.ProviderAzure {
+	} else if key.IsProviderAzure(c.Provider) {
 		k.Resources = append(k.Resources,
 			AzureClusterIdentitySPFile,
 			AzureClusterIdentityUAFile,

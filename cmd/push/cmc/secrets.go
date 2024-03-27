@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
@@ -91,20 +92,20 @@ func (c *Config) ReadSecretFlags() error {
 		secrets[secret] = v
 	}
 
-	if c.Provider == key.ProviderVsphere {
+	if key.IsProviderVsphere(c.Provider) {
 		vsphereCredentialsFile, err := c.ReadFileFromSecretFolder(VsphereCredentialsFile)
 		if err != nil {
 			return err
 		}
 		secrets[VsphereCredentialsFile] = vsphereCredentialsFile
-	} else if c.Provider == key.ProviderVCD {
+	} else if key.IsProviderVCD(c.Provider) {
 		clouddirectorfile := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, CloudDirectorCredentialsFile)
 		vcdFlags, err := readFlagsFromFile(clouddirectorfile)
 		if err != nil {
 			return err
 		}
 		secrets[CloudDirectorRefreshTokenKey] = vcdFlags[CloudDirectorRefreshTokenKey]
-	} else if c.Provider == key.ProviderAzure {
+	} else if key.IsProviderAzure(c.Provider) {
 		azurefile := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, AzureCredentialsFile)
 		azureFlags, err := readFlagsFromFile(azurefile)
 		if err != nil {
@@ -249,11 +250,14 @@ func readFlagsFromFile(file string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	// regex to parse the key value pairs key='value'
-	re := regexp.MustCompile(`(\w+)='([^']*)'`)
-	matches := re.FindAllStringSubmatch(s, -1)
-	for _, match := range matches {
-		flags[match[1]] = match[2]
+	// regex to parse the key value pairs key=value
+	re := regexp.MustCompile(`(\w+)=['"]?(\S+)`)
+	pairs := re.FindAllStringSubmatch(s, -1)
+	for _, pair := range pairs {
+		value, _ := strings.CutSuffix(pair[2], "'")
+		value, _ = strings.CutSuffix(value, "\"")
+		value, _ = strings.CutSuffix(value, "\n")
+		flags[pair[1]] = value
 	}
 	return flags, nil
 }

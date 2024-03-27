@@ -15,16 +15,15 @@ const (
 	TaylorBotSecretName = "github-giantswarm-https-credentials"
 	TaylorBotSecretURL  = "https://github.com/giantswarm"
 	TaylorBotUsername   = "taylorbotgit"
+	PasswordKey         = "password"
+	UserKey             = "username"
+	URLKey              = "url"
 )
 
 func GetTaylorBotToken(file string) (string, error) {
 	log.Debug().Msg("Getting TaylorBot token")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
-	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal TaylorBot object.\n%w", err)
-	}
-	return string(secret.Data["password"]), nil
+
+	return key.GetSecretValue(PasswordKey, file)
 }
 
 func GetTaylorBotFile(token string) (string, error) {
@@ -36,9 +35,9 @@ func GetTaylorBotFile(token string) (string, error) {
 			Namespace: key.FluxNamespace,
 		},
 		Data: map[string][]byte{
-			"url":      []byte(TaylorBotSecretURL),
-			"username": []byte(TaylorBotUsername),
-			"password": []byte(token),
+			URLKey:      []byte(TaylorBotSecretURL),
+			UserKey:     []byte(TaylorBotUsername),
+			PasswordKey: []byte(token),
 		},
 	}
 	data, err := yaml.Marshal(secret)

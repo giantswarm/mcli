@@ -10,6 +10,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	RegionKey          = "region"
+	RoleKey            = "role"
+	AccessKeyIDKey     = "accessKeyID"
+	SecretAccessKeyKey = "secretAccessKey"
+)
+
 type Config struct {
 	Cluster          string
 	ClusterNamespace string
@@ -38,23 +45,31 @@ type Dns01 struct {
 func GetCertManagerConfig(file string) (Config, error) {
 	log.Debug().Msg("Getting Route53 configuration")
 
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
+	region, err := key.GetSecretValue(RegionKey, file)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal Route53 configuration secret.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get Route53 region.\n%w", err)
 	}
-	values := secret.Data["values"]
-	var cmSecret CMSecret
-	err = yaml.Unmarshal(values, &cmSecret)
+
+	role, err := key.GetSecretValue(RoleKey, file)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal cm secret object.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get Route53 role.\n%w", err)
+	}
+
+	accessKeyID, err := key.GetSecretValue(AccessKeyIDKey, file)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get Route53 accessKeyID.\n%w", err)
+	}
+
+	secretAccessKey, err := key.GetSecretValue(SecretAccessKeyKey, file)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get Route53 secretAccessKey.\n%w", err)
 	}
 
 	return Config{
-		Region:          cmSecret.GiantSwarmClusterIssuer.Acme.Dns01.Route53["region"],
-		Role:            cmSecret.GiantSwarmClusterIssuer.Acme.Dns01.Route53["role"],
-		AccessKeyID:     cmSecret.GiantSwarmClusterIssuer.Acme.Dns01.Route53["accessKeyID"],
-		SecretAccessKey: cmSecret.GiantSwarmClusterIssuer.Acme.Dns01.Route53["secretAccessKey"],
+		Region:          region,
+		Role:            role,
+		AccessKeyID:     accessKeyID,
+		SecretAccessKey: secretAccessKey,
 	}, nil
 }
 
@@ -66,10 +81,10 @@ func GetCertManagerFile(c Config) (string, error) {
 			Acme: Acme{
 				Dns01: Dns01{
 					Route53: map[string]string{
-						"region":          c.Region,
-						"role":            c.Role,
-						"accessKeyID":     c.AccessKeyID,
-						"secretAccessKey": c.SecretAccessKey,
+						RegionKey:          c.Region,
+						RoleKey:            c.Role,
+						AccessKeyIDKey:     c.AccessKeyID,
+						SecretAccessKeyKey: c.SecretAccessKey,
 					},
 				},
 			},

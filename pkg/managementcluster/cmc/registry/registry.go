@@ -3,20 +3,21 @@ package registry
 import (
 	"fmt"
 
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	ValuesKey = "values.yaml"
+)
+
 func GetRegistryConfig(file string) (string, error) {
 	log.Debug().Msg("Getting registry config")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
-	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal registry object.\n%w", err)
-	}
-	return string(secret.Data["values.yaml"]), nil
+
+	return key.GetSecretValue(ValuesKey, file)
 }
 
 func GetRegistryFile(values string) (string, error) {
@@ -27,7 +28,7 @@ func GetRegistryFile(values string) (string, error) {
 			Namespace: "default",
 		},
 		Data: map[string][]byte{
-			"values.yaml": []byte(values),
+			ValuesKey: []byte(values),
 		},
 	}
 	data, err := yaml.Marshal(secret)

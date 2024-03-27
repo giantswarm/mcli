@@ -3,6 +3,7 @@ package capz
 import (
 	"fmt"
 
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -11,7 +12,13 @@ import (
 )
 
 const (
-	secretName = "cluster-identity-secret-static"
+	SecretName      = "cluster-identity-secret-static"
+	ClientSecretKey = "clientSecret"
+	ClientIDKey     = "clientID"
+	TenantIDKey     = "tenantID"
+	UAClientIDKey   = "clientID"
+	UATenantIDKey   = "tenantID"
+	UAResourceIDKey = "resourceID"
 )
 
 type Config struct {
@@ -24,30 +31,40 @@ type Config struct {
 	TenantID     string
 }
 
-func GetCAPZConfig(sp string, ua string, staticsp string) (Config, error) {
-	secret := v1.Secret{}
-	err := yaml.Unmarshal([]byte(sp), &secret)
+func GetCAPZConfig(sp string, ua string, secret string) (Config, error) {
+	log.Debug().Msg("Getting CAPZ config")
+	clientSecret, err := key.GetSecretValue(ClientSecretKey, secret)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal static-sp object.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get CAPZ client secret.\n%w", err)
 	}
-	uaCR := v1beta1.AzureClusterIdentity{}
-	err = yaml.Unmarshal([]byte(ua), &uaCR)
+	clientID, err := key.GetSecretValue(ClientIDKey, sp)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal UA object.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get CAPZ client ID.\n%w", err)
 	}
-	spCR := v1beta1.AzureClusterIdentity{}
-	err = yaml.Unmarshal([]byte(staticsp), &spCR)
+	tenantID, err := key.GetSecretValue(TenantIDKey, sp)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal static-sp object.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get CAPZ tenant ID.\n%w", err)
 	}
+	uaClientID, err := key.GetSecretValue(UAClientIDKey, ua)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get CAPZ UA client ID.\n%w", err)
+	}
+	uaTenantID, err := key.GetSecretValue(UATenantIDKey, ua)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get CAPZ UA tenant ID.\n%w", err)
+	}
+	uaResourceID, err := key.GetSecretValue(UAResourceIDKey, ua)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get CAPZ UA resource ID.\n%w", err)
+	}
+
 	return Config{
-		Namespace:    uaCR.Namespace,
-		UAClientID:   uaCR.Spec.ClientID,
-		UATenantID:   uaCR.Spec.TenantID,
-		UAResourceID: uaCR.Spec.ResourceID,
-		ClientID:     spCR.Spec.ClientID,
-		ClientSecret: string(secret.Data["clientSecret"]),
-		TenantID:     spCR.Spec.TenantID,
+		UAClientID:   uaClientID,
+		UATenantID:   uaTenantID,
+		UAResourceID: uaResourceID,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		TenantID:     tenantID,
 	}, nil
 }
 
@@ -56,14 +73,14 @@ func GetCAPZSecret(c Config) (string, error) {
 	secret := v1.Secret{
 		Type: v1.SecretTypeOpaque,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
+			Name:      SecretName,
 			Namespace: c.Namespace,
 			Labels: map[string]string{
 				"clusterctl.cluster.x-k8s.io/move": "true",
 			},
 		},
 		Data: map[string][]byte{
-			"clientSecret": []byte(c.ClientSecret),
+			ClientSecretKey: []byte(c.ClientSecret),
 		},
 	}
 	data, err := yaml.Marshal(secret)
@@ -91,7 +108,7 @@ func GetCAPZSPFile(c Config) (string, error) {
 			AllowedNamespaces: &v1beta1.AllowedNamespaces{},
 			ClientID:          c.ClientID,
 			ClientSecret: v1.SecretReference{
-				Name:      secretName,
+				Name:      SecretName,
 				Namespace: "org-giantswarm",
 			},
 			TenantID: c.TenantID,

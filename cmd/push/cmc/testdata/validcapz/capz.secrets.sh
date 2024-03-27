@@ -1,2 +1,3 @@
-azure: identity
-sp: true
+tenantId=identityid
+clientId='clientid'
+clientSecret="testsecret"

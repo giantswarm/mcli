@@ -1,4 +1,4 @@
-package sops
+package sopsfile
 
 import (
 	"fmt"

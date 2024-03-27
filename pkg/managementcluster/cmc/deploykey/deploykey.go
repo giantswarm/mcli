@@ -13,6 +13,9 @@ import (
 
 const (
 	DeployKeySecretName = "configs-ssh-credentials"
+	Passphrasekey       = "password"
+	Identitykey         = "identity"
+	knownhostskey       = "known_hosts"
 )
 
 type Config struct {
@@ -24,16 +27,26 @@ type Config struct {
 
 func GetDeployKeyConfig(file string) (Config, error) {
 	log.Debug().Msg("Getting DeployKey config")
-	var secret v1.Secret
-	err := yaml.Unmarshal([]byte(file), &secret)
+
+	passphrase, err := key.GetSecretValue(Passphrasekey, file)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal DeployKey object.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get DeployKey passphrase.\n%w", err)
 	}
+
+	identity, err := key.GetSecretValue(Identitykey, file)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get DeployKey identity.\n%w", err)
+	}
+
+	knownhosts, err := key.GetSecretValue(knownhostskey, file)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get DeployKey knownhosts.\n%w", err)
+	}
+
 	return Config{
-		Name:       secret.ObjectMeta.Name,
-		Passphrase: string(secret.Data["passphrase"]),
-		Identity:   string(secret.Data["identity"]),
-		KnownHosts: string(secret.Data["knownHosts"]),
+		Passphrase: passphrase,
+		Identity:   identity,
+		KnownHosts: knownhosts,
 	}, nil
 }
 
@@ -47,9 +60,9 @@ func GetDeployKeyFile(c Config) (string, error) {
 			Namespace: key.FluxNamespace,
 		},
 		Data: map[string][]byte{
-			"passphrase": []byte(c.Passphrase),
-			"identity":   []byte(c.Identity),
-			"knownHosts": []byte(c.KnownHosts),
+			Passphrasekey: []byte(c.Passphrase),
+			Identitykey:   []byte(c.Identity),
+			knownhostskey: []byte(c.KnownHosts),
 		},
 	}
 	data, err := yaml.Marshal(secret)

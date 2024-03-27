@@ -186,7 +186,7 @@ func (i *Installations) Validate() error {
 	if i.Provider == "" {
 		return fmt.Errorf("provider is empty")
 	}
-	if i.Provider == key.ProviderAWS {
+	if key.IsProviderAWS(i.Provider) {
 		if i.Aws.Region == "" {
 			return fmt.Errorf("aws region is empty")
 		}

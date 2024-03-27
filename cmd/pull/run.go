@@ -19,6 +19,7 @@ type Config struct {
 	InstallationsBranch string
 	CMCBranch           string
 	CMCRepository       string
+	AgeKey              string
 	Skip                []string
 }
 
@@ -59,6 +60,7 @@ func (c *Config) Pull(ctx context.Context) (*managementcluster.ManagementCluster
 			Github:        client,
 			CMCRepository: c.CMCRepository,
 			CMCBranch:     c.CMCBranch,
+			AgeKey:        c.AgeKey,
 		}
 		cmc, err := c.Run(ctx)
 		if err != nil {

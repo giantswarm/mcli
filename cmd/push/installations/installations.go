@@ -184,7 +184,7 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 		flags.Cluster == "" {
 		return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
 	}
-	if flags.Provider == key.ProviderAWS {
+	if key.IsProviderAWS(flags.Provider) {
 		if flags.Flags.AWS.Region == "" ||
 			flags.Flags.AWS.InstallationAWSAccount == "" {
 			return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
@@ -202,7 +202,7 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 		Pipeline:        "testing",
 		Provider:        fmt.Sprintf("%s-test", flags.Provider),
 	}
-	if flags.Provider == key.ProviderAWS {
+	if key.IsProviderAWS(flags.Provider) {
 		c.AwsRegion = flags.Flags.AWS.Region
 		c.AwsHostClusterAccount = flags.Flags.AWS.InstallationAWSAccount
 		c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.Flags.AWS.InstallationAWSAccount)
@@ -227,7 +227,7 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 		Provider:        flags.Provider,
 		Customer:        flags.Flags.Customer,
 	}
-	if flags.Provider == key.ProviderAWS {
+	if key.IsProviderAWS(flags.Provider) {
 		c.AwsRegion = flags.Flags.AWS.Region
 		if flags.Flags.AWS.InstallationAWSAccount != "" {
 			c.AwsHostClusterAccount = flags.Flags.AWS.InstallationAWSAccount

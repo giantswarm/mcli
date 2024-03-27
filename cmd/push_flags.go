@@ -54,7 +54,6 @@ const (
 	flagMCProxyEnabled               = "mc-proxy-enabled"
 	flagMCHTTPSProxy                 = "mc-https-proxy"
 	flagAgePubKey                    = "age-pub-key"
-	flagAgeKey                       = "age-key"
 	flagTaylorBotToken               = "taylor-bot-token"
 )
 
@@ -75,7 +74,6 @@ const (
 	envMCProxyEnabled               = "MC_PROXY_ENABLED"
 	envMCHTTPSProxy                 = "MC_HTTPS_PROXY"
 	envAgePubKey                    = "AGE_PUBKEY"
-	envAgeKey                       = "AGE_KEY"
 )
 
 var (
@@ -95,7 +93,6 @@ var (
 	mcProxyEnabled               bool
 	mcHTTPSProxy                 string
 	agePubKey                    string
-	ageKey                       string
 )
 
 // extra cmc flags that are read from the secrets folder and not exposed
@@ -180,12 +177,7 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().BoolVar(&mcProxyEnabled, flagMCProxyEnabled, viper.GetBool(envMCProxyEnabled), "Use proxy")
 	pushCmd.PersistentFlags().StringVar(&mcHTTPSProxy, flagMCHTTPSProxy, viper.GetString(envMCHTTPSProxy), "HTTPS proxy to use")
 	pushCmd.PersistentFlags().StringVar(&agePubKey, flagAgePubKey, viper.GetString(envAgePubKey), "Age public key for the cluster")
-	pushCmd.PersistentFlags().StringVar(&ageKey, flagAgeKey, viper.GetString(envAgeKey), "Age key for the cluster")
 	err := pushCmd.PersistentFlags().MarkHidden(flagAgePubKey)
-	if err != nil {
-		panic(err)
-	}
-	err = pushCmd.PersistentFlags().MarkHidden(flagAgeKey)
 	if err != nil {
 		panic(err)
 	}
