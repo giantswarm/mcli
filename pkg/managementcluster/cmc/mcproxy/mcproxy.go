@@ -3,9 +3,8 @@ package mcproxy
 import (
 	"fmt"
 
-	"github.com/fluxcd/kustomize-controller/api/v1beta1"
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -13,18 +12,27 @@ type Config struct {
 	Port     string
 }
 
+const (
+	ProxyHostnameKey = "proxy_hostname"
+	ProxyPortKey     = "proxy_port"
+)
+
 func GetHTTPSProxy(kustomizationFile string) (Config, error) {
 	log.Debug().Msg("Getting HTTPS proxy configuration")
 
-	var kustomization v1beta1.Kustomization
+	hostname, err := key.GetValue(ProxyHostnameKey, kustomizationFile)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get proxy hostname.\n%w", err)
+	}
 
-	if err := yaml.Unmarshal([]byte(kustomizationFile), &kustomization); err != nil {
-		return Config{}, fmt.Errorf("failed to unmarshal kustomization file: %w", err)
+	port, err := key.GetValue(ProxyPortKey, kustomizationFile)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get proxy port.\n%w", err)
 	}
 
 	return Config{
-		Hostname: kustomization.Spec.PostBuild.Substitute["proxy_hostname"],
-		Port:     kustomization.Spec.PostBuild.Substitute["proxy_port"],
+		Hostname: hostname,
+		Port:     port,
 	}, nil
 }
 

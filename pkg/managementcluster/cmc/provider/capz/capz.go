@@ -37,23 +37,23 @@ func GetCAPZConfig(sp string, ua string, secret string) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ client secret.\n%w", err)
 	}
-	clientID, err := key.GetSecretValue(ClientIDKey, sp)
+	clientID, err := key.GetValue(ClientIDKey, sp)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ client ID.\n%w", err)
 	}
-	tenantID, err := key.GetSecretValue(TenantIDKey, sp)
+	tenantID, err := key.GetValue(TenantIDKey, sp)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ tenant ID.\n%w", err)
 	}
-	uaClientID, err := key.GetSecretValue(UAClientIDKey, ua)
+	uaClientID, err := key.GetValue(UAClientIDKey, ua)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ UA client ID.\n%w", err)
 	}
-	uaTenantID, err := key.GetSecretValue(UATenantIDKey, ua)
+	uaTenantID, err := key.GetValue(UATenantIDKey, ua)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ UA tenant ID.\n%w", err)
 	}
-	uaResourceID, err := key.GetSecretValue(UAResourceIDKey, ua)
+	uaResourceID, err := key.GetValue(UAResourceIDKey, ua)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get CAPZ UA resource ID.\n%w", err)
 	}

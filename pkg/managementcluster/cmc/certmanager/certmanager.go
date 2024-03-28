@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	ValuesKey          = "values"
 	RegionKey          = "region"
 	RoleKey            = "role"
 	AccessKeyIDKey     = "accessKeyID"
@@ -28,6 +29,7 @@ type Config struct {
 }
 
 type CMSecret struct {
+	Global                        map[string]string       `yaml:"global"`
 	GiantSwarmClusterIssuer       GiantSwarmClusterIssuer `yaml:"giantSwarmClusterIssuer"`
 	DNS01RecursiveNameserversOnly bool                    `yaml:"dns01RecursiveNameserversOnly,omitempty"`
 	DNS01RecursiveNameservers     []string                `yaml:"dns01RecursiveNameservers,omitempty"`
@@ -45,24 +47,29 @@ type Dns01 struct {
 func GetCertManagerConfig(file string) (Config, error) {
 	log.Debug().Msg("Getting Route53 configuration")
 
-	region, err := key.GetSecretValue(RegionKey, file)
+	values, err := key.GetSecretValue(ValuesKey, file)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to get Route53 region.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get values.\n%w", err)
 	}
 
-	role, err := key.GetSecretValue(RoleKey, file)
+	region, err := key.GetValue(RegionKey, values)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to get Route53 role.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get region.\n%w", err)
 	}
 
-	accessKeyID, err := key.GetSecretValue(AccessKeyIDKey, file)
+	role, err := key.GetValue(RoleKey, values)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to get Route53 accessKeyID.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get role.\n%w", err)
 	}
 
-	secretAccessKey, err := key.GetSecretValue(SecretAccessKeyKey, file)
+	accessKeyID, err := key.GetValue(AccessKeyIDKey, values)
 	if err != nil {
-		return Config{}, fmt.Errorf("failed to get Route53 secretAccessKey.\n%w", err)
+		return Config{}, fmt.Errorf("failed to get accessKeyID.\n%w", err)
+	}
+
+	secretAccessKey, err := key.GetValue(SecretAccessKeyKey, values)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get secretAccessKey.\n%w", err)
 	}
 
 	return Config{

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	AgeKeyFile            = "age-secret-keys.yaml"
+	AgeKeyFile            = "age_secret_keys.yaml"
 	ClusterAppsFile       = "cluster-app-manifests.yaml"
 	DefaultAppsFile       = "default-apps-manifests.yaml"
 	KustomizationFile     = "kustomization.yaml"
