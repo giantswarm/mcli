@@ -1,7 +1,6 @@
 package cmc
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"reflect"
@@ -107,14 +106,8 @@ func GetCMC(data []byte) (*CMC, error) {
 
 func GetData(c *CMC) ([]byte, error) {
 	log.Debug().Msg("getting data from CMC object")
-	w := new(bytes.Buffer)
-	encoder := yaml.NewEncoder(w)
-	encoder.SetIndent(2)
-	err := encoder.Encode(c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal CMC.\n%w", err)
-	}
-	return w.Bytes(), nil
+
+	return key.GetData(c)
 }
 
 func (c *CMC) Print() error {

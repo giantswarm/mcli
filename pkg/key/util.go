@@ -1,12 +1,14 @@
 package key
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
 )
 
 func GetSecretValue(key string, data string) (string, error) {
@@ -75,4 +77,15 @@ func GetNamespacedName(data string) (name, namespace string) {
 		return "", ""
 	}
 	return name, namespace
+}
+
+func GetData(data any) ([]byte, error) {
+	w := new(bytes.Buffer)
+	encoder := yaml.NewEncoder(w)
+	encoder.SetIndent(2)
+	err := encoder.Encode(data)
+	if err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
 }

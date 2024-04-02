@@ -5,6 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 type Config struct {
@@ -17,9 +19,9 @@ type Sops struct {
 }
 
 type CreationRule struct {
-	Age            string `yaml:"age"`
-	PathRegex      string `yaml:"path_regex"`
-	EncryptedRegex string `yaml:"encrypted_regex"`
+	Age            string `yaml:"age,omitempty"`
+	PathRegex      string `yaml:"path_regex,omitempty"`
+	EncryptedRegex string `yaml:"encrypted_regex,omitempty"`
 }
 
 func GetSopsFile(c Config, file string) (string, error) {
@@ -39,9 +41,9 @@ func GetSopsFile(c Config, file string) (string, error) {
 		PathRegex:      getRegex(c.Cluster),
 		EncryptedRegex: "^(data|stringData)$",
 	})
-	data, err := yaml.Marshal(sops)
+	data, err := key.GetData(sops)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal sops object.\n%w", err)
+		return "", err
 	}
 	return string(data), nil
 }
@@ -64,6 +66,7 @@ func GetSopsConfig(file string, cluster string) (Config, error) {
 }
 
 func getSops(file string) (Sops, error) {
+	log.Debug().Msg("Getting SOPS object from file.")
 	sops := Sops{}
 	if err := yaml.Unmarshal([]byte(file), &sops); err != nil {
 		return sops, fmt.Errorf("failed to unmarshal sops object.\n%w", err)

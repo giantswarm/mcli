@@ -4,18 +4,16 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
+	"github.com/giantswarm/mcli/pkg/template"
 )
 
 const (
-	DeployKeySecretName = "configs-ssh-credentials"
-	Passphrasekey       = "password"
-	Identitykey         = "identity"
-	knownhostskey       = "known_hosts"
+	Passphrasekey = "password"
+	Identitykey   = "identity"
+	knownhostskey = "known_hosts"
 )
 
 type Config struct {
@@ -53,21 +51,5 @@ func GetDeployKeyConfig(file string) (Config, error) {
 func GetDeployKeyFile(c Config) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Creating DeployKey file for %s", c.Name))
 
-	secret := v1.Secret{
-		Type: v1.SecretTypeOpaque,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.Name,
-			Namespace: key.FluxNamespace,
-		},
-		Data: map[string][]byte{
-			Passphrasekey: []byte(c.Passphrase),
-			Identitykey:   []byte(c.Identity),
-			knownhostskey: []byte(c.KnownHosts),
-		},
-	}
-	data, err := yaml.Marshal(secret)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal DeployKey object %s.\n%w", c.Name, err)
-	}
-	return string(data), nil
+	return template.Execute(key.GetTMPLFile(kustomization.SSHdeployKeyFile), c)
 }

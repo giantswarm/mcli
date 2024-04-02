@@ -270,12 +270,3 @@ func readFile(file string) (string, error) {
 	s := string(data)
 	return s, nil
 }
-
-// TODO
-func encode(key string, data map[string]string) (map[string]string, error) {
-	return data, nil
-}
-
-func decode(key string, data map[string]string) (map[string]string, error) {
-	return data, nil
-}

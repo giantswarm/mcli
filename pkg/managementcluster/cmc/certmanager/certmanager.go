@@ -1,13 +1,15 @@
 package certmanager
 
 import (
+	"encoding/base64"
 	"fmt"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/giantswarm/mcli/pkg/key"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
+	"github.com/giantswarm/mcli/pkg/template"
 )
 
 const (
@@ -106,18 +108,15 @@ func GetCertManagerFile(c Config) (string, error) {
 		return "", fmt.Errorf("failed to marshal cm secret object.\n%w", err)
 	}
 
-	secret := v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      key.GetCertManagerSecretName(c.Cluster),
-			Namespace: c.ClusterNamespace,
-		},
-		Data: map[string][]byte{
-			"values": []byte(data),
-		},
+	type config struct {
+		Cluster          string
+		ClusterNamespace string
+		Values           string
 	}
-	data, err = yaml.Marshal(secret)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal cert manager configuration secret.\n%w", err)
-	}
-	return string(data), nil
+
+	return template.Execute(key.GetTMPLFile(kustomization.CertManagerFile), config{
+		Cluster:          c.Cluster,
+		ClusterNamespace: c.ClusterNamespace,
+		Values:           base64.StdEncoding.EncodeToString(data),
+	})
 }

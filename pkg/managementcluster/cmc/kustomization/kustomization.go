@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	AgeKeyFile            = "age_secret_keys.yaml"
+	AgeKeyFile            = "age-secret-keys.yaml"
 	ClusterAppsFile       = "cluster-app-manifests.yaml"
 	DefaultAppsFile       = "default-apps-manifests.yaml"
 	KustomizationFile     = "kustomization.yaml"
@@ -137,9 +137,9 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 			kustomize.Patch{Path: SourceControllerFile},
 		)
 	}
-	data, err := yaml.Marshal(k)
+	data, err := key.GetData(k)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal kustomization object.\n%w", err)
+		return "", err
 	}
 	return string(data), nil
 }

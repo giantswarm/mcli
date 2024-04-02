@@ -1,0 +1,15 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AzureClusterIdentity
+metadata:
+  name: cluster-identity-static-sp
+  namespace: {{ .Namespace }}
+  labels:
+    clusterctl.cluster.x-k8s.io/move: "true"
+spec:
+  allowedNamespaces: {}
+  clientID: {{ .ClientID }}
+  clientSecret:
+    name: cluster-identity-secret-static-sp
+    namespace: org-giantswarm
+  tenantID: {{ .TenantID }}
+  type: ManualServicePrincipal

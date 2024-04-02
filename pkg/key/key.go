@@ -77,6 +77,10 @@ func CMCTemplate() string {
 	return fmt.Sprintf("%s/%s", OrganizationGiantSwarm, CMCTemplateRepository)
 }
 
+func GetTMPLFile(file string) string {
+	return fmt.Sprintf("%s.tmpl", file)
+}
+
 func GetInstallationsPath(cluster string) string {
 	return fmt.Sprintf("%s/cluster.yaml", cluster)
 }

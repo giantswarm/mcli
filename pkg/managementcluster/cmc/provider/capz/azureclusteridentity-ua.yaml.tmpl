@@ -1,0 +1,11 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AzureClusterIdentity
+metadata:
+  name: cluster-identity
+  namespace: {{ .Namespace }}
+spec:
+  allowedNamespaces: {}
+  clientID: {{ .UAClientID }}
+  tenantID: {{ .TenantID }}
+  resourceID: {{ .UAResourceID }}
+  type: UserAssignedMSI

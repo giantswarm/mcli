@@ -1,7 +1,6 @@
 package installations
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"reflect"
@@ -97,14 +96,8 @@ func GetInstallations(data []byte) (*Installations, error) {
 
 func GetData(i *Installations) ([]byte, error) {
 	log.Debug().Msg("getting data from installations object")
-	w := new(bytes.Buffer)
-	encoder := yaml.NewEncoder(w)
-	encoder.SetIndent(2)
-	err := encoder.Encode(i)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal installations object.\n%w", err)
-	}
-	return w.Bytes(), nil
+
+	return key.GetData(i)
 }
 
 func (i *Installations) Print() error {

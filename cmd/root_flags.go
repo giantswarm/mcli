@@ -21,6 +21,7 @@ const (
 	flagProvider            = "provider"
 	flagInput               = "input"
 	flagAgeKey              = "age-key"
+	flagDisplaySecrets      = "display-secrets"
 )
 
 const (
@@ -46,6 +47,7 @@ var (
 	provider            string
 	input               string
 	ageKey              string
+	displaySecrets      bool
 )
 
 func addFlagsRoot() {
@@ -60,6 +62,7 @@ func addFlagsRoot() {
 	rootCmd.PersistentFlags().StringVar(&customer, flagCustomer, viper.GetString(envCustomer), "Name of the customer who owns the management cluster")
 	rootCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
 	rootCmd.PersistentFlags().StringVar(&ageKey, flagAgeKey, viper.GetString(envAgeKey), "Age key for the cluster")
+	rootCmd.PersistentFlags().BoolVar(&displaySecrets, flagDisplaySecrets, false, "Unsafe: display secrets in the output. (default: false)")
 
 	err := rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
 	if err != nil {

@@ -8,15 +8,15 @@ import (
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
-	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 type Config struct {
-	Cluster       string
-	Github        *github.Github
-	CMCRepository string
-	CMCBranch     string
-	AgeKey        string
+	Cluster        string
+	Github         *github.Github
+	CMCRepository  string
+	CMCBranch      string
+	AgeKey         string
+	DisplaySecrets bool
 }
 
 func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
@@ -41,14 +41,13 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	}
 	data[cmc.SopsFile] = sopsfile
 
-	decrypter, err := sops.New(c.AgeKey, sopsfile)
+	result, err := cmc.GetCMCFromMap(data, c.Cluster)
 	if err != nil {
 		return nil, err
 	}
-	data, err = decrypter.DecryptDir(data)
-	if err != nil {
-		return nil, err
+	if !c.DisplaySecrets {
+		result.RedactSecrets()
 	}
 
-	return cmc.GetCMCFromMap(data, c.Cluster)
+	return result, nil
 }

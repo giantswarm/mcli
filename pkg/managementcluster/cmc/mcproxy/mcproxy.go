@@ -57,7 +57,8 @@ spec:
         - cidr: "%s/32"
       toPorts:
         - ports:
-            - port: "%s"`, namespace, hostname, port)
+            - port: "%s"
+`, namespace, hostname, port)
 }
 
 func GetKustomization(c Config) string {
@@ -69,7 +70,8 @@ metadata:
   namespace: flux-giantswarm
 spec:
   postBuild:
-	substitute:
-	  proxy_hostname: %s
-	  proxy_port: %s`, c.Hostname, c.Port)
+    substitute:
+      proxy_hostname: %s
+      proxy_port: %s
+`, c.Hostname, c.Port)
 }

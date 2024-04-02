@@ -40,7 +40,7 @@ func GetClusterAppsFile(c Config) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
-	// get the App object - it'd be better to return it initially, but kgs doesn't export a function for this
+	/* get the App object - it'd be better to return it initially, but kgs doesn't export a function for this
 	// - let's change that
 	app := &applicationv1alpha1.App{}
 	if err = yaml.Unmarshal([]byte(appCROutput.AppCR), app); err != nil {
@@ -67,15 +67,9 @@ func GetClusterAppsFile(c Config) (string, error) {
 		return "", fmt.Errorf("failed to marshal app CR for %s.\n%w", c.Name, err)
 	}
 	appCROutput.AppCR = string(data)
+	*/
 
 	return TemplateApp(appCROutput)
-}
-
-// the inverse of GetClusterAppsFile
-func GetClusterAppsConfig(file string) (Config, error) {
-	log.Debug().Msg("Getting the cluster apps config")
-
-	return GetAppsConfig(file)
 }
 
 func GetDefaultAppsFile(c Config) (string, error) {
@@ -84,6 +78,8 @@ func GetDefaultAppsFile(c Config) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
+
+	/* TODO: change this to not use the App object directly
 	app := &applicationv1alpha1.App{}
 	if err = yaml.Unmarshal([]byte(appCROutput.AppCR), app); err != nil {
 		return "", fmt.Errorf("failed to unmarshal app CR for %s.\n%w", c.Name, err)
@@ -105,13 +101,9 @@ func GetDefaultAppsFile(c Config) (string, error) {
 		return "", fmt.Errorf("failed to marshal app CR for %s.\n%w", c.Name, err)
 	}
 	appCROutput.AppCR = string(data)
+	*/
+
 	return TemplateApp(appCROutput)
-}
-
-func GetDefaultAppsConfig(file string) (Config, error) {
-	log.Debug().Msg("Getting the default apps config")
-
-	return GetAppsConfig(file)
 }
 
 func GetAppsFile(c Config) (*templateapp.AppCROutput, error) {
@@ -213,13 +205,13 @@ func getProvider(appName string) string {
 func GetAppCRYaml(c Config, configmapName string) ([]byte, error) {
 	log.Debug().Msg(fmt.Sprintf("Creating the app CR for %s/%s-cluster", c.Name, c.Cluster))
 	appConfig := templateapp.Config{
-		AppName:                 c.AppName,
+		AppName:                 c.Name, //todo: this needs to be swapped
 		Catalog:                 c.Catalog,
 		Cluster:                 c.Cluster,
 		DefaultingEnabled:       true,
 		ExtraLabels:             map[string]string{},
 		InCluster:               true,
-		Name:                    c.Name,
+		Name:                    c.AppName,
 		Namespace:               c.Namespace,
 		Version:                 c.Version,
 		UserConfigConfigMapName: configmapName,

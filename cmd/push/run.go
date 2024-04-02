@@ -24,6 +24,7 @@ type Config struct {
 	CMCBranch           string
 	CMCRepository       string
 	CMCFlags            pushcmc.CMCFlags
+	DisplaySecrets      bool
 }
 
 func Run(c Config, ctx context.Context) error {
@@ -70,11 +71,12 @@ func (c *Config) Push(ctx context.Context) (*managementcluster.ManagementCluster
 	}
 	if !key.Skip(key.RepositoryCMC, c.Skip) {
 		i := pushcmc.Config{
-			Cluster:       c.Cluster,
-			Github:        client,
-			CMCBranch:     c.CMCBranch,
-			CMCRepository: c.CMCRepository,
-			Flags:         c.CMCFlags,
+			Cluster:        c.Cluster,
+			Github:         client,
+			CMCBranch:      c.CMCBranch,
+			CMCRepository:  c.CMCRepository,
+			Flags:          c.CMCFlags,
+			DisplaySecrets: c.DisplaySecrets,
 		}
 		if c.Input != "" {
 			i.Input = &mc.CMC

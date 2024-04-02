@@ -18,6 +18,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/registry"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/sopsfile"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/taylorbot"
+	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 const (
@@ -32,11 +33,16 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 
 	path := key.GetCMCPath(sopsConfig.Cluster)
 
-	clusterAppsConfig, err := apps.GetClusterAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.ClusterAppsFile)])
+	data, err = sops.DecryptDir(data, data[SopsFile])
+	if err != nil {
+		return nil, err
+	}
+
+	clusterAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.ClusterAppsFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster apps config.\n%w", err)
 	}
-	defaultAppsConfig, err := apps.GetDefaultAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.DefaultAppsFile)])
+	defaultAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.DefaultAppsFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get default apps config.\n%w", err)
 	}
@@ -190,21 +196,15 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 	var err error
 	path := key.GetCMCPath(c.Cluster)
 
+	c.EncodeSecrets()
+
 	cmcTemplate, err = c.GetSops(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add sops file.\n%w", err)
 	}
-	cmcTemplate, err = c.GetProviders(cmcTemplate, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add provider files.\n%w", err)
-	}
 	cmcTemplate, err = c.GetPrivateCA(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add private CA files.\n%w", err)
-	}
-	cmcTemplate, err = c.GetConfigureContainerRegistries(cmcTemplate, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add configure container registries files.\n%w", err)
 	}
 	cmcTemplate, err = c.GetCustomCoreDNS(cmcTemplate, path)
 	if err != nil {
@@ -226,25 +226,21 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to add default apps files.\n%w", err)
 	}
-	cmcTemplate, err = c.GetCertManager(cmcTemplate, path)
+	cmcTemplate, err = c.GetKustomization(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add cert manager files.\n%w", err)
-	}
-	cmcTemplate, err = c.GetTaylorBot(cmcTemplate, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add taylor bot files.\n%w", err)
+		return nil, fmt.Errorf("failed to add kustomization file.\n%w", err)
 	}
 	cmcTemplate, err = c.GetDeployKey(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add deploy key files.\n%w", err)
 	}
-	cmcTemplate, err = c.GetKustomization(cmcTemplate, path)
+	cmcTemplate, err = c.GetSecrets(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add kustomization file.\n%w", err)
+		return nil, fmt.Errorf("failed to add secrets files.\n%w", err)
 	}
-	cmcTemplate, err = c.GetAge(cmcTemplate, path)
+	cmcTemplate, err = c.GetProviders(cmcTemplate, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add age file.\n%w", err)
+		return nil, fmt.Errorf("failed to add provider files.\n%w", err)
 	}
 
 	return cmcTemplate, nil
@@ -252,6 +248,8 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 
 // DeployKey
 func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	deployKeyMap := map[string]string{}
+
 	deployKeyFile, err := deploykey.GetDeployKeyFile(deploykey.Config{
 		Name:       "giantswarm-clusters-ssh-credentials",
 		Passphrase: c.SSHdeployKey.Passphrase,
@@ -261,7 +259,7 @@ func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[stri
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh deploy key file.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.SSHdeployKeyFile)] = deployKeyFile
+	deployKeyMap[fmt.Sprintf("%s/%s", path, kustomization.SSHdeployKeyFile)] = deployKeyFile
 
 	deployKeyFile, err = deploykey.GetDeployKeyFile(deploykey.Config{
 		Name:       "configs-ssh-credentials",
@@ -272,7 +270,7 @@ func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[stri
 	if err != nil {
 		return nil, fmt.Errorf("failed to get customer ssh deploy key file.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.CustomerDeployKeyFile)] = deployKeyFile
+	deployKeyMap[fmt.Sprintf("%s/%s", path, kustomization.CustomerDeployKeyFile)] = deployKeyFile
 
 	deployKeyFile, err = deploykey.GetDeployKeyFile(deploykey.Config{
 		Name:       "shared-configs-ssh-credentials",
@@ -283,12 +281,23 @@ func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[stri
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared ssh deploy key file.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.SharedDeployKeyFile)] = deployKeyFile
+	deployKeyMap[fmt.Sprintf("%s/%s", path, kustomization.SharedDeployKeyFile)] = deployKeyFile
+
+	deployKeyMap, err = sops.EncryptDir(deployKeyMap, cmcTemplate[SopsFile], c.AgePubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range deployKeyMap {
+		cmcTemplate[k] = v
+	}
 	return cmcTemplate, nil
 }
 
-// Age
-func (c *CMC) GetAge(cmcTemplate map[string]string, path string) (map[string]string, error) {
+func (c *CMC) GetSecrets(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	secretMap := map[string]string{}
+
+	// Age
 	ageFile, err := age.GetAgeFile(age.Config{
 		Cluster: c.Cluster,
 		AgeKey:  c.AgeKey,
@@ -296,12 +305,59 @@ func (c *CMC) GetAge(cmcTemplate map[string]string, path string) (map[string]str
 	if err != nil {
 		return nil, fmt.Errorf("failed to get age file.\n%w", err)
 	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AgeKeyFile)] = ageFile
+	secretMap[fmt.Sprintf("%s/%s", path, kustomization.AgeKeyFile)] = ageFile
+
+	// TaylorBot
+	taylorBotToken, err := taylorbot.GetTaylorBotFile(c.TaylorBotToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get taylorbot file.\n%w", err)
+	}
+	secretMap[fmt.Sprintf("%s/%s", path, kustomization.TaylorBotFile)] = taylorBotToken
+
+	// CertManager
+	if c.CertManagerDNSChallenge.Enabled {
+		certManagerFile, err := certmanager.GetCertManagerFile(certmanager.Config{
+			Cluster:          c.Cluster,
+			ClusterNamespace: c.ClusterNamespace,
+			Region:           c.CertManagerDNSChallenge.Region,
+			Role:             c.CertManagerDNSChallenge.Role,
+			AccessKeyID:      c.CertManagerDNSChallenge.AccessKeyID,
+			SecretAccessKey:  c.CertManagerDNSChallenge.SecretAccessKey,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cert-manager file.\n%w", err)
+		}
+		secretMap[fmt.Sprintf("%s/%s", path, kustomization.CertManagerFile)] = certManagerFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.CertManagerFile))
+	}
+
+	// ConfigureContainerRegistries
+	if c.ConfigureContainerRegistries.Enabled {
+		registryFile, err := registry.GetRegistryFile(c.ConfigureContainerRegistries.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get registry file.\n%w", err)
+		}
+		secretMap[fmt.Sprintf("%s/%s", path, kustomization.RegistryFile)] = registryFile
+	} else {
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.RegistryFile))
+	}
+
+	secretMap, err = sops.EncryptDir(secretMap, cmcTemplate[SopsFile], c.AgePubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range secretMap {
+		cmcTemplate[k] = v
+	}
 	return cmcTemplate, nil
 }
 
 // Providers
 func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	secretMap := map[string]string{}
+
 	if key.IsProviderVsphere(c.Provider.Name) {
 		capvFile, err := capv.GetCAPVFile(capv.Config{
 			Namespace:   c.ClusterNamespace,
@@ -310,7 +366,7 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPV file.\n%w", err)
 		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile)] = capvFile
+		secretMap[fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile)] = capvFile
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.VsphereCredentialsFile))
 	}
@@ -332,11 +388,11 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
 		}
-		capzStaticSPFile, err := capz.GetCAPZSecret(capzconfig)
+		capzSecret, err := capz.GetCAPZSecret(capzconfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPZ file.\n%w", err)
 		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AzureSecretClusterIdentityStaticSP)] = capzStaticSPFile
+		secretMap[fmt.Sprintf("%s/%s", path, kustomization.AzureSecretClusterIdentityStaticSP)] = capzSecret
 		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentitySPFile)] = capzSPFile
 		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentityUAFile)] = capzUAFile
 	} else {
@@ -352,10 +408,20 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		if err != nil {
 			return nil, fmt.Errorf("failed to get CAPVCD file.\n%w", err)
 		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)] = capvcdFile
+		secretMap[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)] = capvcdFile
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile))
 	}
+
+	secretMap, err := sops.EncryptDir(secretMap, cmcTemplate[SopsFile], c.AgePubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range secretMap {
+		cmcTemplate[k] = v
+	}
+
 	return cmcTemplate, nil
 }
 
@@ -450,37 +516,6 @@ func (c *CMC) GetDefaultApps(cmcTemplate map[string]string, path string) (map[st
 	return cmcTemplate, nil
 }
 
-// CertManager
-func (c *CMC) GetCertManager(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	if c.CertManagerDNSChallenge.Enabled {
-		certManagerFile, err := certmanager.GetCertManagerFile(certmanager.Config{
-			Cluster:          c.Cluster,
-			ClusterNamespace: c.ClusterNamespace,
-			Region:           c.CertManagerDNSChallenge.Region,
-			Role:             c.CertManagerDNSChallenge.Role,
-			AccessKeyID:      c.CertManagerDNSChallenge.AccessKeyID,
-			SecretAccessKey:  c.CertManagerDNSChallenge.SecretAccessKey,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to get cert-manager file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.CertManagerFile)] = certManagerFile
-	} else {
-		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.CertManagerFile))
-	}
-	return cmcTemplate, nil
-}
-
-// TaylorBot
-func (c *CMC) GetTaylorBot(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	taylorBotToken, err := taylorbot.GetTaylorBotToken(c.TaylorBotToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get taylorbot file.\n%w", err)
-	}
-	cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.TaylorBotFile)] = taylorBotToken
-	return cmcTemplate, nil
-}
-
 // MCProxy
 func (c *CMC) GetMCProxy(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	if c.MCProxy.Enabled {
@@ -498,20 +533,6 @@ func (c *CMC) GetMCProxy(cmcTemplate map[string]string, path string) (map[string
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AllowNetPolFile))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.SourceControllerFile))
-	}
-	return cmcTemplate, nil
-}
-
-// ConfigureContainerRegistries
-func (c *CMC) GetConfigureContainerRegistries(cmcTemplate map[string]string, path string) (map[string]string, error) {
-	if c.ConfigureContainerRegistries.Enabled {
-		registryFile, err := registry.GetRegistryFile(c.ConfigureContainerRegistries.Values)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get registry file.\n%w", err)
-		}
-		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.RegistryFile)] = registryFile
-	} else {
-		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.RegistryFile))
 	}
 	return cmcTemplate, nil
 }

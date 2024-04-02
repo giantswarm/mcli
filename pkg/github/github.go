@@ -160,6 +160,11 @@ func (r *Repository) CreateFile(ctx context.Context, content []byte, path string
 		return err
 	}
 
+	return r.createFile(ctx, content, path)
+}
+
+func (r *Repository) createFile(ctx context.Context, content []byte, path string) error {
+
 	// get the SHA in case the file already exists
 	fileSHA, err := r.GetFileSHA(ctx, path)
 	if err != nil {
@@ -189,11 +194,14 @@ func (r *Repository) CreateFile(ctx context.Context, content []byte, path string
 	return nil
 }
 
-func (r *Repository) CreateDirectory(ctx context.Context, path string, content map[string]string) error {
-	// create the files
-	for k, v := range content {
-		if err := r.CreateFile(ctx, []byte(v), fmt.Sprintf("%s/%s", path, k)); err != nil {
-			return fmt.Errorf("failed to create file %s of directory %s of branch %s of repository %s/%s.\n%w", k, path, r.Branch, r.Organization, r.Name, err)
+func (r *Repository) CreateDirectory(ctx context.Context, content map[string]string) error {
+	if err := r.Check(ctx); err != nil {
+		return err
+	}
+
+	for path, value := range content {
+		if err := r.createFile(ctx, []byte(value), path); err != nil {
+			return fmt.Errorf("failed to create directory file %s of branch %s of repository %s/%s.\n%w", path, r.Branch, r.Organization, r.Name, err)
 		}
 	}
 	return nil

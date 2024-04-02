@@ -13,13 +13,14 @@ import (
 )
 
 type Config struct {
-	Cluster       string
-	Github        *github.Github
-	CMCRepository string
-	CMCBranch     string
-	Provider      string
-	Input         *cmc.CMC
-	Flags         CMCFlags
+	Cluster        string
+	Github         *github.Github
+	CMCRepository  string
+	CMCBranch      string
+	Provider       string
+	Input          *cmc.CMC
+	Flags          CMCFlags
+	DisplaySecrets bool
 }
 
 type CMCFlags struct {
@@ -87,37 +88,38 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 }
 
 func (c *Config) PushCMC(ctx context.Context) (*cmc.CMC, error) {
-	if err := c.Branch(ctx); err != nil {
-		return nil, err
-	}
-	// pulling current cmc
-	cmc, err := c.Pull(ctx)
-	if err != nil {
-		// if there is no current cmc, create a new one
-		// check if the error is a github.ErrNotFound
-		if github.IsNotFound(err) {
-			log.Debug().Msg(fmt.Sprintf("no current %s entry for %s found, creating a new one", c.CMCRepository, c.Cluster))
-			return c.Create(ctx)
-		} else {
-			return nil, fmt.Errorf("failed to pull %s entry for %s.\n%w", c.CMCRepository, c.Cluster, err)
-		}
-	}
-	cmc, err = decode(c.Flags.AgePubKey, cmc)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode cmc.\n%w", err)
-	}
-	return c.Update(ctx, cmc)
-}
-
-func (c *Config) Branch(ctx context.Context) error {
-	log.Debug().Msg(fmt.Sprintf("getting %s branch %s", c.CMCRepository, c.CMCBranch))
-
 	cmcRepository := github.Repository{
 		Github:       c.Github,
 		Name:         c.CMCRepository,
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.CMCBranch,
 	}
+
+	if err := c.Branch(ctx, cmcRepository); err != nil {
+		return nil, err
+	}
+	// pulling current cmc
+	cmc, err := c.Pull(ctx, cmcRepository)
+	if err != nil {
+		// if there is no current cmc, create a new one
+		// check if the error is a github.ErrNotFound
+		if github.IsNotFound(err) {
+			sopsFile, err := c.pullSopsFile(ctx, cmcRepository)
+			if err != nil {
+				return nil, err
+			}
+			log.Debug().Msg(fmt.Sprintf("no current %s entry for %s found, creating a new one", c.CMCRepository, c.Cluster))
+			return c.Create(ctx, sopsFile)
+		} else {
+			return nil, fmt.Errorf("failed to pull %s entry for %s.\n%w", c.CMCRepository, c.Cluster, err)
+		}
+	}
+	return c.Update(ctx, cmc)
+}
+
+func (c *Config) Branch(ctx context.Context, cmcRepository github.Repository) error {
+	log.Debug().Msg(fmt.Sprintf("getting %s branch %s", c.CMCRepository, c.CMCBranch))
+
 	err := cmcRepository.CheckBranch(ctx)
 	if err != nil {
 		if github.IsNotFound(err) {
@@ -133,31 +135,35 @@ func (c *Config) Branch(ctx context.Context) error {
 	return nil
 }
 
-func (c *Config) Pull(ctx context.Context) (map[string]string, error) {
+func (c *Config) Pull(ctx context.Context, cmcRepository github.Repository) (map[string]string, error) {
 	log.Debug().Msgf("pulling current %s entry for %s", c.CMCRepository, c.Cluster)
 
-	cmcRepository := github.Repository{
-		Github:       c.Github,
-		Name:         c.CMCRepository,
-		Organization: key.OrganizationGiantSwarm,
-		Branch:       c.CMCBranch,
-	}
-	if err := cmcRepository.Check(ctx); err != nil {
+	sopsfile, err := c.pullSopsFile(ctx, cmcRepository)
+	if err != nil {
 		return nil, err
 	}
+
 	data, err := cmcRepository.GetDirectory(ctx, key.GetCMCPath(c.Cluster))
 	if err != nil {
 		return nil, err
 	}
-	sops, err := cmcRepository.GetFile(ctx, cmc.SopsFile)
-	if err != nil {
-		return nil, err
-	}
-	data[cmc.SopsFile] = sops
+	data[cmc.SopsFile] = sopsfile
+
 	return data, nil
 }
 
-func (c *Config) Create(ctx context.Context) (*cmc.CMC, error) {
+func (c *Config) pullSopsFile(ctx context.Context, cmcRepository github.Repository) (string, error) {
+	if err := cmcRepository.Check(ctx); err != nil {
+		return "", err
+	}
+	sopsfile, err := cmcRepository.GetFile(ctx, cmc.SopsFile)
+	if err != nil {
+		return "", err
+	}
+	return sopsfile, nil
+}
+
+func (c *Config) Create(ctx context.Context, sopsFile string) (*cmc.CMC, error) {
 	var err error
 	log.Debug().Msg(fmt.Sprintf("creating new %s entry for %s", c.CMCRepository, c.Cluster))
 	var desiredCMC *cmc.CMC
@@ -175,6 +181,7 @@ func (c *Config) Create(ctx context.Context) (*cmc.CMC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to pull template.\n%w", err)
 	}
+	template[cmc.SopsFile] = sopsFile
 	create, err := desiredCMC.GetMap(template)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
@@ -203,6 +210,9 @@ func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*
 	}
 	if currentCMC.Equals(desiredCMC) {
 		log.Debug().Msg(fmt.Sprintf("%s entry for %s is up to date", c.CMCRepository, c.Cluster))
+		if !c.DisplaySecrets {
+			desiredCMC.RedactSecrets()
+		}
 		return desiredCMC, nil
 	}
 	// if deny all netpol is being enabled, we need to get the file from the template
@@ -216,10 +226,6 @@ func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*
 	update, err := desiredCMC.GetMap(currentCMCmap)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
-	}
-	update, err = encode(desiredCMC.AgePubKey, update)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode cmc map.\n%w", err)
 	}
 	return c.Push(ctx, update)
 }
@@ -237,10 +243,20 @@ func (c *Config) Push(ctx context.Context, desiredCMC map[string]string) (*cmc.C
 	if err != nil {
 		return nil, err
 	}
-	// TODO actually push the CMC
-	log.Debug().Msg("This is a dry run. No changes will be made.")
 
-	return cmc.GetCMCFromMap(desiredCMC, c.Cluster)
+	err = cmcRepository.CreateDirectory(ctx, desiredCMC)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create directory %s.\n%w", key.GetCMCPath(c.Cluster), err)
+	}
+
+	result, err := cmc.GetCMCFromMap(desiredCMC, c.Cluster)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
+	}
+	if !c.DisplaySecrets {
+		result.RedactSecrets()
+	}
+	return result, nil
 }
 
 func (c *Config) Validate() error {
@@ -535,7 +551,7 @@ func (c *Config) PullTemplate() (map[string]string, error) {
 	for k, v := range template {
 		cmcMap[key.GetCMCPath(c.Cluster)+k[len(key.CMCEntryTemplatePath):]] = v
 	}
-	return template, nil
+	return cmcMap, nil
 }
 
 func (c *Config) PullTemplateFile(path string) (string, error) {
