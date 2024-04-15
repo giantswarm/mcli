@@ -95,47 +95,44 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 	)
 
 	if c.CertManagerDNSChallenge {
-		k.Resources = append(k.Resources, CertManagerFile)
+		k.Resources = appendResource(k.Resources, CertManagerFile)
 	}
 	if key.IsProviderVsphere(c.Provider) {
-		k.Resources = append(k.Resources, VsphereCredentialsFile)
+		k.Resources = appendResource(k.Resources, VsphereCredentialsFile)
 	} else if key.IsProviderVCD(c.Provider) {
-		k.Resources = append(k.Resources, CloudDirectorCredentialsFile)
+		k.Resources = appendResource(k.Resources, CloudDirectorCredentialsFile)
 	} else if key.IsProviderAzure(c.Provider) {
-		k.Resources = append(k.Resources,
-			AzureClusterIdentitySPFile,
-			AzureClusterIdentityUAFile,
-			AzureSecretClusterIdentityStaticSP)
+		k.Resources = appendResource(k.Resources, AzureClusterIdentitySPFile)
+		k.Resources = appendResource(k.Resources, AzureClusterIdentityUAFile)
+		k.Resources = appendResource(k.Resources, AzureSecretClusterIdentityStaticSP)
 	}
 	if c.PrivateCA {
-		k.Resources = append(k.Resources, IssuerFile)
+		k.Resources = appendResource(k.Resources, IssuerFile)
 	}
 	if c.ConfigureContainerRegistries {
-		k.Resources = append(k.Resources, RegistryFile)
+		k.Resources = appendResource(k.Resources, RegistryFile)
 	}
 	if c.CustomCoreDNS {
-		k.Resources = append(k.Resources, CoreDNSFile)
+		k.Resources = appendResource(k.Resources, CoreDNSFile)
 	}
 	if c.DisableDenyAllNetPol {
 		k.Resources = removeResource(k.Resources, DenyNetPolFile)
 	}
 	if c.MCProxy {
-		k.Patches = append(k.Patches,
-			kustomize.Patch{Path: GetSourceControllerPatchPath()},
-			kustomize.Patch{Path: GetSharedConfigsPatchPath()},
-			kustomize.Patch{Path: GetSourceControllerSocatSidecarPath(),
-				Target: &kustomize.Selector{
-					ResId: resid.ResId{
-						Gvk: resid.Gvk{
-							Kind: "Deployment",
-						},
-						Name:      "source-controller",
-						Namespace: key.FluxNamespace,
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerPatchPath()})
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSharedConfigsPatchPath()})
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerSocatSidecarPath(),
+			Target: &kustomize.Selector{
+				ResId: resid.ResId{
+					Gvk: resid.Gvk{
+						Kind: "Deployment",
 					},
+					Name:      "source-controller",
+					Namespace: key.FluxNamespace,
 				},
 			},
-			kustomize.Patch{Path: SourceControllerFile},
-		)
+		})
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: SourceControllerFile})
 	}
 	data, err := key.GetData(k)
 	if err != nil {
@@ -168,6 +165,24 @@ func containsResource(resources []string, resource string) bool {
 		}
 	}
 	return false
+}
+
+func appendResource(resources []string, resource string) []string {
+	for _, r := range resources {
+		if r == resource {
+			return resources
+		}
+	}
+	return append(resources, resource)
+}
+
+func appendPatch(patches []kustomize.Patch, patch kustomize.Patch) []kustomize.Patch {
+	for _, p := range patches {
+		if p.Path == patch.Path {
+			return patches
+		}
+	}
+	return append(patches, patch)
 }
 
 func containsPatch(patches []kustomize.Patch, patch string) bool {

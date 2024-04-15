@@ -27,7 +27,6 @@ type CMCFlags struct {
 	Secrets                      SecretFlags
 	SecretFolder                 string
 	AgePubKey                    string
-	AgeKey                       string
 	TaylorBotToken               string
 	MCAppsPreventDeletion        bool
 	ClusterAppName               string
@@ -227,6 +226,12 @@ func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
 	}
+
+	update, err = cmc.MarkUnchangedSecretsInMap(currentCMC, desiredCMC, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to mark unchanged secrets.\n%w", err)
+	}
+
 	return c.Push(ctx, update)
 }
 
@@ -317,9 +322,6 @@ func (c *Config) EnsureFlagsAreSet() error {
 	}
 	if c.Flags.AgePubKey == "" {
 		return fmt.Errorf("age public key is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.AgeKey == "" {
-		return fmt.Errorf("age key is required\n%w", ErrInvalidFlag)
 	}
 	if c.Flags.TaylorBotToken == "" {
 		return fmt.Errorf("taylor bot token is required\n%w", ErrInvalidFlag)
@@ -416,7 +418,6 @@ func (c *Config) EnsureFlagsAreSet() error {
 func getCMC(c Config) (*cmc.CMC, error) {
 	newCMC := &cmc.CMC{
 		AgePubKey:        c.Flags.AgePubKey,
-		AgeKey:           c.Flags.AgeKey,
 		Cluster:          c.Cluster,
 		ClusterNamespace: c.Flags.ClusterNamespace,
 		ClusterApp: cmc.App{

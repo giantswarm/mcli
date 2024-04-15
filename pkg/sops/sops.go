@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const EnvAgeKey = "SOPS_AGE_KEY"
+
 // Decrypt decrypts the given data.
 func decrypt(data string, path string) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Decrypting file %s", path))
@@ -56,7 +58,7 @@ func encrypt(data string, path string, age string) (string, error) {
 		return "", fmt.Errorf("failed to write to temp file: %w", err)
 	}
 
-	cmd := exec.Command("sops", "--encrypt", "--input-type", "yaml", "--output-type", "yaml", "--age", age, f.Name())
+	cmd := exec.Command("sops", "--encrypt", "--input-type", "yaml", "--output-type", "yaml", "--age", age, "--encrypted-regex", "^(data|stringData)$", f.Name())
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to encrypt file %s: %s\n%w", f.Name(), out, err)
@@ -68,31 +70,25 @@ func encrypt(data string, path string, age string) (string, error) {
 	return string(out), nil
 }
 
-func DecryptDir(data map[string]string, keys string) (map[string]string, error) {
+func DecryptDir(input map[string]string) (map[string]string, error) {
 	log.Debug().Msg("Decrypting directory data")
+	data := map[string]string{}
 
 	// create temp directory
 	dir, err := os.MkdirTemp("", "sops")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	// write sops file to .sops.yaml in the temp directory
-	sopsFile := fmt.Sprintf("%s/.sops.yaml", dir)
-	f, err := os.Create(sopsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create sops file: %w", err)
-	}
-	if _, err := f.WriteString(keys); err != nil {
-		return nil, fmt.Errorf("failed to write to sops file: %w", err)
-	}
 
-	for k, v := range data {
-		if isEncrypted(v) {
+	for k, v := range input {
+		if IsEncrypted(v) {
 			decrypted, err := decrypt(v, fmt.Sprintf("%s/%s", dir, k))
 			if err != nil {
 				return nil, err
 			}
 			data[k] = decrypted
+		} else {
+			data[k] = v
 		}
 	}
 
@@ -103,7 +99,7 @@ func DecryptDir(data map[string]string, keys string) (map[string]string, error) 
 	return data, nil
 }
 
-func EncryptDir(data map[string]string, keys string, age string) (map[string]string, error) {
+func EncryptDir(data map[string]string, age string) (map[string]string, error) {
 	log.Debug().Msg("Encrypting directory data")
 
 	// create temp directory
@@ -111,25 +107,13 @@ func EncryptDir(data map[string]string, keys string, age string) (map[string]str
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	// write sops file to .sops.yaml in the temp directory
-	sopsFile := fmt.Sprintf("%s/.sops.yaml", dir)
-	f, err := os.Create(sopsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create sops file: %w", err)
-	}
-
-	if _, err := f.WriteString(keys); err != nil {
-		return nil, fmt.Errorf("failed to write to sops file: %w", err)
-	}
 
 	for k, v := range data {
-		if !isEncrypted(v) {
-			encrypted, err := encrypt(v, fmt.Sprintf("%s/%s", dir, k), age)
-			if err != nil {
-				return nil, err
-			}
-			data[k] = encrypted
+		encrypted, err := encrypt(v, fmt.Sprintf("%s/%s", dir, k), age)
+		if err != nil {
+			return nil, err
 		}
+		data[k] = encrypted
 	}
 
 	// delete the temp directory
@@ -139,6 +123,10 @@ func EncryptDir(data map[string]string, keys string, age string) (map[string]str
 	return data, nil
 }
 
-func isEncrypted(data string) bool {
+func IsEncrypted(data string) bool {
 	return strings.Contains(data, "-----BEGIN AGE ENCRYPTED FILE----")
+}
+
+func GetAgeKey() string {
+	return os.Getenv(EnvAgeKey)
 }

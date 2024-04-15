@@ -10,8 +10,8 @@ import (
 )
 
 func Execute(tmplFile string, data any) (string, error) {
-	log.Debug().Msg(fmt.Sprintf("Creating file from template %s", tmplFile))
-	tmpl, err := template.New(tmplFile).ParseFiles(tmplFile)
+	log.Debug().Msg("Creating file from template")
+	tmpl, err := template.New(tmplFile).Parse(tmplFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template file %s: %w", tmplFile, microerror.Mask(err))
 	}

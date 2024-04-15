@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"strings"
 
+	"github.com/giantswarm/mcli/pkg/sops"
 	"github.com/google/go-github/v57/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
@@ -12,7 +14,8 @@ import (
 )
 
 const (
-	MaxRedirects = 10
+	MaxRedirects          = 10
+	ActionNoChangesMarker = "# No changes"
 )
 
 type Github struct {
@@ -171,11 +174,27 @@ func (r *Repository) createFile(ctx context.Context, content []byte, path string
 		return err
 	}
 
-	// get commit message
 	var message string
 	if fileSHA == "" {
 		message = fmt.Sprintf("creating %s", path)
 	} else {
+		// check if there are changes in the file
+		oldContents, err := r.GetFile(ctx, path)
+		if err != nil {
+			return err
+		}
+		if oldContents == string(content) {
+			log.Debug().Msg(fmt.Sprintf("no changes in file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+			return nil
+		}
+		if sops.IsEncrypted(oldContents) && !sops.IsEncrypted(string(content)) {
+			log.Debug().Msg(fmt.Sprintf("file %s of branch %s of repository %s/%s is currently encrypted. Unable to update with unencrypted content", path, r.Branch, r.Organization, r.Name))
+			return nil
+		}
+		if noChangesMade(string(content)) {
+			log.Debug().Msg(fmt.Sprintf("no changes in file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+			return nil
+		}
 		message = fmt.Sprintf("updating %s", path)
 	}
 
@@ -416,4 +435,8 @@ func (r *Repository) CreatePullRequest(ctx context.Context, title string, base s
 		return fmt.Errorf("failed to create pull request to merge %s into %s of repository %s/%s.\n%w", r.Branch, base, r.Organization, r.Name, err)
 	}
 	return nil
+}
+
+func noChangesMade(content string) bool {
+	return strings.HasPrefix(content, ActionNoChangesMarker)
 }

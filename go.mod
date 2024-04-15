@@ -3,6 +3,7 @@ module github.com/giantswarm/mcli
 go 1.21
 
 require (
+	filippo.io/age v1.1.1
 	github.com/giantswarm/apiextensions-application v0.6.1
 	github.com/giantswarm/k8smetadata v0.23.0
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
@@ -68,6 +69,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

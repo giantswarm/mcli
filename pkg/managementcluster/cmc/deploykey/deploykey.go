@@ -6,7 +6,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/giantswarm/mcli/pkg/template"
 )
 
@@ -15,6 +14,18 @@ const (
 	Identitykey   = "identity"
 	knownhostskey = "known_hosts"
 )
+
+const DeployKeyTemplate = `apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: {{ .Name }}
+  namespace: flux-giantswarm
+data:
+  password: {{ .Passphrase }}
+  identity: {{ .Identity }}
+  known_hosts: {{ .KnownHosts }}
+`
 
 type Config struct {
 	Name       string
@@ -51,5 +62,5 @@ func GetDeployKeyConfig(file string) (Config, error) {
 func GetDeployKeyFile(c Config) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Creating DeployKey file for %s", c.Name))
 
-	return template.Execute(key.GetTMPLFile(kustomization.SSHdeployKeyFile), c)
+	return template.Execute(DeployKeyTemplate, c)
 }

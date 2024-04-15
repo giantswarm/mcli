@@ -6,7 +6,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/giantswarm/mcli/pkg/template"
 )
 
@@ -18,6 +17,50 @@ const (
 	UAClientIDKey   = "clientID"
 	UATenantIDKey   = "tenantID"
 	UAResourceIDKey = "resourceID"
+)
+
+const (
+	CAPZSecretTemplate = `apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: cluster-identity-secret-static
+  namespace: {{ .Namespace }}
+  labels:
+    clusterctl.cluster.x-k8s.io/move: true
+data:
+  clientSecret: {{ .ClientSecret }}
+`
+
+	CAPZSPTemplate = `apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AzureClusterIdentity
+metadata:
+  name: cluster-identity-static-sp
+  namespace: {{ .Namespace }}
+  labels:
+    clusterctl.cluster.x-k8s.io/move: "true"
+spec:
+  allowedNamespaces: {}
+  clientID: {{ .ClientID }}
+  clientSecret:
+    name: cluster-identity-secret-static-sp
+    namespace: org-giantswarm
+  tenantID: {{ .TenantID }}
+  type: ManualServicePrincipal
+`
+
+	CAPZUATemplate = `apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: AzureClusterIdentity
+metadata:
+  name: cluster-identity
+  namespace: {{ .Namespace }}
+spec:
+  allowedNamespaces: {}
+  clientID: {{ .UAClientID }}
+  tenantID: {{ .TenantID }}
+  resourceID: {{ .UAResourceID }}
+  type: UserAssignedMSI
+`
 )
 
 type Config struct {
@@ -70,17 +113,17 @@ func GetCAPZConfig(sp string, ua string, secret string) (Config, error) {
 func GetCAPZSecret(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ static SP file")
 
-	return template.Execute(key.GetTMPLFile(kustomization.AzureSecretClusterIdentityStaticSP), c)
+	return template.Execute(CAPZSecretTemplate, c)
 }
 
 func GetCAPZSPFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ SP file")
 
-	return template.Execute(key.GetTMPLFile(kustomization.AzureClusterIdentitySPFile), c)
+	return template.Execute(CAPZSPTemplate, c)
 }
 
 func GetCAPZUAFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ UA file")
 
-	return template.Execute(key.GetTMPLFile(kustomization.AzureClusterIdentityUAFile), c)
+	return template.Execute(CAPZUATemplate, c)
 }

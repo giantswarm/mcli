@@ -100,7 +100,6 @@ mcli pull cmc --cluster=gigmac`,
 			Github:         client,
 			CMCRepository:  cmcRepository,
 			CMCBranch:      cmcBranch,
-			AgeKey:         ageKey,
 			DisplaySecrets: displaySecrets,
 		}
 		cmc, err := c.Run(ctx)

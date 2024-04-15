@@ -14,7 +14,6 @@ import (
 
 type CMC struct {
 	AgePubKey                    string                       `yaml:"agePubKey"`
-	AgeKey                       string                       `yaml:"ageKey"`
 	Cluster                      string                       `yaml:"cluster"`
 	ClusterApp                   App                          `yaml:"clusterApp"`
 	DefaultApps                  App                          `yaml:"defaultApps"`
@@ -125,9 +124,6 @@ func (c *CMC) Override(override *CMC) *CMC {
 	cmc := *c
 	if override.AgePubKey != "" {
 		cmc.AgePubKey = override.AgePubKey
-	}
-	if override.AgeKey != "" {
-		cmc.AgeKey = override.AgeKey
 	}
 	if override.Cluster != "" {
 		cmc.Cluster = override.Cluster
@@ -274,9 +270,6 @@ func (c *CMC) Override(override *CMC) *CMC {
 func (c *CMC) Validate() error {
 	if c.AgePubKey == "" {
 		return fmt.Errorf("age public key is empty")
-	}
-	if c.AgeKey == "" {
-		return fmt.Errorf("age key is empty")
 	}
 	if c.Cluster == "" {
 		return fmt.Errorf("cluster is empty")

@@ -4,13 +4,23 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/giantswarm/mcli/pkg/template"
 )
 
 const (
 	CloudConfigKey = "values.yaml"
 )
+
+const VsphereTemplate = `apiVersion: v1
+kind: Secret
+metadata:
+  name: vsphere-credentials
+  namespace: {{ .Namespace }}
+  labels:
+    clusterctl.cluster.x-k8s.io/move: true
+data:
+  values.yaml: {{ .CloudConfig }}
+`
 
 type Config struct {
 	CloudConfig string
@@ -26,5 +36,5 @@ func GetCAPVConfig(file string) (string, error) {
 func GetCAPVFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPV file")
 
-	return template.Execute(key.GetTMPLFile(kustomization.VsphereCredentialsFile), c)
+	return template.Execute(VsphereTemplate, c)
 }

@@ -8,7 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/giantswarm/mcli/pkg/template"
 )
 
@@ -19,6 +18,15 @@ const (
 	AccessKeyIDKey     = "accessKeyID"
 	SecretAccessKeyKey = "secretAccessKey"
 )
+
+const CertManagerTemplate = `apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Cluster }}-cert-manager-user-secrets
+  namespace: {{ .ClusterNamespace }}
+data:
+  values: {{ .Values }}
+`
 
 type Config struct {
 	Cluster          string
@@ -114,7 +122,7 @@ func GetCertManagerFile(c Config) (string, error) {
 		Values           string
 	}
 
-	return template.Execute(key.GetTMPLFile(kustomization.CertManagerFile), config{
+	return template.Execute(CertManagerTemplate, config{
 		Cluster:          c.Cluster,
 		ClusterNamespace: c.ClusterNamespace,
 		Values:           base64.StdEncoding.EncodeToString(data),

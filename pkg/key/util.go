@@ -29,7 +29,7 @@ func GetValue(key string, data string) (string, error) {
 	re := regexp.MustCompile(fmt.Sprintf(`%s: (\S+)`, key))
 	matches := re.FindStringSubmatch(data)
 	if len(matches) != 2 {
-		return "", fmt.Errorf("failed to find %s in file %s", key, data)
+		return "", fmt.Errorf("failed to find %s in file", key)
 	}
 	if strings.HasPrefix(matches[1], "|") {
 		return GetMultiLineValue(key, data)

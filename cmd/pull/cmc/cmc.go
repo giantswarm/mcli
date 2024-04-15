@@ -15,7 +15,6 @@ type Config struct {
 	Github         *github.Github
 	CMCRepository  string
 	CMCBranch      string
-	AgeKey         string
 	DisplaySecrets bool
 }
 

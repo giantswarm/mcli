@@ -25,18 +25,19 @@ const (
 	SopsFile = ".sops.yaml"
 )
 
-func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
+func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
+
+	data, err := sops.DecryptDir(input)
+	if err != nil {
+		return nil, err
+	}
+
 	sopsConfig, err := sopsfile.GetSopsConfig(data[SopsFile], cluster)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sops config.\n%w", err)
 	}
 
 	path := key.GetCMCPath(sopsConfig.Cluster)
-
-	data, err = sops.DecryptDir(data, data[SopsFile])
-	if err != nil {
-		return nil, err
-	}
 
 	clusterAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.ClusterAppsFile)])
 	if err != nil {
@@ -62,10 +63,6 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get shared deploy key config.\n%w", err)
 	}
-	ageKey, err := age.GetAgeKey(data[fmt.Sprintf("%s/%s", path, kustomization.AgeKeyFile)], cluster)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get age key.\n%w", err)
-	}
 	kustomizationConfig, err := kustomization.GetKustomizationConfig(data[fmt.Sprintf("%s/%s", path, kustomization.KustomizationFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kustomization config.\n%w", err)
@@ -74,7 +71,6 @@ func GetCMCFromMap(data map[string]string, cluster string) (*CMC, error) {
 	cmc := CMC{
 		Cluster:   sopsConfig.Cluster,
 		AgePubKey: sopsConfig.AgePubKey,
-		AgeKey:    ageKey,
 		ClusterApp: App{
 			Name:    clusterAppsConfig.Name,
 			AppName: clusterAppsConfig.AppName,
@@ -243,6 +239,8 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to add provider files.\n%w", err)
 	}
 
+	c.DecodeSecrets()
+
 	return cmcTemplate, nil
 }
 
@@ -283,7 +281,7 @@ func (c *CMC) GetDeployKey(cmcTemplate map[string]string, path string) (map[stri
 	}
 	deployKeyMap[fmt.Sprintf("%s/%s", path, kustomization.SharedDeployKeyFile)] = deployKeyFile
 
-	deployKeyMap, err = sops.EncryptDir(deployKeyMap, cmcTemplate[SopsFile], c.AgePubKey)
+	deployKeyMap, err = sops.EncryptDir(deployKeyMap, c.AgePubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +298,7 @@ func (c *CMC) GetSecrets(cmcTemplate map[string]string, path string) (map[string
 	// Age
 	ageFile, err := age.GetAgeFile(age.Config{
 		Cluster: c.Cluster,
-		AgeKey:  c.AgeKey,
+		AgeKey:  sops.GetAgeKey(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get age file.\n%w", err)
@@ -343,7 +341,7 @@ func (c *CMC) GetSecrets(cmcTemplate map[string]string, path string) (map[string
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.RegistryFile))
 	}
 
-	secretMap, err = sops.EncryptDir(secretMap, cmcTemplate[SopsFile], c.AgePubKey)
+	secretMap, err = sops.EncryptDir(secretMap, c.AgePubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +411,7 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile))
 	}
 
-	secretMap, err := sops.EncryptDir(secretMap, cmcTemplate[SopsFile], c.AgePubKey)
+	secretMap, err := sops.EncryptDir(secretMap, c.AgePubKey)
 	if err != nil {
 		return nil, err
 	}
