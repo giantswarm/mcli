@@ -438,5 +438,5 @@ func (r *Repository) CreatePullRequest(ctx context.Context, title string, base s
 }
 
 func noChangesMade(content string) bool {
-	return strings.HasPrefix(content, ActionNoChangesMarker)
+	return strings.HasSuffix(content, ActionNoChangesMarker)
 }

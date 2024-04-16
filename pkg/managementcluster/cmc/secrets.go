@@ -170,6 +170,8 @@ func MarkUnchangedSecretsInMap(currentCMC *CMC, desiredCMC *CMC, update map[stri
 	if reflect.DeepEqual(currentCMC.Provider.CAPZ, desiredCMC.Provider.CAPZ) {
 		markUnchanged(update, fmt.Sprintf("%s/%s", key.GetCMCPath(desiredCMC.Cluster), kustomization.AzureSecretClusterIdentityStaticSP))
 	}
+	// since we were able to compare the two objects, we can be sure that the age key has not changed
+	markUnchanged(update, fmt.Sprintf("%s/%s", key.GetCMCPath(desiredCMC.Cluster), kustomization.AgeKeyFile))
 	return update, nil
 }
 

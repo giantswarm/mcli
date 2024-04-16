@@ -86,13 +86,11 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	k.Resources = append(k.Resources,
-		TaylorBotFile,
-		SSHdeployKeyFile,
-		CustomerDeployKeyFile,
-		SharedDeployKeyFile,
-		AgeKeyFile,
-	)
+	k.Resources = appendResource(k.Resources, TaylorBotFile)
+	k.Resources = appendResource(k.Resources, SSHdeployKeyFile)
+	k.Resources = appendResource(k.Resources, CustomerDeployKeyFile)
+	k.Resources = appendResource(k.Resources, SharedDeployKeyFile)
+	k.Resources = appendResource(k.Resources, AgeKeyFile)
 
 	if c.CertManagerDNSChallenge {
 		k.Resources = appendResource(k.Resources, CertManagerFile)
