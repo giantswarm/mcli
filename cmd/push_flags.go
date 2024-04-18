@@ -106,7 +106,7 @@ const (
 	flagSharedDeployKey                   = "shared-deploy-key-passphrase"
 	flagSharedDeployKeyIdentity           = "shared-deploy-key-identity"
 	flagSharedDeployKeyKnownHosts         = "shared-deploy-key-known-hosts"
-	flagVSphereCredentials                = "vsphere-credentials"
+	flagVSphereCredentials                = "vsphere-credentials" // #nosec G101
 	flagCloudDirectorRefreshToken         = "cloud-director-refresh-token"
 	flagAzureUAClientID                   = "azure-ua-client-id"
 	flagAzureUATenantID                   = "azure-ua-tenant-id"
@@ -119,7 +119,7 @@ const (
 	flagCertManagerRoute53Region          = "cert-manager-route53-region"
 	flagCertManagerRoute53Role            = "cert-manager-route53-role"
 	flagCertManagerRoute53AccessKeyID     = "cert-manager-route53-access-key-id"
-	flagCertManagerRoute53SecretAccessKey = "cert-manager-route53-secret-access-key"
+	flagCertManagerRoute53SecretAccessKey = "cert-manager-route53-secret-access-key" // #nosec G101
 )
 
 var (

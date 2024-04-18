@@ -31,7 +31,7 @@ const (
 	DenyNetPolFile                     = "deny-all-policies.yaml"
 	CertManagerFile                    = "cert-manager-dns01-secret.yaml"
 	IssuerFile                         = "private-cluster-issuer.yaml"
-	VsphereCredentialsFile             = "vsphere-cloud-config-secret.yaml"
+	VsphereCredentialsFile             = "vsphere-cloud-config-secret.yaml" // #nosec G101
 	CloudDirectorCredentialsFile       = "cloud-director-cloud-config-secret.yaml"
 	AzureClusterIdentitySPFile         = "azureclusteridentity-sp.yaml"
 	AzureClusterIdentityUAFile         = "azureclusteridentity-ua.yaml"

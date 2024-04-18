@@ -30,7 +30,7 @@ metadata:
     clusterctl.cluster.x-k8s.io/move: true
 data:
   clientSecret: {{ .ClientSecret }}
-`
+` // #nosec G101
 
 	CAPZSPTemplate = `apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: AzureClusterIdentity

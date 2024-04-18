@@ -23,6 +23,7 @@ import (
 const (
 	ContainerRegistrySecretName = "container-registries-configuration"
 	ValuesKey                   = "values"
+	TrueString                  = "true"
 )
 
 type Config struct {
@@ -97,7 +98,7 @@ func getClusterAppConfig(c Config, configmapName string) (templateapp.Config, er
 		UserConfigConfigMapName: configmapName,
 	}
 	if c.MCAppsPreventDeletion {
-		appConfig.ExtraLabels[label.PreventDeletion] = "true"
+		appConfig.ExtraLabels[label.PreventDeletion] = TrueString
 	}
 	if c.ConfigureContainerRegistries {
 		log.Debug().Msg(fmt.Sprintf("Configuring container registries for %s", c.Name))
@@ -135,7 +136,7 @@ func getDefaultAppConfig(c Config, configmapName string) (templateapp.Config, er
 		UserConfigConfigMapName: configmapName,
 	}
 	if c.MCAppsPreventDeletion {
-		appConfig.ExtraLabels[label.PreventDeletion] = "true"
+		appConfig.ExtraLabels[label.PreventDeletion] = TrueString
 	}
 	return appConfig, nil
 }
@@ -155,7 +156,7 @@ func GetUserConfigMap(c Config) (*v1.ConfigMap, error) {
 		if userConfigMap.Labels == nil {
 			userConfigMap.Labels = map[string]string{}
 		}
-		userConfigMap.Labels[label.PreventDeletion] = "true"
+		userConfigMap.Labels[label.PreventDeletion] = TrueString
 	}
 	return userConfigMap, nil
 }
@@ -188,7 +189,7 @@ func GetAppsConfig(file string) (Config, error) {
 		Version:                      app.Spec.Version,
 		Namespace:                    namespace,
 		Values:                       userConfigConfigMap.Data[ValuesKey],
-		MCAppsPreventDeletion:        userConfigConfigMap.Labels[label.PreventDeletion] == "true",
+		MCAppsPreventDeletion:        userConfigConfigMap.Labels[label.PreventDeletion] == TrueString,
 		ConfigureContainerRegistries: len(app.Spec.ExtraConfigs) > 0,
 		Provider:                     getProvider(app.Spec.Name),
 	}, nil

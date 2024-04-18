@@ -239,7 +239,10 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to add provider files.\n%w", err)
 	}
 
-	c.DecodeSecrets()
+	err = c.DecodeSecrets()
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode secrets.\n%w", err)
+	}
 
 	return cmcTemplate, nil
 }

@@ -15,7 +15,7 @@ const (
 	CertManagerRegionKey         = "cert_manager_route53_region"
 	CertManagerRoleKey           = "cert_manager_route53_role_base"
 	CertManagerAccessKey         = "cert_manager_route53_accesskey"
-	CertManagerSecretKey         = "cert_manager_route53_secretaccesskey"
+	CertManagerSecretKey         = "cert_manager_route53_secretaccesskey" // #nosec G101
 	CloudDirectorRefreshTokenKey = "REFRESH_TOKEN"
 	AzureClientIDKey             = "clientId"
 	AzureClientSecretKey         = "clientSecret"
@@ -26,9 +26,9 @@ const (
 )
 
 const (
-	CloudDirectorCredentialsFile = "cloud-director.sh"
-	VsphereCredentialsFile       = "vsphere-credentials.yaml"
-	AzureCredentialsFile         = "capz.secrets.sh"
+	CloudDirectorCredentialsFile = "cloud-director.sh"        // #nosec G101
+	VsphereCredentialsFile       = "vsphere-credentials.yaml" // #nosec G101
+	AzureCredentialsFile         = "capz.secrets.sh"          // #nosec G101
 	AzureIdentityFile            = "capz.identity.sh"
 )
 
