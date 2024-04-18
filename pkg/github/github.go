@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/giantswarm/mcli/pkg/sops"
 	"github.com/google/go-github/v57/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
+
+	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 const (

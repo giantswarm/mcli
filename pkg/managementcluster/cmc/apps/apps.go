@@ -7,13 +7,13 @@ import (
 	"text/template"
 
 	applicationv1alpha1 "github.com/giantswarm/apiextensions-application/api/v1alpha1"
-	templateapp "github.com/giantswarm/kubectl-gs/v2/pkg/template/app"
-	"github.com/giantswarm/mcli/pkg/key"
-
 	"github.com/giantswarm/k8smetadata/pkg/label"
+	templateapp "github.com/giantswarm/kubectl-gs/v2/pkg/template/app"
 	"github.com/rs/zerolog/log"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 // The app templating in mc-bootstrap is done through kubectl gs

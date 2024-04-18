@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 const (

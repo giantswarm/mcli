@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	kustomize "sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/resid"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 const (

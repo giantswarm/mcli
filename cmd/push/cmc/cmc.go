@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
-	"github.com/rs/zerolog/log"
 )
 
 type Config struct {

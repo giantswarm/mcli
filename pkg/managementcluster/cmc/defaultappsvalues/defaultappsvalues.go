@@ -3,8 +3,9 @@ package defaultappsvalues
 import (
 	"fmt"
 
-	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
+
+	"github.com/giantswarm/mcli/pkg/key"
 )
 
 type Config struct {
