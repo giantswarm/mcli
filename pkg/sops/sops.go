@@ -10,6 +10,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// this implementation relies on the sops binary being available
+// it's not ideal but has been implemented for now since calling sops directly is how we are currently using it in mc-bootstrap
+// the way sops is implemented did not allow importing the package directly in a way that would have been similar to the original command
+// let's change this later
+
 const EnvAgeKey = "SOPS_AGE_KEY"
 
 // Decrypt decrypts the given data.
@@ -29,7 +34,7 @@ func decrypt(data string, path string) (string, error) {
 		return "", fmt.Errorf("failed to write to temp file: %w", err)
 	}
 
-	cmd := exec.Command("sops", "--decrypt", "--input-type", "yaml", "--output-type", "yaml", f.Name())
+	cmd := exec.Command("sops", "--decrypt", "--input-type", "yaml", "--output-type", "yaml", f.Name()) // #nosec G204
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to decrypt file %s: %s\n%w", f.Name(), out, err)
@@ -58,7 +63,7 @@ func encrypt(data string, path string, age string) (string, error) {
 		return "", fmt.Errorf("failed to write to temp file: %w", err)
 	}
 
-	cmd := exec.Command("sops", "--encrypt", "--input-type", "yaml", "--output-type", "yaml", "--age", age, "--encrypted-regex", "^(data|stringData)$", f.Name())
+	cmd := exec.Command("sops", "--encrypt", "--input-type", "yaml", "--output-type", "yaml", "--age", age, "--encrypted-regex", "^(data|stringData)$", f.Name()) // #nosec G204
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to encrypt file %s: %s\n%w", f.Name(), out, err)
