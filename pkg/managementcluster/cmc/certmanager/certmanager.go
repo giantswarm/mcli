@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/template"
@@ -111,7 +110,7 @@ func GetCertManagerFile(c Config) (string, error) {
 		cmSecret.DNS01RecursiveNameserversOnly = true
 		cmSecret.DNS01RecursiveNameservers = []string{"$(COREDNS_SERVICE_HOST):53"}
 	}
-	data, err := yaml.Marshal(cmSecret)
+	data, err := key.GetData(cmSecret)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal cm secret object.\n%w", err)
 	}

@@ -296,7 +296,7 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 					AppName: "test-default-apps",
 					Catalog: "test-default-catalog",
 					Version: "3.4.5",
-					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\nuserConfig:\n  certManager:\n    extraConfigs:\n    - kind: secret\n      name: test-cert-manager-user-secrets\n",
+					Values:  "clusterName: test\norganization: giantswarm\nmanagementCluster: test\nuserConfig:\n  certManager:\n    extraConfigs:\n      - kind: secret\n        name: test-cert-manager-user-secrets\n",
 				},
 				AgePubKey: "test-age-pub-key",
 

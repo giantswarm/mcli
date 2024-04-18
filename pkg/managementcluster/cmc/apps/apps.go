@@ -12,9 +12,13 @@ import (
 
 	"github.com/giantswarm/k8smetadata/pkg/label"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/yaml"
 )
+
+// The app templating in mc-bootstrap is done through kubectl gs
+// That is why the code here replicates kubectl gs (not all packages are exported)
+// I don't think it should stay this way but for now we want to be as close as possible to the original
 
 const (
 	ContainerRegistrySecretName = "container-registries-configuration"
@@ -36,108 +40,111 @@ type Config struct {
 
 func GetClusterAppsFile(c Config) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Getting the cluster apps config for %s", c.Cluster))
-	appCROutput, err := GetAppsFile(c)
+
+	userConfigMap, err := GetUserConfigMap(c)
+	if err != nil {
+		return "", err
+	}
+
+	appsConfig, err := getClusterAppConfig(c, userConfigMap.GetName())
 	if err != nil {
 		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
-	/* get the App object - it'd be better to return it initially, but kgs doesn't export a function for this
-	// - let's change that
-	app := &applicationv1alpha1.App{}
-	if err = yaml.Unmarshal([]byte(appCROutput.AppCR), app); err != nil {
-		return "", fmt.Errorf("failed to unmarshal app CR for %s.\n%w", c.Name, err)
-	}
 
-	if c.ConfigureContainerRegistries {
-		log.Debug().Msg(fmt.Sprintf("Configuring container registries for %s", c.Name))
-		app.Spec.ExtraConfigs = append(app.Spec.ExtraConfigs, applicationv1alpha1.AppExtraConfig{
-			Kind:      "secret",
-			Name:      ContainerRegistrySecretName,
-			Namespace: "default",
-		})
-	}
-	if key.IsProviderVsphere(c.Provider) {
-		log.Debug().Msg(fmt.Sprintf("Configuring vsphere credentials for %s", c.Name))
-		app.Spec.UserConfig.Secret.Name = "vsphere-credentials"
-		app.Spec.UserConfig.Secret.Namespace = "org-giantswarm"
-	}
-
-	// update the app CR - see reasoning in above comment
-	data, err := yaml.Marshal(app)
+	appCROutput, err := GetAppsFile(appsConfig, userConfigMap)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal app CR for %s.\n%w", c.Name, err)
+		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
-	appCROutput.AppCR = string(data)
-	*/
 
 	return TemplateApp(appCROutput)
 }
 
 func GetDefaultAppsFile(c Config) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Getting the default apps config for %s", c.Cluster))
-	appCROutput, err := GetAppsFile(c)
+	userConfigMap, err := GetUserConfigMap(c)
+	if err != nil {
+		return "", err
+	}
+
+	appsConfig, err := getDefaultAppConfig(c, userConfigMap.GetName())
 	if err != nil {
 		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
 
-	/* TODO: change this to not use the App object directly
-	app := &applicationv1alpha1.App{}
-	if err = yaml.Unmarshal([]byte(appCROutput.AppCR), app); err != nil {
-		return "", fmt.Errorf("failed to unmarshal app CR for %s.\n%w", c.Name, err)
-	}
-
-	// Pass cluster-values configmap to default apps app.
-	app.Spec.Config.ConfigMap.Name = fmt.Sprintf("%s-cluster-values", c.Cluster)
-	app.Spec.Config.ConfigMap.Namespace = c.Namespace
-
-	// The app-admission-controller will prevent the creation of the default apps `App` CR because the cluster-values configmap does not exist yet.
-	if app.Labels == nil {
-		app.Labels = map[string]string{}
-	}
-	app.Labels[label.Cluster] = c.Cluster
-	app.Labels[label.ManagedBy] = "cluster"
-
-	data, err := yaml.Marshal(app)
+	appCROutput, err := GetAppsFile(appsConfig, userConfigMap)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal app CR for %s.\n%w", c.Name, err)
+		return "", fmt.Errorf("failed to get app CRs for %s.\n%w", c.Name, err)
 	}
-	appCROutput.AppCR = string(data)
-	*/
+
+	appCROutput.AppCR = addClusterConfig(appCROutput.AppCR, c)
 
 	return TemplateApp(appCROutput)
 }
 
-func GetAppsFile(c Config) (*templateapp.AppCROutput, error) {
-	var userConfigConfigMapYaml []byte
-	var userConfigSecretYaml []byte
-	var err error
+func getClusterAppConfig(c Config, configmapName string) (templateapp.Config, error) {
 
-	log.Debug().Msg(fmt.Sprintf("Creating the App for %s/%s-cluster", c.Name, c.Cluster))
+	log.Debug().Msg(fmt.Sprintf("Creating the cluster app CR for %s/%s-cluster", c.Name, c.Cluster))
+	appConfig := templateapp.Config{
+		AppName:                 c.Name, //todo: this needs to be swapped
+		Catalog:                 c.Catalog,
+		Cluster:                 c.Cluster,
+		DefaultingEnabled:       true,
+		ExtraLabels:             map[string]string{},
+		InCluster:               true,
+		Name:                    c.AppName,
+		Namespace:               c.Namespace,
+		Version:                 c.Version,
+		UserConfigConfigMapName: configmapName,
+	}
+	if c.MCAppsPreventDeletion {
+		appConfig.ExtraLabels[label.PreventDeletion] = "true"
+	}
+	if c.ConfigureContainerRegistries {
+		log.Debug().Msg(fmt.Sprintf("Configuring container registries for %s", c.Name))
+		appConfig.ExtraConfigs = []applicationv1alpha1.AppExtraConfig{
+			{
+				Kind:      "secret",
+				Name:      ContainerRegistrySecretName,
+				Namespace: "default",
+			},
+		}
+	}
+	if key.IsProviderVsphere(c.Provider) {
+		log.Debug().Msg(fmt.Sprintf("Configuring vsphere credentials for %s", c.Name))
+		appConfig.UserConfigSecretName = "vsphere-credentials"
+	}
+	return appConfig, nil
+}
 
-	userConfigMap, err := GetUserConfigMap(c)
-	if err != nil {
-		return nil, err
-	}
-	appCRYaml, err := GetAppCRYaml(c, userConfigMap.GetName())
-	if err != nil {
-		return nil, err
-	}
-	userConfigConfigMapYaml, err = yaml.Marshal(userConfigMap)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal user config map for %s.\n%w", c.Name, err)
-	}
+func getDefaultAppConfig(c Config, configmapName string) (templateapp.Config, error) {
 
-	return &templateapp.AppCROutput{
-		AppCR:               string(appCRYaml),
-		UserConfigConfigMap: string(userConfigConfigMapYaml),
-		UserConfigSecret:    string(userConfigSecretYaml),
-	}, nil
+	log.Debug().Msg(fmt.Sprintf("Creating the app CR for %s/%s-cluster", c.Name, c.Cluster))
+	appConfig := templateapp.Config{
+		AppName:           c.Name, //todo: this needs to be swapped
+		Catalog:           c.Catalog,
+		Cluster:           c.Cluster,
+		DefaultingEnabled: true,
+		ExtraLabels: map[string]string{
+			label.Cluster:   c.Cluster,
+			label.ManagedBy: "cluster",
+		},
+		InCluster:               true,
+		Name:                    c.AppName,
+		Namespace:               c.Namespace,
+		Version:                 c.Version,
+		UserConfigConfigMapName: configmapName,
+	}
+	if c.MCAppsPreventDeletion {
+		appConfig.ExtraLabels[label.PreventDeletion] = "true"
+	}
+	return appConfig, nil
 }
 
 func GetUserConfigMap(c Config) (*v1.ConfigMap, error) {
 	log.Debug().Msg(fmt.Sprintf("Creating the user config map for %s/%s-cluster", c.Name, c.Cluster))
 	configMapConfig := templateapp.UserConfig{
 		Data:      c.Values,
-		Name:      c.Cluster + "-user-values",
+		Name:      c.Name + "-user-values",
 		Namespace: c.Namespace,
 	}
 	userConfigMap, err := templateapp.NewConfigMap(configMapConfig)
@@ -175,14 +182,15 @@ func GetAppsConfig(file string) (Config, error) {
 		}
 	}
 	return Config{
-		Name:                  name,
-		AppName:               app.Spec.Name,
-		Catalog:               app.Spec.Catalog,
-		Version:               app.Spec.Version,
-		Namespace:             namespace,
-		Values:                userConfigConfigMap.Data[ValuesKey],
-		MCAppsPreventDeletion: userConfigConfigMap.Labels[label.PreventDeletion] == "true",
-		Provider:              getProvider(app.Spec.Name),
+		Name:                         name,
+		AppName:                      app.Spec.Name,
+		Catalog:                      app.Spec.Catalog,
+		Version:                      app.Spec.Version,
+		Namespace:                    namespace,
+		Values:                       userConfigConfigMap.Data[ValuesKey],
+		MCAppsPreventDeletion:        userConfigConfigMap.Labels[label.PreventDeletion] == "true",
+		ConfigureContainerRegistries: len(app.Spec.ExtraConfigs) > 0,
+		Provider:                     getProvider(app.Spec.Name),
 	}, nil
 }
 
@@ -202,28 +210,27 @@ func getProvider(appName string) string {
 	return ""
 }
 
-func GetAppCRYaml(c Config, configmapName string) ([]byte, error) {
-	log.Debug().Msg(fmt.Sprintf("Creating the app CR for %s/%s-cluster", c.Name, c.Cluster))
-	appConfig := templateapp.Config{
-		AppName:                 c.Name, //todo: this needs to be swapped
-		Catalog:                 c.Catalog,
-		Cluster:                 c.Cluster,
-		DefaultingEnabled:       true,
-		ExtraLabels:             map[string]string{},
-		InCluster:               true,
-		Name:                    c.AppName,
-		Namespace:               c.Namespace,
-		Version:                 c.Version,
-		UserConfigConfigMapName: configmapName,
-	}
-	if c.MCAppsPreventDeletion {
-		appConfig.ExtraLabels[label.PreventDeletion] = "true"
-	}
-	appCRYaml, err := templateapp.NewAppCR(appConfig)
+func GetAppsFile(config templateapp.Config, userConfigMap *v1.ConfigMap) (*templateapp.AppCROutput, error) {
+	var userConfigConfigMapYaml []byte
+	var userConfigSecretYaml []byte
+	var err error
+
+	log.Debug().Msg(fmt.Sprintf("Creating the App %s for %s", config.Name, config.Cluster))
+
+	appCRYaml, err := templateapp.NewAppCR(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create app CR for %s.\n%w", c.Name, err)
+		return nil, err
 	}
-	return appCRYaml, nil
+	userConfigConfigMapYaml, err = yaml.Marshal(userConfigMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal user config map for %s.\n%w", config.Name, err)
+	}
+
+	return &templateapp.AppCROutput{
+		AppCR:               string(appCRYaml),
+		UserConfigConfigMap: string(userConfigConfigMapYaml),
+		UserConfigSecret:    string(userConfigSecretYaml),
+	}, nil
 }
 
 func TemplateApp(appCROutput *templateapp.AppCROutput) (string, error) {
@@ -237,6 +244,16 @@ func TemplateApp(appCROutput *templateapp.AppCROutput) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+// oddly enough this is not taken care of by kgs
+func addClusterConfig(appCR string, c Config) string {
+	clusterConfig := fmt.Sprintf(`  config:
+    configMap:
+      name: %s-cluster-values
+      namespace: %s
+`, c.Cluster, c.Namespace)
+	return appCR + clusterConfig
 }
 
 const AppCRTemplate = `

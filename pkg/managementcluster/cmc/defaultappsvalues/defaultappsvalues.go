@@ -5,7 +5,6 @@ import (
 
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -63,7 +62,7 @@ func GetDefaultAppsValuesFile(c Config) (string, error) {
 		})
 	}
 	// marshal the object to yaml
-	data, err := yaml.Marshal(defaultAppsValues)
+	data, err := key.GetData(defaultAppsValues)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal default apps values.\n%w", err)
 	}
