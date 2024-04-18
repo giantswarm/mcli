@@ -2,6 +2,7 @@ package cmc
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -160,6 +161,10 @@ func TestGetMapFromCMC(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("case %d: %s", i, tc.name), func(t *testing.T) {
+			if _, ok := os.LookupEnv("CI"); ok { // we skip this test in CI since it needs sops binary to be present right now
+				t.Skip()
+			}
+
 			agekey, agepubkey, err := GetTestKeys()
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
