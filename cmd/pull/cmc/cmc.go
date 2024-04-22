@@ -11,10 +11,11 @@ import (
 )
 
 type Config struct {
-	Cluster       string
-	Github        *github.Github
-	CMCRepository string
-	CMCBranch     string
+	Cluster        string
+	Github         *github.Github
+	CMCRepository  string
+	CMCBranch      string
+	DisplaySecrets bool
 }
 
 func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
@@ -33,7 +34,19 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &cmc.CMC{
-		Contents: data,
-	}, nil
+	sopsfile, err := cmcRepository.GetFile(ctx, cmc.SopsFile)
+	if err != nil {
+		return nil, err
+	}
+	data[cmc.SopsFile] = sopsfile
+
+	result, err := cmc.GetCMCFromMap(data, c.Cluster)
+	if err != nil {
+		return nil, err
+	}
+	if !c.DisplaySecrets {
+		result.RedactSecrets()
+	}
+
+	return result, nil
 }

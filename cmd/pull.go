@@ -37,6 +37,7 @@ mcli pull --cluster=gigmac`,
 			CMCBranch:           cmcBranch,
 			CMCRepository:       cmcRepository,
 			Skip:                skip,
+			DisplaySecrets:      displaySecrets,
 		}
 		err = pull.Run(c, ctx)
 		if err != nil {
@@ -95,10 +96,11 @@ mcli pull cmc --cluster=gigmac`,
 			Token: githubToken,
 		})
 		c := pullcmc.Config{
-			Cluster:       cluster,
-			Github:        client,
-			CMCRepository: cmcRepository,
-			CMCBranch:     cmcBranch,
+			Cluster:        cluster,
+			Github:         client,
+			CMCRepository:  cmcRepository,
+			CMCBranch:      cmcBranch,
+			DisplaySecrets: displaySecrets,
 		}
 		cmc, err := c.Run(ctx)
 		if err != nil {

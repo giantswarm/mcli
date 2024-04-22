@@ -1,13 +1,13 @@
 package managementcluster
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 
+	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 )
@@ -28,14 +28,7 @@ func (mc *ManagementCluster) Print() error {
 
 func GetData(mc *ManagementCluster) ([]byte, error) {
 	log.Debug().Msg("getting management cluster data")
-	w := new(bytes.Buffer)
-	encoder := yaml.NewEncoder(w)
-	encoder.SetIndent(2)
-	err := encoder.Encode(mc)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal management cluster object.\n%w", err)
-	}
-	return w.Bytes(), nil
+	return key.GetData(mc)
 }
 
 func GetManagementCluster(data []byte) (*ManagementCluster, error) {

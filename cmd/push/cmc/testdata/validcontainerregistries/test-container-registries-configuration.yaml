@@ -1,0 +1,6 @@
+container: registries
+configuration:
+- 1
+- 2
+and:
+  so: on

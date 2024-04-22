@@ -10,8 +10,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/mcli/cmd/push"
+	pushcmc "github.com/giantswarm/mcli/cmd/push/cmc"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/installations"
 )
 
@@ -40,15 +42,69 @@ mcli push --cluster=gigmac --input=cluster.yaml`,
 			InstallationsBranch: installationsBranch,
 			Skip:                skip,
 			Input:               input,
+			CMCBranch:           cmcBranch,
+			CMCRepository:       cmcRepository,
+			Provider:            provider,
+			DisplaySecrets:      displaySecrets,
 			InstallationsFlags: pushinstallations.InstallationsFlags{
-				BaseDomain:    baseDomain,
-				CMCRepository: cmcRepository,
-				Team:          team,
-				Provider:      provider,
-				Customer:      customer,
+				BaseDomain: baseDomain,
+				Team:       team,
+				Customer:   customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
+				},
+			},
+			CMCFlags: pushcmc.CMCFlags{
+				SecretFolder:                 secretFolder,
+				AgePubKey:                    agePubKey,
+				MCAppsPreventDeletion:        mcAppsPreventDeletion,
+				ClusterAppName:               clusterAppName,
+				ClusterAppCatalog:            clusterAppCatalog,
+				ClusterAppVersion:            clusterAppVersion,
+				ClusterNamespace:             clusterNamespace,
+				ConfigureContainerRegistries: configureContainerRegistries,
+				DefaultAppsName:              defaultAppsName,
+				DefaultAppsCatalog:           defaultAppsCatalog,
+				DefaultAppsVersion:           defaultAppsVersion,
+				PrivateCA:                    privateCA,
+				CertManagerDNSChallenge:      certManagerDNSChallenge,
+				MCCustomCoreDNSConfig:        mcCustomCoreDNSConfig,
+				MCProxyEnabled:               mcProxyEnabled,
+				MCHTTPSProxy:                 mcHTTPSProxy,
+				TaylorBotToken:               taylorBotToken,
+				Secrets: pushcmc.SecretFlags{
+					SSHDeployKey: pushcmc.DeployKey{
+						Passphrase: deployKeyPassphrase,
+						Identity:   deployKeyIdentity,
+						KnownHosts: deployKeyKnownHosts,
+					},
+					CustomerDeployKey: pushcmc.DeployKey{
+						Passphrase: customerDeployKeyPassphrase,
+						Identity:   customerDeployKeyIdentity,
+						KnownHosts: customerDeployKeyKnownHosts,
+					},
+					SharedDeployKey: pushcmc.DeployKey{
+						Passphrase: sharedDeployKeyPassphrase,
+						Identity:   sharedDeployKeyIdentity,
+						KnownHosts: sharedDeployKeyKnownHosts,
+					},
+					VSphereCredentials:        vSphereCredentials,
+					CloudDirectorRefreshToken: cloudDirectorRefreshToken,
+					Azure: pushcmc.AzureFlags{
+						UAClientID:   azureUAClientID,
+						UATenantID:   azureUATenantID,
+						UAResourceID: azureUAResourceID,
+						ClientID:     azureClientID,
+						ClientSecret: azureClientSecret,
+						TenantID:     azureTenantID,
+					},
+					ContainerRegistryConfiguration:    containerRegistryConfiguration,
+					ClusterValues:                     clusterValues,
+					CertManagerRoute53Region:          certManagerRoute53Region,
+					CertManagerRoute53Role:            certManagerRoute53Role,
+					CertManagerRoute53AccessKeyID:     certManagerRoute53AccessKeyID,
+					CertManagerRoute53SecretAccessKey: certManagerRoute53SecretAccessKey,
 				},
 			},
 		}
@@ -86,12 +142,12 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 			Cluster:             cluster,
 			Github:              client,
 			InstallationsBranch: installationsBranch,
+			CMCRepository:       cmcRepository,
+			Provider:            provider,
 			Flags: pushinstallations.InstallationsFlags{
-				BaseDomain:    baseDomain,
-				CMCRepository: cmcRepository,
-				Team:          team,
-				Provider:      provider,
-				Customer:      customer,
+				BaseDomain: baseDomain,
+				Team:       team,
+				Customer:   customer,
 				AWS: pushinstallations.AWSFlags{
 					Region:                 awsRegion,
 					InstallationAWSAccount: awsAccountID,
@@ -112,8 +168,105 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 	},
 }
 
+// pushCMCCmd represents the push CMC command
+var pushCMCCmd = &cobra.Command{
+	Use:   "cmc",
+	Short: "Pushes configuration of a Management Cluster CMC repository entry",
+	Long: `Pushes configuration of a Management Cluster CMC repository entry to
+CMC repository. For example:
+
+mcli push cmc --cluster=gigmac --input=cluster.yaml`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		defaultPush()
+		err := validateRoot(cmd, args)
+		if err != nil {
+			return err
+		}
+		err = validatePush(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		client := github.New(github.Config{
+			Token: githubToken,
+		})
+		c := pushcmc.Config{
+			Cluster:        cluster,
+			Github:         client,
+			CMCRepository:  cmcRepository,
+			CMCBranch:      cmcBranch,
+			Provider:       provider,
+			DisplaySecrets: displaySecrets,
+			Flags: pushcmc.CMCFlags{
+				SecretFolder:                 secretFolder,
+				AgePubKey:                    agePubKey,
+				MCAppsPreventDeletion:        mcAppsPreventDeletion,
+				ClusterAppName:               clusterAppName,
+				ClusterAppCatalog:            clusterAppCatalog,
+				ClusterAppVersion:            clusterAppVersion,
+				ClusterNamespace:             clusterNamespace,
+				ConfigureContainerRegistries: configureContainerRegistries,
+				DefaultAppsName:              defaultAppsName,
+				DefaultAppsCatalog:           defaultAppsCatalog,
+				DefaultAppsVersion:           defaultAppsVersion,
+				PrivateCA:                    privateCA,
+				CertManagerDNSChallenge:      certManagerDNSChallenge,
+				MCCustomCoreDNSConfig:        mcCustomCoreDNSConfig,
+				MCProxyEnabled:               mcProxyEnabled,
+				MCHTTPSProxy:                 mcHTTPSProxy,
+				TaylorBotToken:               taylorBotToken,
+				Secrets: pushcmc.SecretFlags{
+					SSHDeployKey: pushcmc.DeployKey{
+						Passphrase: deployKeyPassphrase,
+						Identity:   deployKeyIdentity,
+						KnownHosts: deployKeyKnownHosts,
+					},
+					CustomerDeployKey: pushcmc.DeployKey{
+						Passphrase: customerDeployKeyPassphrase,
+						Identity:   customerDeployKeyIdentity,
+						KnownHosts: customerDeployKeyKnownHosts,
+					},
+					SharedDeployKey: pushcmc.DeployKey{
+						Passphrase: sharedDeployKeyPassphrase,
+						Identity:   sharedDeployKeyIdentity,
+						KnownHosts: sharedDeployKeyKnownHosts,
+					},
+					VSphereCredentials:        vSphereCredentials,
+					CloudDirectorRefreshToken: cloudDirectorRefreshToken,
+					Azure: pushcmc.AzureFlags{
+						UAClientID:   azureUAClientID,
+						UATenantID:   azureUATenantID,
+						UAResourceID: azureUAResourceID,
+						ClientID:     azureClientID,
+						ClientSecret: azureClientSecret,
+						TenantID:     azureTenantID,
+					},
+					ContainerRegistryConfiguration:    containerRegistryConfiguration,
+					ClusterValues:                     clusterValues,
+					CertManagerRoute53Region:          certManagerRoute53Region,
+					CertManagerRoute53Role:            certManagerRoute53Role,
+					CertManagerRoute53AccessKeyID:     certManagerRoute53AccessKeyID,
+					CertManagerRoute53SecretAccessKey: certManagerRoute53SecretAccessKey,
+				},
+			},
+		}
+		if input != "" {
+			c.Input, err = cmc.GetCMCFromFile(input)
+			if err != nil {
+				return fmt.Errorf("failed to get new CMC object from input file.\n%w", err)
+			}
+		}
+		cmc, err := c.Run(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to push CMC.\n%w", err)
+		}
+		return cmc.Print()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(pushCmd)
 	pushCmd.AddCommand(pushInstallationsCmd)
+	pushCmd.AddCommand(pushCMCCmd)
 	addFlagsPush()
 }

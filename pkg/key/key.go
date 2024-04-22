@@ -11,11 +11,19 @@ const (
 	RepositoryInstallations = "installations"
 	RepositoryCMC           = "cmc"
 	RepositoryGithub        = "github"
+	RepositoryMCBootstrap   = "mc-bootstrap"
 	InstallationsMainBranch = "master"
 	CMCMainBranch           = "main"
 	Employees               = "employees"
 	Bots                    = "bots"
 	CMCTemplateRepository   = "template-management-clusters"
+	CMCEntryTemplatePath    = "scripts/setup-cmc-branch/management-cluster-template"
+	FluxNamespace           = "flux-giantswarm"
+)
+
+const (
+	ClusterValuesFile = "cluster-values.yaml"
+	CommonSecretsFile = "common.secrets"
 )
 
 const (
@@ -25,6 +33,28 @@ const (
 	ProviderVsphere = "vsphere"
 	ProviderGCP     = "gcp"
 )
+
+// sometimes providers are called differently.
+// todo: identify cases and add const for them
+func IsProviderAWS(provider string) bool {
+	return provider == ProviderAWS || provider == "aws"
+}
+
+func IsProviderAzure(provider string) bool {
+	return provider == ProviderAzure || provider == "azure"
+}
+
+func IsProviderVCD(provider string) bool {
+	return provider == ProviderVCD || provider == "capvcd"
+}
+
+func IsProviderVsphere(provider string) bool {
+	return provider == ProviderVsphere || provider == "capv"
+}
+
+func IsProviderGCP(provider string) bool {
+	return provider == ProviderGCP
+}
 
 func GetValidProviders() []string {
 	return []string{
@@ -47,6 +77,10 @@ func CMCTemplate() string {
 	return fmt.Sprintf("%s/%s", OrganizationGiantSwarm, CMCTemplateRepository)
 }
 
+func GetTMPLFile(file string) string {
+	return fmt.Sprintf("%s.tmpl", file)
+}
+
 func GetInstallationsPath(cluster string) string {
 	return fmt.Sprintf("%s/cluster.yaml", cluster)
 }
@@ -65,6 +99,34 @@ func GetDefaultPRBranch(cluster string) string {
 
 func GetOwnershipBranch(customer string) string {
 	return fmt.Sprintf("add-%s-mc-to-honeybadger-%s", customer, GetRandom())
+}
+
+func GetClusterSecretFile(cluster string) string {
+	return fmt.Sprintf("%s.secrets", cluster)
+}
+
+func GetContainerRegistriesFile(cluster string) string {
+	return fmt.Sprintf("%s-container-registries-configuration.yaml", cluster)
+}
+
+func GetCertManagerSecretName(cluster string) string {
+	return fmt.Sprintf("%s-cert-manager-user-secrets", cluster)
+}
+
+func GetDeployKey(cluster string) string {
+	return fmt.Sprintf("%s-key", cluster)
+}
+
+func GetKnownHosts(cluster string) string {
+	return fmt.Sprintf("%s-known-hosts", cluster)
+}
+
+func GetPassphrase(cluster string) string {
+	return fmt.Sprintf("%s-passphrase", cluster)
+}
+
+func GetAgeKey(cluster string) string {
+	return fmt.Sprintf("%s.agekey", cluster)
 }
 
 func GetRandom() string {

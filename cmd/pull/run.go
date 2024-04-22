@@ -20,6 +20,7 @@ type Config struct {
 	CMCBranch           string
 	CMCRepository       string
 	Skip                []string
+	DisplaySecrets      bool
 }
 
 func Run(c Config, ctx context.Context) error {
@@ -55,10 +56,11 @@ func (c *Config) Pull(ctx context.Context) (*managementcluster.ManagementCluster
 	}
 	if !key.Skip(key.RepositoryCMC, c.Skip) {
 		c := pullcmc.Config{
-			Cluster:       c.Cluster,
-			Github:        client,
-			CMCRepository: c.CMCRepository,
-			CMCBranch:     c.CMCBranch,
+			Cluster:        c.Cluster,
+			Github:         client,
+			CMCRepository:  c.CMCRepository,
+			CMCBranch:      c.CMCBranch,
+			DisplaySecrets: c.DisplaySecrets,
 		}
 		cmc, err := c.Run(ctx)
 		if err != nil {

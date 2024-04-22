@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	pushcmc "github.com/giantswarm/mcli/cmd/push/cmc"
 	pushinstallations "github.com/giantswarm/mcli/cmd/push/installations"
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
@@ -18,7 +19,12 @@ type Config struct {
 	InstallationsBranch string
 	Skip                []string
 	Input               string
+	Provider            string
 	InstallationsFlags  pushinstallations.InstallationsFlags
+	CMCBranch           string
+	CMCRepository       string
+	CMCFlags            pushcmc.CMCFlags
+	DisplaySecrets      bool
 }
 
 func Run(c Config, ctx context.Context) error {
@@ -62,6 +68,24 @@ func (c *Config) Push(ctx context.Context) (*managementcluster.ManagementCluster
 			return nil, fmt.Errorf("failed to push installations.\n%w", err)
 		}
 		mc.Installations = *installations
+	}
+	if !key.Skip(key.RepositoryCMC, c.Skip) {
+		i := pushcmc.Config{
+			Cluster:        c.Cluster,
+			Github:         client,
+			CMCBranch:      c.CMCBranch,
+			CMCRepository:  c.CMCRepository,
+			Flags:          c.CMCFlags,
+			DisplaySecrets: c.DisplaySecrets,
+		}
+		if c.Input != "" {
+			i.Input = &mc.CMC
+		}
+		cmc, err := i.Run(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to push cmc.\n%w", err)
+		}
+		mc.CMC = *cmc
 	}
 	return mc, nil
 }
