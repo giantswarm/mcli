@@ -59,6 +59,8 @@ func (c *Config) Push(ctx context.Context) (*managementcluster.ManagementCluster
 			Github:              client,
 			InstallationsBranch: c.InstallationsBranch,
 			Flags:               c.InstallationsFlags,
+			Provider:            c.Provider,
+			CMCRepository:       c.CMCRepository,
 		}
 		if c.Input != "" {
 			i.Input = &mc.Installations

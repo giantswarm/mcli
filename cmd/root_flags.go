@@ -2,13 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/giantswarm/mcli/pkg/key"
-	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 const (
@@ -59,7 +57,6 @@ func addFlagsRoot() {
 	rootCmd.PersistentFlags().StringVar(&cmcRepository, flagCMCRepository, viper.GetString(envCMCRepository), "Name of CMC repository to use")
 	rootCmd.PersistentFlags().StringVar(&cmcBranch, flagCMCBranch, viper.GetString(envCMCBranch), "Branch to use for the CMC repository")
 	rootCmd.PersistentFlags().StringVar(&customer, flagCustomer, viper.GetString(envCustomer), "Name of the customer who owns the management cluster")
-	rootCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
 	rootCmd.PersistentFlags().BoolVar(&displaySecrets, flagDisplaySecrets, false, "Unsafe: display secrets in the output. (default: false)")
 
 	err := rootCmd.PersistentFlags().MarkHidden(flagGithubToken)
@@ -80,10 +77,6 @@ func validateRoot(cmd *cobra.Command, args []string) error {
 	}
 	if cmcBranch == "" {
 		return invalidFlagError(flagCMCBranch)
-	}
-	// check if environment variable age key is set
-	if val, present := os.LookupEnv(sops.EnvAgeKey); !present || val == "" {
-		return fmt.Errorf("environment variable %s is not set\n%w", sops.EnvAgeKey, ErrInvalidFlag)
 	}
 	for _, repository := range skip {
 		if !key.IsValidRepository(repository) {

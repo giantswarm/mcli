@@ -176,18 +176,30 @@ func (c *Config) Branch(ctx context.Context) error {
 
 func getNewInstallationsFromFlags(flags Config) (*installations.Installations, error) {
 	//Ensure that all the needed flags are set
-	if flags.Flags.BaseDomain == "" ||
-		flags.CMCRepository == "" ||
-		flags.Flags.Team == "" ||
-		flags.Flags.Customer == "" ||
-		flags.Provider == "" ||
-		flags.Cluster == "" {
-		return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
+	if flags.Flags.BaseDomain == "" {
+		return nil, fmt.Errorf("base domain is not set.\n%w", ErrInvalidFlag)
+	}
+	if flags.CMCRepository == "" {
+		return nil, fmt.Errorf("CMC repository is not set.\n%w", ErrInvalidFlag)
+	}
+	if flags.Flags.Team == "" {
+		return nil, fmt.Errorf("team is not set.\n%w", ErrInvalidFlag)
+	}
+	if flags.Flags.Customer == "" {
+		return nil, fmt.Errorf("customer is not set.\n%w", ErrInvalidFlag)
+	}
+	if flags.Provider == "" {
+		return nil, fmt.Errorf("provider is not set.\n%w", ErrInvalidFlag)
+	}
+	if flags.Cluster == "" {
+		return nil, fmt.Errorf("cluster is not set.\n%w", ErrInvalidFlag)
 	}
 	if key.IsProviderAWS(flags.Provider) {
-		if flags.Flags.AWS.Region == "" ||
-			flags.Flags.AWS.InstallationAWSAccount == "" {
-			return nil, fmt.Errorf("not all required flags are set.\n%w", ErrInvalidFlag)
+		if flags.Flags.AWS.Region == "" {
+			return nil, fmt.Errorf("AWS region is not set.\n%w", ErrInvalidFlag)
+		}
+		if flags.Flags.AWS.InstallationAWSAccount == "" {
+			return nil, fmt.Errorf("AWS installation account is not set.\n%w", ErrInvalidFlag)
 		}
 	}
 

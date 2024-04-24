@@ -3,6 +3,7 @@ package pushcmc
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -11,6 +12,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
+	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 type Config struct {
@@ -158,7 +160,8 @@ func (c *Config) pullSopsFile(ctx context.Context, cmcRepository github.Reposito
 	}
 	sopsfile, err := cmcRepository.GetFile(ctx, cmc.SopsFile)
 	if err != nil {
-		return "", err
+		log.Debug().Msg(fmt.Sprintf("no %s file found in %s repository.\n%s", cmc.SopsFile, c.CMCRepository, err))
+		return "", nil
 	}
 	return sopsfile, nil
 }
@@ -266,6 +269,10 @@ func (c *Config) Push(ctx context.Context, desiredCMC map[string]string) (*cmc.C
 }
 
 func (c *Config) Validate() error {
+	// check if environment variable age key is set
+	if val, present := os.LookupEnv(sops.EnvAgeKey); !present || val == "" {
+		return fmt.Errorf("environment variable %s is not set\n%w", sops.EnvAgeKey, ErrInvalidFlag)
+	}
 	if c.CMCBranch == "main" || c.CMCBranch == "master" {
 		return fmt.Errorf("cannot push to cmc branch %s\n%w", c.CMCBranch, ErrInvalidFlag)
 	}
