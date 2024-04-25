@@ -10,18 +10,21 @@ import (
 )
 
 type Repo struct {
-	Name          string          `yaml:"name"`
-	ComponentType string          `yaml:"componentType"`
-	Gen           Gen             `yaml:"gen,omitempty"`
-	Replace       map[string]bool `yaml:"replace,omitempty"`
-	Lifecycle     string          `yaml:"lifecycle,omitempty"`
-	System        string          `yaml:"system,omitempty"`
+	Name            string          `yaml:"name"`
+	ComponentType   string          `yaml:"componentType"`
+	DeploymentNames []string        `yaml:"deploymentNames,omitempty"`
+	Gen             Gen             `yaml:"gen,omitempty"`
+	Replace         map[string]bool `yaml:"replace,omitempty"`
+	Lifecycle       string          `yaml:"lifecycle,omitempty"`
+	System          string          `yaml:"system,omitempty"`
 }
 
 type Gen struct {
 	Flavours                []string `yaml:"flavours,omitempty"`
 	Language                string   `yaml:"language,omitempty"`
 	EnableFloatingMajorTags bool     `yaml:"enableFloatingMajorTags,omitempty"`
+	InstallUpdateChart      bool     `yaml:"installUpdateChart,omitempty"`
+	RunSecurityScoreCard    bool     `yaml:"runSecurityScoreCard,omitempty"`
 }
 
 func GetRepos(data []byte) ([]Repo, error) {

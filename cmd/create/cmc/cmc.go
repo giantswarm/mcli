@@ -181,8 +181,6 @@ func (c *Config) createOwnershipPR(ctx context.Context) error {
 			Flavours: []string{"generic"},
 			Language: "generic",
 		},
-		Replace: map[string]bool{
-			"dependabotRemove": true},
 	}
 	repos = append(repos, repository)
 	repos = repositories.SortReposAlphabetically(repos)

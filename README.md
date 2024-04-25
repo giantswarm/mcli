@@ -345,28 +345,28 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--mc-proxy-enabled` | `MC_PROXY_ENABLED` | Use mc proxy. |
 |  | `--mc-https-proxy` | `MC_HTTPS_PROXY` | Use mc https proxy. |
 |  | `--age-pub-key` | `AGE_PUBKEY` | The age public key. |
-|  | `--taylor-bot-token` | `TAYLOR_BOT_TOKEN` | The Taylor bot token. |
-|  | `--deploy-key` | `DEPLOY_KEY` | The deploy key passphrase. |  overrides value from secret files
-|  | `--deploy-key-identity` | `DEPLOY_KEY_IDENTITY` | The deploy key identity. | overrides value from secret files
-|  | `--deploy-key-known-hosts` | `DEPLOY_KEY_KNOWN_HOSTS` | The deploy key known hosts. | overrides value from secret files
-|  | `--customer-deploy-key` | `CUSTOMER_DEPLOY_KEY` | The customer deploy key passphrase. | overrides value from secret files
-|  | `--customer-deploy-key-identity` | `CUSTOMER_DEPLOY_KEY_IDENTITY` | The customer deploy key identity. | overrides value from secret files
-|  | `--customer-deploy-key-known-hosts` | `CUSTOMER_DEPLOY_KEY_KNOWN_HOSTS` | The customer deploy key known hosts. | overrides value from secret files
-|  | `--shared-deploy-key` | `SHARED_DEPLOY_KEY` | The shared deploy key passphrase. | overrides value from secret files
-|  | `--shared-deploy-key-identity` | `SHARED_DEPLOY_KEY_IDENTITY` | The shared deploy key identity. | overrides value from secret files
-|  | `--shared-deploy-key-known-hosts` | `SHARED_DEPLOY_KEY_KNOWN_HOSTS` | The shared deploy key known hosts. | overrides value from secret files
-|  | `--vsphere-credentials` | `VSPHERE_CREDENTIALS` | The vSphere credentials. | overrides value from secret files
-|  | `--cloud-director-refresh-token` | `CLOUD_DIRECTOR_REFRESH_TOKEN` | The cloud director refresh token. | overrides value from secret files
-|  | `--azure-ua-client-id` | `AZURE_UA_CLIENT_ID` | The Azure UA client ID. | overrides value from secret files
-|  | `--azure-ua-tenant-id` | `AZURE_UA_TENANT_ID` | The Azure UA tenant ID. | overrides value from secret files
-|  | `--azure-ua-resource-id` | `AZURE_UA_RESOURCE_ID` | The Azure UA resource ID. | overrides value from secret files
-|  | `--azure-client-id` | `AZURE_CLIENT_ID` | The Azure client ID. | overrides value from secret files
-|  | `--azure-tenant-id` | `AZURE_TENANT_ID` | The Azure tenant ID. | overrides value from secret files
-|  | `--azure-client-secret` | `AZURE_CLIENT_SECRET` | The Azure client secret. | overrides value from secret files
-|  | `--container-registry-configuration` | `CONTAINER_REGISTRY_CONFIGURATION` | The container registry configuration. | overrides value from secret files
-|  | `--cluster-values` | `CLUSTER_VALUES` | The cluster values. | overrides value from secret files
-|  | `--cert-manager-route53-region` | `CERT_MANAGER_ROUTE53_REGION` | The cert-manager Route53 region. | overrides value from secret files
-|  | `--cert-manager-route53-role` | `CERT_MANAGER_ROUTE53_ROLE` | The cert-manager Route53 role. | overrides value from secret files
-|  | `--cert-manager-route53-access-key-id` | `CERT_MANAGER_ROUTE53_ACCESS_KEY_ID` | The cert-manager Route53 access key ID. | overrides value from secret files
-|  | `--cert-manager-route53-secret-access-key` | `CERT_MANAGER_ROUTE53_SECRET_ACCESS_KEY` | The cert-manager Route53 secret access key. | overrides value from secret files
+|  | `--taylor-bot-token` |  | The Taylor bot token. | overrides value from secret files
+|  | `--deploy-key` |  | The deploy key passphrase. |  overrides value from secret files
+|  | `--deploy-key-identity` |  | The deploy key identity. | overrides value from secret files
+|  | `--deploy-key-known-hosts` |  | The deploy key known hosts. | overrides value from secret files
+|  | `--customer-deploy-key` |  | The customer deploy key passphrase. | overrides value from secret files
+|  | `--customer-deploy-key-identity` |  | The customer deploy key identity. | overrides value from secret files
+|  | `--customer-deploy-key-known-hosts` |  | The customer deploy key known hosts. | overrides value from secret files
+|  | `--shared-deploy-key` |  | The shared deploy key passphrase. | overrides value from secret files
+|  | `--shared-deploy-key-identity` |  | The shared deploy key identity. | overrides value from secret files
+|  | `--shared-deploy-key-known-hosts` |  | The shared deploy key known hosts. | overrides value from secret files
+|  | `--vsphere-credentials` |  | The vSphere credentials. | overrides value from secret files
+|  | `--cloud-director-refresh-token` |  | The cloud director refresh token. | overrides value from secret files
+|  | `--azure-ua-client-id` |  | The Azure UA client ID. | overrides value from secret files
+|  | `--azure-ua-tenant-id` |  | The Azure UA tenant ID. | overrides value from secret files
+|  | `--azure-ua-resource-id` |  | The Azure UA resource ID. | overrides value from secret files
+|  | `--azure-client-id` | | The Azure client ID. | overrides value from secret files
+|  | `--azure-tenant-id` |  | The Azure tenant ID. | overrides value from secret files
+|  | `--azure-client-secret` |  | The Azure client secret. | overrides value from secret files
+|  | `--container-registry-configuration` |  | The container registry configuration. | overrides value from secret files
+|  | `--cluster-values` |  | The cluster values. | overrides value from secret files
+|  | `--cert-manager-route53-region` |  | The cert-manager Route53 region. | overrides value from secret files
+|  | `--cert-manager-route53-role` |  | The cert-manager Route53 role. | overrides value from secret files
+|  | `--cert-manager-route53-access-key-id` |  | The cert-manager Route53 access key ID. | overrides value from secret files
+|  | `--cert-manager-route53-secret-access-key` |  | The cert-manager Route53 secret access key. | overrides value from secret files
 |  |  |  |  |
