@@ -214,17 +214,103 @@ func (r *Repository) createFile(ctx context.Context, content []byte, path string
 	return nil
 }
 
-func (r *Repository) CreateDirectory(ctx context.Context, content map[string]string) error {
+func (r *Repository) CreateDirectory(ctx context.Context, content map[string]string, message string) error {
 	if err := r.Check(ctx); err != nil {
 		return err
 	}
 
+	var baseSHA string
+	{
+		// get the base tree
+		log.Debug().Msg(fmt.Sprintf("getting base tree of branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
+		base, _, err := r.Git.GetTree(ctx, r.Organization, r.Name, r.Branch, false)
+		if err != nil {
+			return fmt.Errorf("failed to get base tree of branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
+		}
+		baseSHA = *base.SHA
+	}
+
+	// create the tree entries
+	var entries []*github.TreeEntry
 	for path, value := range content {
-		if err := r.createFile(ctx, []byte(value), path); err != nil {
-			return fmt.Errorf("failed to create directory file %s of branch %s of repository %s/%s.\n%w", path, r.Branch, r.Organization, r.Name, err)
+		entry, err := r.createEntry(ctx, path, value)
+		if err != nil {
+			return err
+		}
+		if entry != nil {
+			entries = append(entries, entry)
 		}
 	}
+
+	// create the tree
+	log.Debug().Msg(fmt.Sprintf("creating tree of branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
+	tree, _, err := r.Git.CreateTree(ctx, r.Organization, r.Name, baseSHA, entries)
+	if err != nil {
+		return fmt.Errorf("failed to create tree of branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
+	}
+
+	// create the commit
+	log.Debug().Msg(fmt.Sprintf("creating commit of branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
+	commit, _, err := r.Git.CreateCommit(ctx, r.Organization, r.Name, &github.Commit{
+		Message: github.String(message),
+		Tree:    tree,
+		Parents: []*github.Commit{{SHA: &baseSHA}},
+	}, &github.CreateCommitOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create commit of branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
+	}
+
+	// update the branch
+	log.Debug().Msg(fmt.Sprintf("updating branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
+	_, _, err = r.Git.UpdateRef(ctx, r.Organization, r.Name, &github.Reference{
+		Ref: github.String(fmt.Sprintf("refs/heads/%s", r.Branch)),
+		Object: &github.GitObject{
+			SHA: commit.SHA,
+		},
+	}, false)
+	if err != nil {
+		return fmt.Errorf("failed to update branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
+	}
 	return nil
+}
+
+func (r *Repository) createEntry(ctx context.Context, path string, content string) (*github.TreeEntry, error) {
+	log.Debug().Msg(fmt.Sprintf("creating entry %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+
+	// get the SHA in case the file already exists
+	fileSHA, err := r.GetFileSHA(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+
+	if fileSHA != "" {
+		// check if there are changes in the file
+		oldContents, err := r.GetFile(ctx, path)
+		if err != nil {
+			return nil, err
+		}
+		if oldContents == string(content) {
+			log.Debug().Msg(fmt.Sprintf("no changes in file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+			return nil, nil
+		}
+		if sops.IsEncrypted(oldContents) && !sops.IsEncrypted(string(content)) {
+			log.Debug().Msg(fmt.Sprintf("file %s of branch %s of repository %s/%s is currently encrypted. Unable to update with unencrypted content", path, r.Branch, r.Organization, r.Name))
+			return nil, nil
+		}
+		if noChangesMade(string(content)) {
+			log.Debug().Msg(fmt.Sprintf("no changes in file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+			return nil, nil
+		}
+	}
+
+	// create the tree entry
+	log.Debug().Msg(fmt.Sprintf("creating file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+	return &github.TreeEntry{
+		Path:    github.String(path),
+		Mode:    github.String("100644"),
+		Type:    github.String("blob"),
+		Content: github.String(content),
+	}, nil
 }
 
 func (r *Repository) CheckOrganization(ctx context.Context) error {

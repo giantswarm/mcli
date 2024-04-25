@@ -189,7 +189,10 @@ func (c *Config) Create(ctx context.Context, sopsFile string) (*cmc.CMC, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc map.\n%w", err)
 	}
-	return c.Push(ctx, create)
+
+	message := fmt.Sprintf("Create configuration of management cluster %s", c.Cluster)
+
+	return c.Push(ctx, create, message)
 }
 
 func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*cmc.CMC, error) {
@@ -235,11 +238,11 @@ func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to mark unchanged secrets.\n%w", err)
 	}
-
-	return c.Push(ctx, update)
+	message := fmt.Sprintf("Update configuration of management cluster %s", c.Cluster)
+	return c.Push(ctx, update, message)
 }
 
-func (c *Config) Push(ctx context.Context, desiredCMC map[string]string) (*cmc.CMC, error) {
+func (c *Config) Push(ctx context.Context, desiredCMC map[string]string, message string) (*cmc.CMC, error) {
 	log.Debug().Msg(fmt.Sprintf("pushing %s entry for %s", c.CMCRepository, c.Cluster))
 
 	cmcRepository := github.Repository{
@@ -253,7 +256,7 @@ func (c *Config) Push(ctx context.Context, desiredCMC map[string]string) (*cmc.C
 		return nil, err
 	}
 
-	err = cmcRepository.CreateDirectory(ctx, desiredCMC)
+	err = cmcRepository.CreateDirectory(ctx, desiredCMC, message)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directory %s.\n%w", key.GetCMCPath(c.Cluster), err)
 	}
