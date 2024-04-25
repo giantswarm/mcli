@@ -153,6 +153,7 @@ func addFlagsPush() {
 	// add general flags
 	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
+	pushCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
 
 	// add installations flags
 	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
@@ -271,9 +272,6 @@ func validatePush(cmd *cobra.Command, args []string) error {
 	}
 	if installationsBranch == "" {
 		return invalidFlagError(flagInstallationsBranch)
-	}
-	if provider == "" {
-		return invalidFlagError(flagProvider)
 	}
 	if cmcBranch == "" {
 		return invalidFlagError(flagCMCBranch)

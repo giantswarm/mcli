@@ -2,12 +2,15 @@ package pullcmc
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/rs/zerolog/log"
 
 	"github.com/giantswarm/mcli/pkg/github"
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
+	"github.com/giantswarm/mcli/pkg/sops"
 )
 
 type Config struct {
@@ -49,4 +52,16 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	}
 
 	return result, nil
+}
+
+func (c *Config) Validate() error {
+	// check if environment variable age key is set
+	if val, present := os.LookupEnv(sops.EnvAgeKey); !present || val == "" {
+		return fmt.Errorf("environment variable %s is not set\n%w", sops.EnvAgeKey, ErrInvalidFlag)
+	}
+
+	if c.CMCRepository == "" {
+		return fmt.Errorf("cmc repository is required\n%w", ErrInvalidFlag)
+	}
+	return nil
 }
