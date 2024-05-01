@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	filippo.io/age v1.1.1
-	github.com/giantswarm/apiextensions-application v0.6.1
-	github.com/giantswarm/k8smetadata v0.23.0
+	github.com/giantswarm/apiextensions-application v0.6.2
+	github.com/giantswarm/k8smetadata v0.24.0
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v57 v57.0.0
