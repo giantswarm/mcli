@@ -33,9 +33,10 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
-				Customer:   "giantswarm",
+				BaseDomain:    "test.com",
+				Team:          "testteam",
+				Customer:      "giantswarm",
+				CCRRepository: "test",
 			},
 				CMCRepository: "test",
 				Provider:      "capz",
@@ -48,6 +49,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				Provider:        "capz-test",
 				Pipeline:        "testing",
 				CmcRepository:   "test",
+				CcrRepository:   "test",
 				AccountEngineer: "testteam",
 			},
 			expectError: false,
@@ -55,9 +57,10 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags with AWS",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
-				Customer:   "test",
+				BaseDomain:    "test.com",
+				Team:          "testteam",
+				Customer:      "test",
+				CCRRepository: "test",
 				AWS: AWSFlags{
 					Region:                 "eu-west-1",
 					InstallationAWSAccount: "123456789012",
@@ -73,6 +76,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				Provider:        "capa-test",
 				Pipeline:        "testing",
 				CmcRepository:   "test",
+				CcrRepository:   "test",
 				AccountEngineer: "testteam",
 				Aws: installations.AwsConfig{
 					Region: "eu-west-1",
@@ -94,8 +98,9 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags but missing AWS flags",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
+				BaseDomain:    "test.com",
+				Team:          "testteam",
+				CCRRepository: "test",
 			},
 				CMCRepository: "test",
 				Provider:      "capa",
@@ -106,8 +111,9 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags but missing AWS region",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
+				BaseDomain:    "test.com",
+				Team:          "testteam",
+				CCRRepository: "test",
 				AWS: AWSFlags{
 					InstallationAWSAccount: "123456789012",
 				},
@@ -166,9 +172,10 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		{
 			name: "all flags, no current",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Customer:   "giantswarm",
-				Team:       "testteam",
+				BaseDomain:    "test.com",
+				Customer:      "giantswarm",
+				Team:          "testteam",
+				CCRRepository: "test",
 			},
 				CMCRepository: "test",
 				Provider:      "capz",
@@ -180,6 +187,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Customer:        "giantswarm",
 				Provider:        "capz",
 				CmcRepository:   "test",
+				CcrRepository:   "test",
 				AccountEngineer: "testteam",
 			},
 		},
@@ -195,6 +203,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Codename:        "test2",
 				Base:            "test2.com",
 				CmcRepository:   "test2",
+				CcrRepository:   "test2",
 				AccountEngineer: "testteam2",
 				Customer:        "giantswarm2",
 				Provider:        "capv",
@@ -204,6 +213,7 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 				Codename:        "test2",
 				Base:            "test.com",
 				CmcRepository:   "test",
+				CcrRepository:   "test2",
 				AccountEngineer: "testteam",
 				Customer:        "giantswarm",
 				Provider:        "capv",

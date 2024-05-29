@@ -16,24 +16,27 @@ import (
 
 // installations flags
 const (
-	flagBaseDomain   = "base-domain"
-	flagTeam         = "team"
-	flagAWSRegion    = "aws-region"
-	flagAWSAccountID = "aws-account-id"
+	flagBaseDomain    = "base-domain"
+	flagCCRRepository = "ccr-repository"
+	flagTeam          = "team"
+	flagAWSRegion     = "aws-region"
+	flagAWSAccountID  = "aws-account-id"
 )
 
 const (
-	envBaseDomain   = "BASE_DOMAIN"
-	envTeam         = "TEAM_NAME"
-	envAWSRegion    = "AWS_REGION"
-	envAWSAccountID = "INSTALLATION_AWS_ACCOUNT"
+	envBaseDomain    = "BASE_DOMAIN"
+	envCCRRepository = "CCR_REPOSITORY"
+	envTeam          = "TEAM_NAME"
+	envAWSRegion     = "AWS_REGION"
+	envAWSAccountID  = "INSTALLATION_AWS_ACCOUNT"
 )
 
 var (
-	baseDomain   string
-	team         string
-	awsRegion    string
-	awsAccountID string
+	baseDomain    string
+	ccrRepository string
+	team          string
+	awsRegion     string
+	awsAccountID  string
 )
 
 // cmc flags
@@ -157,6 +160,7 @@ func addFlagsPush() {
 
 	// add installations flags
 	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
+	pushCmd.PersistentFlags().StringVar(&ccrRepository, flagCCRRepository, viper.GetString(envCCRRepository), "CCR repository to use for the cluster")
 	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")

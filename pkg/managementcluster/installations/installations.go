@@ -16,6 +16,7 @@ type Installations struct {
 	Codename        string    `yaml:"codename"`
 	Customer        string    `yaml:"customer"`
 	CmcRepository   string    `yaml:"cmc_repository"`
+	CcrRepository   string    `yaml:"ccr_repository"`
 	AccountEngineer string    `yaml:"accountEngineer"`
 	Pipeline        string    `yaml:"pipeline"`
 	Provider        string    `yaml:"provider"`
@@ -46,6 +47,7 @@ type InstallationsConfig struct {
 	Codename                        string
 	Customer                        string
 	CmcRepository                   string
+	CcrRepository                   string
 	AccountEngineer                 string
 	Pipeline                        string
 	Provider                        string
@@ -65,6 +67,7 @@ func NewInstallations(installationsConfig InstallationsConfig) *Installations {
 		Codename:        installationsConfig.Codename,
 		Customer:        installationsConfig.Customer,
 		CmcRepository:   installationsConfig.CmcRepository,
+		CcrRepository:   installationsConfig.CcrRepository,
 		AccountEngineer: installationsConfig.AccountEngineer,
 		Pipeline:        installationsConfig.Pipeline,
 		Provider:        installationsConfig.Provider,
@@ -124,6 +127,9 @@ func (i *Installations) Override(override *Installations) *Installations {
 	if override.CmcRepository != "" {
 		installation.CmcRepository = override.CmcRepository
 	}
+	if override.CcrRepository != "" {
+		installation.CcrRepository = override.CcrRepository
+	}
 	if override.AccountEngineer != "" {
 		installation.AccountEngineer = override.AccountEngineer
 	}
@@ -169,6 +175,9 @@ func (i *Installations) Validate() error {
 	}
 	if i.CmcRepository == "" {
 		return fmt.Errorf("cmc repository is empty")
+	}
+	if i.CcrRepository == "" {
+		return fmt.Errorf("ccr repository is empty")
 	}
 	if i.AccountEngineer == "" {
 		return fmt.Errorf("account engineer is empty")
