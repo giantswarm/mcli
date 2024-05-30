@@ -19,6 +19,7 @@ const (
 	CloudDirectorRefreshTokenKey = "REFRESH_TOKEN"
 	AzureClientIDKey             = "clientId"
 	AzureClientSecretKey         = "clientSecret"
+	AzureSubscriptionIdKey       = "subscriptionId"
 	AzureTenantIDKey             = "tenantId"
 	azureClientIDUA              = "UA_clientId"
 	azureTenantIDUA              = "UA_tenantId"
@@ -115,6 +116,8 @@ func (c *Config) ReadSecretFlags() error {
 		secrets[AzureClientIDKey] = azureFlags[AzureClientIDKey]
 		secrets[AzureClientSecretKey] = azureFlags[AzureClientSecretKey]
 		secrets[AzureTenantIDKey] = azureFlags[AzureTenantIDKey]
+		secrets[AzureSubscriptionIdKey] = azureFlags[AzureSubscriptionIdKey]
+
 		azureidentity := fmt.Sprintf("%s/%s", c.Flags.SecretFolder, AzureIdentityFile)
 		azureIdentityFlags, err := readFlagsFromFile(azureidentity)
 		if err != nil {
@@ -210,6 +213,10 @@ func (c *Config) SetSecretFlags(secrets map[string]string) error {
 		case AzureTenantIDKey:
 			if c.Flags.Secrets.Azure.TenantID == "" {
 				c.Flags.Secrets.Azure.TenantID = v
+			}
+		case AzureSubscriptionIdKey:
+			if c.Flags.Secrets.Azure.SubscriptionID == "" {
+				c.Flags.Secrets.Azure.SubscriptionID = v
 			}
 		case azureClientIDUA:
 			if c.Flags.Secrets.Azure.UAClientID == "" {

@@ -8,6 +8,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/deploykey"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/issuer"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
@@ -89,7 +90,8 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 		Provider: Provider{
 			Name: clusterAppsConfig.Provider,
 		},
-		PrivateCA:             kustomizationConfig.PrivateCA,
+		PrivateCA: kustomizationConfig.PrivateCA,
+		//TODO PRIVATE MC
 		DisableDenyAllNetPol:  kustomizationConfig.DisableDenyAllNetPol,
 		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion || defaultAppsConfig.MCAppsPreventDeletion,
 		TaylorBotToken:        taylorBotToken,
@@ -178,6 +180,13 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 		cmc.Provider.CAPZ.UAClientID = capzConfig.UAClientID
 		cmc.Provider.CAPZ.UATenantID = capzConfig.UATenantID
 		cmc.Provider.CAPZ.UAResourceID = capzConfig.UAResourceID
+		subscriptionID, err := capz.GetSubscriptionID(clusterAppsConfig.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get subscription ID.\n%w", err)
+		}
+		cmc.Provider.CAPZ.SubscriptionID = subscriptionID
+		cmc.PrivateMC = defaultappsvalues.IsPrivateMC(defaultAppsConfig.Values)
+
 	} else if key.IsProviderVCD(clusterAppsConfig.Provider) {
 		refreshtoken, err := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)])
 		if err != nil {

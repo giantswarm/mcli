@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	SecretName      = "cluster-identity-secret-static"
-	ClientSecretKey = "clientSecret"
-	ClientIDKey     = "clientID"
-	TenantIDKey     = "tenantID"
-	UAClientIDKey   = "clientID"
-	UATenantIDKey   = "tenantID"
-	UAResourceIDKey = "resourceID"
+	SecretName        = "cluster-identity-secret-static"
+	ClientSecretKey   = "clientSecret"
+	ClientIDKey       = "clientID"
+	TenantIDKey       = "tenantID"
+	UAClientIDKey     = "clientID"
+	UATenantIDKey     = "tenantID"
+	UAResourceIDKey   = "resourceID"
+	SubscriptionIDKey = "subscriptionID"
 )
 
 const (
@@ -126,4 +127,8 @@ func GetCAPZUAFile(c Config) (string, error) {
 	log.Debug().Msg("Creating CAPZ UA file")
 
 	return template.Execute(CAPZUATemplate, c)
+}
+
+func GetSubscriptionID(file string) (string, error) {
+	return key.GetValue(SubscriptionIDKey, file)
 }

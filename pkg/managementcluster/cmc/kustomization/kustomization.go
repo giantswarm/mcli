@@ -2,7 +2,6 @@ package kustomization
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -41,9 +40,6 @@ const (
 func GetSourceControllerPatchPath() string {
 	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-host-alias.yaml", key.CMCMainBranch)
 }
-func GetSharedConfigsPatchPath() string {
-	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-gitrepository-shared-configs-private.yaml", key.CMCMainBranch)
-}
 func GetSourceControllerSocatSidecarPath() string {
 	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-socat.yaml", key.CMCMainBranch)
 }
@@ -77,11 +73,6 @@ func GetKustomizationConfig(file string) (Config, error) {
 
 func GetKustomizationFile(c Config, file string) (string, error) {
 	log.Debug().Msg("Creating Kustomization file")
-
-	if c.MCProxy {
-		file = strings.ReplaceAll(file, "patch-gitrepository-mcf.yaml", "patch-gitrepository-mcf-private.yaml")
-		file = strings.ReplaceAll(file, "patch-gitrepository-config.yaml", "patch-gitrepository-config-private.yaml")
-	}
 
 	k, err := getKustomization(file)
 	if err != nil {
@@ -119,7 +110,6 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 	}
 	if c.MCProxy {
 		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerPatchPath()})
-		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSharedConfigsPatchPath()})
 		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerSocatSidecarPath(),
 			Target: &kustomize.Selector{
 				ResId: resid.ResId{

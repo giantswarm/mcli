@@ -19,6 +19,7 @@ type CMC struct {
 	DefaultApps                  App                          `yaml:"defaultApps"`
 	MCAppsPreventDeletion        bool                         `yaml:"mcAppsPreventDeletion"`
 	PrivateCA                    bool                         `yaml:"privateCA"`
+	PrivateMC                    bool                         `yaml:"privateMC"`
 	ClusterNamespace             string                       `yaml:"clusterNamespace"`
 	Provider                     Provider                     `yaml:"provider"`
 	TaylorBotToken               string                       `yaml:"taylorBotToken"`
@@ -52,12 +53,13 @@ type CAPV struct {
 }
 
 type CAPZ struct {
-	UAClientID   string `yaml:"uaClientID"`
-	UATenantID   string `yaml:"uaTenantID"`
-	UAResourceID string `yaml:"uaResourceID"`
-	ClientID     string `yaml:"clientID"`
-	ClientSecret string `yaml:"clientSecret"`
-	TenantID     string `yaml:"tenantID"`
+	UAClientID     string `yaml:"uaClientID"`
+	UATenantID     string `yaml:"uaTenantID"`
+	UAResourceID   string `yaml:"uaResourceID"`
+	ClientID       string `yaml:"clientID"`
+	ClientSecret   string `yaml:"clientSecret"`
+	TenantID       string `yaml:"tenantID"`
+	SubscriptionID string `yaml:"subscriptionID"`
 }
 
 type CAPVCD struct {
@@ -164,6 +166,9 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.PrivateCA {
 		cmc.PrivateCA = override.PrivateCA
 	}
+	if override.PrivateMC {
+		cmc.PrivateMC = override.PrivateMC
+	}
 	if override.ClusterNamespace != "" {
 		cmc.ClusterNamespace = override.ClusterNamespace
 	}
@@ -191,6 +196,9 @@ func (c *CMC) Override(override *CMC) *CMC {
 			}
 			if override.Provider.CAPZ.TenantID != "" {
 				cmc.Provider.CAPZ.TenantID = override.Provider.CAPZ.TenantID
+			}
+			if override.Provider.CAPZ.SubscriptionID != "" {
+				cmc.Provider.CAPZ.SubscriptionID = override.Provider.CAPZ.SubscriptionID
 			}
 		} else if key.IsProviderVCD(override.Provider.Name) {
 			if override.Provider.CAPVCD.RefreshToken != "" {
@@ -330,6 +338,9 @@ func (c *CMC) Validate() error {
 		if c.Provider.CAPZ.TenantID == "" {
 			return fmt.Errorf("provider azure tenant id is empty")
 		}
+		if c.Provider.CAPZ.SubscriptionID == "" {
+			return fmt.Errorf("provider azure subscription id is empty")
+		}
 	} else if key.IsProviderVCD(c.Provider.Name) {
 		if c.Provider.CAPVCD.RefreshToken == "" {
 			return fmt.Errorf("provider vcd cloud config is empty")
@@ -405,12 +416,19 @@ func (c *CMC) Equals(desired *CMC) bool {
 }
 
 func (c *CMC) SetDefaultAppValues() error {
-	values, err := defaultappsvalues.GetDefaultAppsValuesFile(defaultappsvalues.Config{
+	config := defaultappsvalues.Config{
 		Cluster:                 c.Cluster,
 		PrivateCA:               c.PrivateCA,
+		PrivateMC:               c.PrivateMC,
 		Provider:                c.Provider.Name,
 		CertManagerDNSChallenge: c.CertManagerDNSChallenge.Enabled,
-	})
+	}
+	if key.IsProviderAzure(config.Provider) && config.PrivateMC {
+		config.IdentityClientID = c.Provider.CAPZ.UAClientID
+		config.SubscriptionID = c.Provider.CAPZ.SubscriptionID
+	}
+
+	values, err := defaultappsvalues.GetDefaultAppsValuesFile(config)
 	if err != nil {
 		return fmt.Errorf("failed to get default apps values.\n%w", err)
 	}

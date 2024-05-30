@@ -52,6 +52,7 @@ const (
 	flagDefaultAppsCatalog           = "default-apps-catalog"
 	flagDefaultAppsVersion           = "default-apps-version"
 	flagPrivateCA                    = "private-ca"
+	flagPrivateMC                    = "private-mc"
 	flagCertManagerDNSChallenge      = "cert-manager-dns-challenge"
 	flagMCCustomCoreDNSConfig        = "mc-custom-coredns-config"
 	flagMCProxyEnabled               = "mc-proxy-enabled"
@@ -72,6 +73,7 @@ const (
 	envDefaultAppsCatalog           = "DEFAULT_APPS_APP_CATALOG"
 	envDefaultAppsVersion           = "DEFAULT_APPS_APP_VERSION"
 	envPrivateCA                    = "PRIVATE_CA"
+	envPrivateMC                    = "MC_PRIVATE"
 	envCertManagerDNSChallenge      = "CERT_MANAGER_DNS01_CHALLENGE"
 	envMCCustomCoreDNSConfig        = "MC_CUSTOM_COREDNS_CONFIG"
 	envMCProxyEnabled               = "MC_PROXY_ENABLED"
@@ -91,6 +93,7 @@ var (
 	defaultAppsCatalog           string
 	defaultAppsVersion           string
 	privateCA                    bool
+	privateMC                    bool
 	certManagerDNSChallenge      bool
 	mcCustomCoreDNSConfig        string
 	mcProxyEnabled               bool
@@ -117,6 +120,7 @@ const (
 	flagAzureClientID                     = "azure-client-id"
 	flagAzureTenantID                     = "azure-tenant-id"
 	flagAzureClientSecret                 = "azure-client-secret"
+	flagAzureSubscriptionID               = "azure-subscription-id"
 	flagContainerRegistryConfiguration    = "container-registry-configuration"
 	flagClusterValues                     = "cluster-values"
 	flagCertManagerRoute53Region          = "cert-manager-route53-region"
@@ -144,6 +148,7 @@ var (
 	azureClientID                     string
 	azureTenantID                     string
 	azureClientSecret                 string
+	azureSubscriptionID               string
 	containerRegistryConfiguration    string
 	clusterValues                     string
 	certManagerRoute53Region          string
@@ -177,6 +182,7 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&defaultAppsCatalog, flagDefaultAppsCatalog, viper.GetString(envDefaultAppsCatalog), "Catalog of the default apps")
 	pushCmd.PersistentFlags().StringVar(&defaultAppsVersion, flagDefaultAppsVersion, viper.GetString(envDefaultAppsVersion), "Version of the default apps")
 	pushCmd.PersistentFlags().BoolVar(&privateCA, flagPrivateCA, viper.GetBool(envPrivateCA), "Use private CA")
+	pushCmd.PersistentFlags().BoolVar(&privateMC, flagPrivateMC, viper.GetBool(envPrivateMC), "MC is private")
 	pushCmd.PersistentFlags().BoolVar(&certManagerDNSChallenge, flagCertManagerDNSChallenge, viper.GetBool(envCertManagerDNSChallenge), "Use cert-manager DNS01 challenge")
 	pushCmd.PersistentFlags().StringVar(&mcCustomCoreDNSConfig, flagMCCustomCoreDNSConfig, viper.GetString(envMCCustomCoreDNSConfig), "Custom CoreDNS configuration")
 	pushCmd.PersistentFlags().BoolVar(&mcProxyEnabled, flagMCProxyEnabled, viper.GetBool(envMCProxyEnabled), "Use proxy")
@@ -236,6 +242,7 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&azureUAResourceID, flagAzureUAResourceID, "", "Azure UA resource ID")
 	pushCmd.PersistentFlags().StringVar(&azureClientID, flagAzureClientID, "", "Azure client ID")
 	pushCmd.PersistentFlags().StringVar(&azureTenantID, flagAzureTenantID, "", "Azure tenant ID")
+	pushCmd.PersistentFlags().StringVar(&azureSubscriptionID, flagAzureSubscriptionID, "", "Azure subscription ID")
 	pushCmd.PersistentFlags().StringVar(&azureClientSecret, flagAzureClientSecret, "", "Azure client secret")
 	err = pushCmd.PersistentFlags().MarkHidden(flagAzureClientSecret)
 	if err != nil {

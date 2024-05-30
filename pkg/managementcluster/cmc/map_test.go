@@ -90,7 +90,7 @@ func TestGetMapFromCMC(t *testing.T) {
 				Cluster: "cluster",
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
-					Values:  "clusterappvalues",
+					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-azure",
@@ -108,12 +108,13 @@ func TestGetMapFromCMC(t *testing.T) {
 				Provider: Provider{
 					Name: key.ProviderAzure,
 					CAPZ: CAPZ{
-						UAClientID:   "uaclientid",
-						UATenantID:   "tenantid",
-						UAResourceID: "uaresourceid",
-						ClientID:     "clientid",
-						ClientSecret: "clientsecret",
-						TenantID:     "tenantid",
+						UAClientID:     "uaclientid",
+						UATenantID:     "tenantid",
+						UAResourceID:   "uaresourceid",
+						ClientID:       "clientid",
+						ClientSecret:   "clientsecret",
+						TenantID:       "tenantid",
+						SubscriptionID: "subid",
 					},
 				},
 				TaylorBotToken: "taylorbottoken",

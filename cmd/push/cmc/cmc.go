@@ -41,6 +41,7 @@ type CMCFlags struct {
 	DefaultAppsCatalog           string
 	DefaultAppsVersion           string
 	PrivateCA                    bool
+	PrivateMC                    bool
 	CertManagerDNSChallenge      bool
 	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
@@ -63,12 +64,13 @@ type SecretFlags struct {
 }
 
 type AzureFlags struct {
-	UAClientID   string
-	UATenantID   string
-	UAResourceID string
-	ClientID     string
-	TenantID     string
-	ClientSecret string
+	UAClientID     string
+	UATenantID     string
+	UAResourceID   string
+	ClientID       string
+	TenantID       string
+	ClientSecret   string
+	SubscriptionID string
 }
 
 type DeployKey struct {
@@ -413,6 +415,9 @@ func (c *Config) EnsureFlagsAreSet() error {
 		if c.Flags.Secrets.Azure.ClientSecret == "" {
 			return fmt.Errorf("azure client secret is required\n%w", ErrInvalidFlag)
 		}
+		if c.Flags.Secrets.Azure.SubscriptionID == "" {
+			return fmt.Errorf("azure subscription id is required\n%w", ErrInvalidFlag)
+		}
 		if c.Flags.Secrets.Azure.UAClientID == "" {
 			return fmt.Errorf("azure user assigned client id is required\n%w", ErrInvalidFlag)
 		}
@@ -446,6 +451,7 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		},
 		MCAppsPreventDeletion: c.Flags.MCAppsPreventDeletion,
 		PrivateCA:             c.Flags.PrivateCA,
+		PrivateMC:             c.Flags.PrivateMC,
 		Provider: cmc.Provider{
 			Name: c.Provider,
 		},
@@ -514,12 +520,13 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		}
 	} else if key.IsProviderAzure(c.Provider) {
 		newCMC.Provider.CAPZ = cmc.CAPZ{
-			ClientID:     c.Flags.Secrets.Azure.ClientID,
-			TenantID:     c.Flags.Secrets.Azure.TenantID,
-			ClientSecret: c.Flags.Secrets.Azure.ClientSecret,
-			UAClientID:   c.Flags.Secrets.Azure.UAClientID,
-			UATenantID:   c.Flags.Secrets.Azure.UATenantID,
-			UAResourceID: c.Flags.Secrets.Azure.UAResourceID,
+			ClientID:       c.Flags.Secrets.Azure.ClientID,
+			TenantID:       c.Flags.Secrets.Azure.TenantID,
+			ClientSecret:   c.Flags.Secrets.Azure.ClientSecret,
+			SubscriptionID: c.Flags.Secrets.Azure.SubscriptionID,
+			UAClientID:     c.Flags.Secrets.Azure.UAClientID,
+			UATenantID:     c.Flags.Secrets.Azure.UATenantID,
+			UAResourceID:   c.Flags.Secrets.Azure.UAResourceID,
 		}
 	}
 	if err := newCMC.SetDefaultAppValues(); err != nil {
