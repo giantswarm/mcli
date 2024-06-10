@@ -22,10 +22,11 @@ type Config struct {
 }
 
 type InstallationsFlags struct {
-	BaseDomain string
-	Team       string
-	AWS        AWSFlags
-	Customer   string
+	CCRRepository string
+	BaseDomain    string
+	Team          string
+	AWS           AWSFlags
+	Customer      string
 }
 
 type AWSFlags struct {
@@ -182,6 +183,9 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 	if flags.CMCRepository == "" {
 		return nil, fmt.Errorf("CMC repository is not set.\n%w", ErrInvalidFlag)
 	}
+	if flags.Flags.CCRRepository == "" {
+		return nil, fmt.Errorf("CCR repository is not set.\n%w", ErrInvalidFlag)
+	}
 	if flags.Flags.Team == "" {
 		return nil, fmt.Errorf("team is not set.\n%w", ErrInvalidFlag)
 	}
@@ -210,6 +214,7 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 		Codename:        flags.Cluster,
 		Customer:        flags.Flags.Customer,
 		CmcRepository:   flags.CMCRepository,
+		CcrRepository:   flags.Flags.CCRRepository,
 		AccountEngineer: flags.Flags.Team,
 		Pipeline:        "testing",
 		Provider:        fmt.Sprintf("%s-test", flags.Provider),
@@ -235,6 +240,7 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 		Codename:        flags.Cluster,
 		Base:            flags.Flags.BaseDomain,
 		CmcRepository:   flags.CMCRepository,
+		CcrRepository:   flags.Flags.CCRRepository,
 		AccountEngineer: flags.Flags.Team,
 		Provider:        flags.Provider,
 		Customer:        flags.Flags.Customer,
@@ -260,6 +266,7 @@ func (c *Config) Validate() error {
 	}
 	if c.Flags.BaseDomain == "" &&
 		c.CMCRepository == "" &&
+		c.Flags.CCRRepository == "" &&
 		c.Flags.Team == "" &&
 		c.Provider == "" &&
 		c.Flags.AWS.Region == "" &&
