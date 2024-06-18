@@ -127,3 +127,23 @@ func GetCertManagerFile(c Config) (string, error) {
 		Values:           base64.StdEncoding.EncodeToString(data),
 	})
 }
+
+func GetCertManagerDefaultAppConfigMap() string {
+	log.Debug().Msg("Creating cert-manager user values config map")
+	return `kind: ConfigMap
+apiVersion: v1
+metadata:
+  annotations:
+    meta.helm.sh/release-name: cert-manager
+    meta.helm.sh/release-namespace: kube-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    k8s-app: cert-manager
+  name: cert-manager-user-values
+  namespace: kube-system
+data:
+  values: |
+    controller:
+      defaultIssuer:
+        name: private-giantswarm`
+}

@@ -8,8 +8,8 @@ import (
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
-	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/deploykey"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/externaldns"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/issuer"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/kustomization"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/mcproxy"
@@ -44,10 +44,6 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster apps config.\n%w", err)
 	}
-	defaultAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.DefaultAppsFile)])
-	if err != nil {
-		return nil, fmt.Errorf("failed to get default apps config.\n%w", err)
-	}
 	taylorBotToken, err := taylorbot.GetTaylorBotToken(data[fmt.Sprintf("%s/%s", path, kustomization.TaylorBotFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get taylor bot token.\n%w", err)
@@ -79,21 +75,15 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			Version: clusterAppsConfig.Version,
 			Values:  clusterAppsConfig.Values,
 		},
-		DefaultApps: App{
-			Name:    defaultAppsConfig.Name,
-			AppName: defaultAppsConfig.AppName,
-			Catalog: defaultAppsConfig.Catalog,
-			Version: defaultAppsConfig.Version,
-			Values:  defaultAppsConfig.Values,
-		},
-		ClusterNamespace: clusterAppsConfig.Namespace,
+		ClusterIntegratesDefaultApps: kustomizationConfig.IntegratedDefaultAppsValues,
+		ClusterNamespace:             clusterAppsConfig.Namespace,
 		Provider: Provider{
 			Name: clusterAppsConfig.Provider,
 		},
 		PrivateCA: kustomizationConfig.PrivateCA,
 		//TODO PRIVATE MC
 		DisableDenyAllNetPol:  kustomizationConfig.DisableDenyAllNetPol,
-		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion || defaultAppsConfig.MCAppsPreventDeletion,
+		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion,
 		TaylorBotToken:        taylorBotToken,
 		SSHdeployKey: DeployKey{
 			Passphrase: sshDeployKeyConfig.Passphrase,
@@ -110,6 +100,20 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			Identity:   sharedDeployKeyConfig.Identity,
 			KnownHosts: sharedDeployKeyConfig.KnownHosts,
 		},
+	}
+
+	if !kustomizationConfig.IntegratedDefaultAppsValues {
+		defaultAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.DefaultAppsFile)])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get default apps config.\n%w", err)
+		}
+		cmc.DefaultApps = App{
+			Name:    defaultAppsConfig.Name,
+			AppName: defaultAppsConfig.AppName,
+			Catalog: defaultAppsConfig.Catalog,
+			Version: defaultAppsConfig.Version,
+			Values:  defaultAppsConfig.Values,
+		}
 	}
 
 	if kustomizationConfig.ConfigureContainerRegistries {
@@ -185,7 +189,6 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			return nil, fmt.Errorf("failed to get subscription ID.\n%w", err)
 		}
 		cmc.Provider.CAPZ.SubscriptionID = subscriptionID
-		cmc.PrivateMC = defaultappsvalues.IsPrivateMC(defaultAppsConfig.Values)
 
 	} else if key.IsProviderVCD(clusterAppsConfig.Provider) {
 		refreshtoken, err := capvcd.GetCAPVCDConfig(data[fmt.Sprintf("%s/%s", path, kustomization.CloudDirectorCredentialsFile)])
@@ -223,13 +226,15 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to add mcproxy files.\n%w", err)
 	}
+	if !c.ClusterIntegratesDefaultApps {
+		cmcTemplate, err = c.GetDefaultApps(cmcTemplate, path)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add default apps files.\n%w", err)
+		}
+	}
 	cmcTemplate, err = c.GetClusterApps(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add cluster apps files.\n%w", err)
-	}
-	cmcTemplate, err = c.GetDefaultApps(cmcTemplate, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add default apps files.\n%w", err)
 	}
 	cmcTemplate, err = c.GetKustomization(cmcTemplate, path)
 	if err != nil {
@@ -405,10 +410,15 @@ func (c *CMC) GetProviders(cmcTemplate map[string]string, path string) (map[stri
 		secretMap[fmt.Sprintf("%s/%s", path, kustomization.AzureSecretClusterIdentityStaticSP)] = capzSecret
 		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentitySPFile)] = capzSPFile
 		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentityUAFile)] = capzUAFile
+		if c.PrivateMC && c.ClusterIntegratesDefaultApps {
+			externalDNSFile := externaldns.GetExternalDNSFile()
+			cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.ExternalDNSFile)] = externalDNSFile
+		}
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AzureSecretClusterIdentityStaticSP))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentitySPFile))
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.AzureClusterIdentityUAFile))
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.ExternalDNSFile))
 	}
 	if key.IsProviderVCD(c.Provider.Name) {
 		capvcdFile, err := capvcd.GetCAPVCDFile(capvcd.Config{
@@ -440,8 +450,13 @@ func (c *CMC) GetPrivateCA(cmcTemplate map[string]string, path string) (map[stri
 	if c.PrivateCA {
 		issuerfile := issuer.GetIssuerFile()
 		cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.IssuerFile)] = issuerfile
+		if c.ClusterIntegratesDefaultApps {
+			certmanagerfile := certmanager.GetCertManagerDefaultAppConfigMap()
+			cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.CertManagerConfigMapFile)] = certmanagerfile
+		}
 	} else {
 		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.IssuerFile))
+		delete(cmcTemplate, fmt.Sprintf("%s/%s", path, kustomization.CertManagerConfigMapFile))
 	}
 	return cmcTemplate, nil
 }

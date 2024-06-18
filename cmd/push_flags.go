@@ -47,6 +47,7 @@ const (
 	flagClusterAppCatalog            = "cluster-app-catalog"
 	flagClusterAppVersion            = "cluster-app-version"
 	flagClusterNamespace             = "cluster-namespace"
+	flagClusterIntegratesDefaultApps = "cluster-integrates-default-apps"
 	flagConfigureContainerRegistries = "configure-container-registries"
 	flagDefaultAppsName              = "default-apps-name"
 	flagDefaultAppsCatalog           = "default-apps-catalog"
@@ -68,6 +69,7 @@ const (
 	envClusterAppCatalog            = "CLUSTER_APP_CATALOG"
 	envClusterAppVersion            = "CLUSTER_APP_VERSION"
 	envClusterNamespace             = "CLUSTER_NAMESPACE"
+	envClusterIntegratesDefaultApps = "CLUSTER_INTEGRATES_DEFAULT_APPS"
 	envConfigureContainerRegistries = "CONFIGURE_CONTAINER_REGISTRIES"
 	envDefaultAppsName              = "DEFAULT_APPS_APP_NAME"
 	envDefaultAppsCatalog           = "DEFAULT_APPS_APP_CATALOG"
@@ -88,6 +90,7 @@ var (
 	clusterAppCatalog            string
 	clusterAppVersion            string
 	clusterNamespace             string
+	clusterIntegratesDefaultApps bool
 	configureContainerRegistries bool
 	defaultAppsName              string
 	defaultAppsCatalog           string
@@ -177,6 +180,7 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&clusterAppCatalog, flagClusterAppCatalog, viper.GetString(envClusterAppCatalog), "Catalog of the management cluster app")
 	pushCmd.PersistentFlags().StringVar(&clusterAppVersion, flagClusterAppVersion, viper.GetString(envClusterAppVersion), "Version of the management cluster app")
 	pushCmd.PersistentFlags().StringVar(&clusterNamespace, flagClusterNamespace, viper.GetString(envClusterNamespace), "Namespace of the management cluster")
+	pushCmd.PersistentFlags().BoolVar(&clusterIntegratesDefaultApps, flagClusterIntegratesDefaultApps, viper.GetBool(envClusterIntegratesDefaultApps), "Integrate default apps")
 	pushCmd.PersistentFlags().BoolVar(&configureContainerRegistries, flagConfigureContainerRegistries, viper.GetBool(envConfigureContainerRegistries), "Configure container registries")
 	pushCmd.PersistentFlags().StringVar(&defaultAppsName, flagDefaultAppsName, viper.GetString(envDefaultAppsName), "Name of the default apps")
 	pushCmd.PersistentFlags().StringVar(&defaultAppsCatalog, flagDefaultAppsCatalog, viper.GetString(envDefaultAppsCatalog), "Catalog of the default apps")

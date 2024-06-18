@@ -36,6 +36,7 @@ type CMCFlags struct {
 	ClusterAppCatalog            string
 	ClusterAppVersion            string
 	ClusterNamespace             string
+	ClusterIntegratesDefaultApps bool
 	ConfigureContainerRegistries bool
 	DefaultAppsName              string
 	DefaultAppsCatalog           string
@@ -449,9 +450,10 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			Catalog: c.Flags.DefaultAppsCatalog,
 			Version: c.Flags.DefaultAppsVersion,
 		},
-		MCAppsPreventDeletion: c.Flags.MCAppsPreventDeletion,
-		PrivateCA:             c.Flags.PrivateCA,
-		PrivateMC:             c.Flags.PrivateMC,
+		ClusterIntegratesDefaultApps: c.Flags.ClusterIntegratesDefaultApps,
+		MCAppsPreventDeletion:        c.Flags.MCAppsPreventDeletion,
+		PrivateCA:                    c.Flags.PrivateCA,
+		PrivateMC:                    c.Flags.PrivateMC,
 		Provider: cmc.Provider{
 			Name: c.Provider,
 		},

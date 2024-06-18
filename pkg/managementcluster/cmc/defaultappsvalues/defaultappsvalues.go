@@ -32,6 +32,14 @@ type DefaultAppsValues struct {
 	IdentityClientID  string     `yaml:"identityClientID,omitempty"`
 }
 
+type IntegratedDefaultAppsValues struct {
+	Global Global `yaml:"global,omitempty"`
+}
+
+type Global struct {
+	Apps UserConfig `yaml:"apps,omitempty"`
+}
+
 type UserConfig struct {
 	CertManager App `yaml:"certManager,omitempty"`
 	ExternalDNS App `yaml:"externalDNS,omitempty"`
@@ -84,6 +92,38 @@ func GetDefaultAppsValuesFile(c Config) (string, error) {
 		return "", fmt.Errorf("failed to marshal default apps values.\n%w", err)
 	}
 	return string(data), nil
+}
+
+func IntegrateDefaultAppsValuesInClusterValues(clusterValues string, c Config) (string, error) {
+	log.Debug().Msg("Integrating default apps values in cluster values")
+	apps := IntegratedDefaultAppsValues{}
+
+	if c.PrivateCA {
+		apps.Global.Apps.CertManager.ExtraConfigs = []ExtraConfig{
+			{
+				Kind: "configmap",
+				Name: "cert-manager-user-values",
+			},
+		}
+	}
+	if key.IsProviderAzure(c.Provider) {
+		if !c.PrivateMC {
+			apps.Global.Apps.ExternalDNS.ExtraConfigs = []ExtraConfig{
+				{
+					Kind: "configmap",
+					Name: "external-dns-user-values",
+				},
+			}
+		}
+	}
+	if c.CertManagerDNSChallenge {
+		apps.Global.Apps.CertManager.ExtraConfigs = append(apps.Global.Apps.CertManager.ExtraConfigs, ExtraConfig{
+			Kind: "secret",
+			Name: key.GetCertManagerSecretName(c.Cluster),
+		})
+	}
+
+	return clusterValues, nil
 }
 
 func IsPrivateMC(file string) bool {

@@ -29,12 +29,14 @@ const (
 	CoreDNSFile                        = "coredns-configmap.yaml"
 	DenyNetPolFile                     = "deny-all-policies.yaml"
 	CertManagerFile                    = "cert-manager-dns01-secret.yaml"
+	CertManagerConfigMapFile           = "cert-manager-configmap.yaml"
 	IssuerFile                         = "private-cluster-issuer.yaml"
 	VsphereCredentialsFile             = "vsphere-cloud-config-secret.yaml" // #nosec G101
 	CloudDirectorCredentialsFile       = "cloud-director-cloud-config-secret.yaml"
 	AzureClusterIdentitySPFile         = "azureclusteridentity-sp.yaml"
 	AzureClusterIdentityUAFile         = "azureclusteridentity-ua.yaml"
 	AzureSecretClusterIdentityStaticSP = "secret-clusteridentity-static-sp.yaml"
+	ExternalDNSFile                    = "external-dns-configmap.yaml"
 )
 
 func GetSourceControllerPatchPath() string {
@@ -48,10 +50,12 @@ type Config struct {
 	CertManagerDNSChallenge      bool
 	Provider                     string
 	PrivateCA                    bool
+	PrivateMC                    bool
 	ConfigureContainerRegistries bool
 	CustomCoreDNS                bool
 	DisableDenyAllNetPol         bool
 	MCProxy                      bool
+	IntegratedDefaultAppsValues  bool
 }
 
 func GetKustomizationConfig(file string) (Config, error) {
@@ -68,6 +72,7 @@ func GetKustomizationConfig(file string) (Config, error) {
 		CustomCoreDNS:                containsResource(kustomization.Resources, CoreDNSFile),
 		DisableDenyAllNetPol:         !containsResource(kustomization.Resources, DenyNetPolFile),
 		MCProxy:                      containsPatch(kustomization.Patches, SourceControllerFile),
+		IntegratedDefaultAppsValues:  !containsResource(kustomization.Resources, DefaultAppsFile),
 	}, nil
 }
 
@@ -95,9 +100,15 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 		k.Resources = appendResource(k.Resources, AzureClusterIdentitySPFile)
 		k.Resources = appendResource(k.Resources, AzureClusterIdentityUAFile)
 		k.Resources = appendResource(k.Resources, AzureSecretClusterIdentityStaticSP)
+		if !c.PrivateMC && c.IntegratedDefaultAppsValues {
+			k.Resources = appendResource(k.Resources, ExternalDNSFile)
+		}
 	}
 	if c.PrivateCA {
 		k.Resources = appendResource(k.Resources, IssuerFile)
+		if c.IntegratedDefaultAppsValues {
+			k.Resources = appendResource(k.Resources, CertManagerConfigMapFile)
+		}
 	}
 	if c.ConfigureContainerRegistries {
 		k.Resources = appendResource(k.Resources, RegistryFile)
@@ -122,6 +133,9 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 			},
 		})
 		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: SourceControllerFile})
+	}
+	if c.IntegratedDefaultAppsValues {
+		k.Resources = removeResource(k.Resources, DefaultAppsFile)
 	}
 	data, err := key.GetData(k)
 	if err != nil {

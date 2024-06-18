@@ -17,6 +17,7 @@ type CMC struct {
 	Cluster                      string                       `yaml:"cluster"`
 	ClusterApp                   App                          `yaml:"clusterApp"`
 	DefaultApps                  App                          `yaml:"defaultApps"`
+	ClusterIntegratesDefaultApps bool                         `yaml:"clusterIntegratesDefaultApps"`
 	MCAppsPreventDeletion        bool                         `yaml:"mcAppsPreventDeletion"`
 	PrivateCA                    bool                         `yaml:"privateCA"`
 	PrivateMC                    bool                         `yaml:"privateMC"`
@@ -159,6 +160,9 @@ func (c *CMC) Override(override *CMC) *CMC {
 	}
 	if override.DefaultApps.Values != "" {
 		cmc.DefaultApps.Values = override.DefaultApps.Values
+	}
+	if override.ClusterIntegratesDefaultApps {
+		cmc.ClusterIntegratesDefaultApps = override.ClusterIntegratesDefaultApps
 	}
 	if override.MCAppsPreventDeletion {
 		cmc.MCAppsPreventDeletion = override.MCAppsPreventDeletion
@@ -428,11 +432,15 @@ func (c *CMC) SetDefaultAppValues() error {
 		config.SubscriptionID = c.Provider.CAPZ.SubscriptionID
 	}
 
-	values, err := defaultappsvalues.GetDefaultAppsValuesFile(config)
-	if err != nil {
-		return fmt.Errorf("failed to get default apps values.\n%w", err)
+	if c.ClusterIntegratesDefaultApps {
+		// cluster values are used for default apps
+	} else {
+		values, err := defaultappsvalues.GetDefaultAppsValuesFile(config)
+		if err != nil {
+			return fmt.Errorf("failed to get default apps values.\n%w", err)
+		}
+		c.DefaultApps.Values = values
 	}
-	c.DefaultApps.Values = values
 	return nil
 }
 
