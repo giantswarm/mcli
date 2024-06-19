@@ -64,7 +64,7 @@ func GetKustomizationConfig(file string) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	return Config{
+	c := Config{
 		CertManagerDNSChallenge:      containsResource(kustomization.Resources, CertManagerFile),
 		Provider:                     getProvider(kustomization.Resources),
 		PrivateCA:                    containsResource(kustomization.Resources, IssuerFile),
@@ -73,7 +73,10 @@ func GetKustomizationConfig(file string) (Config, error) {
 		DisableDenyAllNetPol:         !containsResource(kustomization.Resources, DenyNetPolFile),
 		MCProxy:                      containsPatch(kustomization.Patches, SourceControllerFile),
 		IntegratedDefaultAppsValues:  !containsResource(kustomization.Resources, DefaultAppsFile),
-	}, nil
+	}
+	c.PrivateMC = key.IsProviderAzure(c.Provider) && c.IntegratedDefaultAppsValues && !containsResource(kustomization.Resources, ExternalDNSFile)
+
+	return c, nil
 }
 
 func GetKustomizationFile(c Config, file string) (string, error) {

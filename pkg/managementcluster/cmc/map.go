@@ -8,6 +8,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/deploykey"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/externaldns"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/issuer"
@@ -80,8 +81,8 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 		Provider: Provider{
 			Name: clusterAppsConfig.Provider,
 		},
-		PrivateCA: kustomizationConfig.PrivateCA,
-		//TODO PRIVATE MC
+		PrivateCA:             kustomizationConfig.PrivateCA,
+		PrivateMC:             kustomizationConfig.PrivateMC,
 		DisableDenyAllNetPol:  kustomizationConfig.DisableDenyAllNetPol,
 		MCAppsPreventDeletion: clusterAppsConfig.MCAppsPreventDeletion,
 		TaylorBotToken:        taylorBotToken,
@@ -114,6 +115,7 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			Version: defaultAppsConfig.Version,
 			Values:  defaultAppsConfig.Values,
 		}
+		cmc.PrivateMC = cmc.PrivateMC || defaultappsvalues.IsPrivateMC(defaultAppsConfig.Values)
 	}
 
 	if kustomizationConfig.ConfigureContainerRegistries {
@@ -568,6 +570,8 @@ func (c *CMC) GetKustomization(cmcTemplate map[string]string, path string) (map[
 		CertManagerDNSChallenge:      c.CertManagerDNSChallenge.Enabled,
 		Provider:                     c.Provider.Name,
 		PrivateCA:                    c.PrivateCA,
+		PrivateMC:                    c.PrivateMC,
+		IntegratedDefaultAppsValues:  c.ClusterIntegratesDefaultApps,
 		ConfigureContainerRegistries: c.ConfigureContainerRegistries.Enabled,
 		CustomCoreDNS:                c.CustomCoreDNS.Enabled,
 		DisableDenyAllNetPol:         c.DisableDenyAllNetPol,

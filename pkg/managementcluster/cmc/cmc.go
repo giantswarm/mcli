@@ -16,7 +16,7 @@ type CMC struct {
 	AgePubKey                    string                       `yaml:"agePubKey"`
 	Cluster                      string                       `yaml:"cluster"`
 	ClusterApp                   App                          `yaml:"clusterApp"`
-	DefaultApps                  App                          `yaml:"defaultApps"`
+	DefaultApps                  App                          `yaml:"defaultApps,omitempty"`
 	ClusterIntegratesDefaultApps bool                         `yaml:"clusterIntegratesDefaultApps"`
 	MCAppsPreventDeletion        bool                         `yaml:"mcAppsPreventDeletion"`
 	PrivateCA                    bool                         `yaml:"privateCA"`
@@ -146,21 +146,6 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.ClusterApp.Values != "" {
 		cmc.ClusterApp.Values = override.ClusterApp.Values
 	}
-	if override.DefaultApps.Name != "" {
-		cmc.DefaultApps.Name = override.DefaultApps.Name
-	}
-	if override.DefaultApps.AppName != "" {
-		cmc.DefaultApps.AppName = override.DefaultApps.AppName
-	}
-	if override.DefaultApps.Catalog != "" {
-		cmc.DefaultApps.Catalog = override.DefaultApps.Catalog
-	}
-	if override.DefaultApps.Version != "" {
-		cmc.DefaultApps.Version = override.DefaultApps.Version
-	}
-	if override.DefaultApps.Values != "" {
-		cmc.DefaultApps.Values = override.DefaultApps.Values
-	}
 	if override.ClusterIntegratesDefaultApps {
 		cmc.ClusterIntegratesDefaultApps = override.ClusterIntegratesDefaultApps
 	}
@@ -175,6 +160,25 @@ func (c *CMC) Override(override *CMC) *CMC {
 	}
 	if override.ClusterNamespace != "" {
 		cmc.ClusterNamespace = override.ClusterNamespace
+	}
+	if !override.ClusterIntegratesDefaultApps {
+		if override.DefaultApps.Name != "" {
+			cmc.DefaultApps.Name = override.DefaultApps.Name
+		}
+		if override.DefaultApps.AppName != "" {
+			cmc.DefaultApps.AppName = override.DefaultApps.AppName
+		}
+		if override.DefaultApps.Catalog != "" {
+			cmc.DefaultApps.Catalog = override.DefaultApps.Catalog
+		}
+		if override.DefaultApps.Version != "" {
+			cmc.DefaultApps.Version = override.DefaultApps.Version
+		}
+		if override.DefaultApps.Values != "" {
+			cmc.DefaultApps.Values = override.DefaultApps.Values
+		}
+	} else {
+		cmc.DefaultApps = App{}
 	}
 	if override.Provider.Name != "" {
 		cmc.Provider.Name = override.Provider.Name
@@ -301,23 +305,25 @@ func (c *CMC) Validate() error {
 	if c.ClusterApp.Values == "" {
 		return fmt.Errorf("cluster app values is empty")
 	}
-	if c.DefaultApps.Name == "" {
-		return fmt.Errorf("default app name is empty")
-	}
-	if c.DefaultApps.AppName == "" {
-		return fmt.Errorf("default app app name is empty")
-	}
-	if c.DefaultApps.Catalog == "" {
-		return fmt.Errorf("default app catalog is empty")
-	}
-	if c.DefaultApps.Version == "" {
-		return fmt.Errorf("default app version is empty")
-	}
-	if c.DefaultApps.Values == "" {
-		return fmt.Errorf("default app values is empty")
-	}
 	if c.Provider.Name == "" {
 		return fmt.Errorf("provider is empty")
+	}
+	if !c.ClusterIntegratesDefaultApps {
+		if c.DefaultApps.Name == "" {
+			return fmt.Errorf("default app name is empty")
+		}
+		if c.DefaultApps.AppName == "" {
+			return fmt.Errorf("default app app name is empty")
+		}
+		if c.DefaultApps.Catalog == "" {
+			return fmt.Errorf("default app catalog is empty")
+		}
+		if c.DefaultApps.Version == "" {
+			return fmt.Errorf("default app version is empty")
+		}
+		if c.DefaultApps.Values == "" {
+			return fmt.Errorf("default app values is empty")
+		}
 	}
 	if key.IsProviderVsphere(c.Provider.Name) {
 		if c.Provider.CAPV.CloudConfig == "" {
@@ -433,7 +439,11 @@ func (c *CMC) SetDefaultAppValues() error {
 	}
 
 	if c.ClusterIntegratesDefaultApps {
-		// cluster values are used for default apps
+		values, err := defaultappsvalues.IntegrateDefaultAppsValuesInClusterValues(c.ClusterApp.Values, config)
+		if err != nil {
+			return fmt.Errorf("failed to integrate default apps values in cluster values.\n%w", err)
+		}
+		c.ClusterApp.Values = values
 	} else {
 		values, err := defaultappsvalues.GetDefaultAppsValuesFile(config)
 		if err != nil {

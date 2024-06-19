@@ -316,15 +316,6 @@ func (c *Config) EnsureFlagsAreSet() error {
 	if c.Flags.ClusterAppVersion == "" {
 		return fmt.Errorf("cluster app version is required\n%w", ErrInvalidFlag)
 	}
-	if c.Flags.DefaultAppsName == "" {
-		return fmt.Errorf("default apps name is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.DefaultAppsCatalog == "" {
-		return fmt.Errorf("default apps catalog is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.DefaultAppsVersion == "" {
-		return fmt.Errorf("default apps version is required\n%w", ErrInvalidFlag)
-	}
 	if c.Flags.ClusterNamespace == "" {
 		return fmt.Errorf("cluster namespace is required\n%w", ErrInvalidFlag)
 	}
@@ -373,6 +364,18 @@ func (c *Config) EnsureFlagsAreSet() error {
 		return fmt.Errorf("cluster values are required\n%w", ErrInvalidFlag)
 	}
 	// Ensure that needed values for enabled features are set
+	if !c.Flags.ClusterIntegratesDefaultApps {
+		if c.Flags.DefaultAppsName == "" {
+			return fmt.Errorf("default apps name is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.DefaultAppsCatalog == "" {
+			return fmt.Errorf("default apps catalog is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.DefaultAppsVersion == "" {
+			return fmt.Errorf("default apps version is required\n%w", ErrInvalidFlag)
+		}
+	}
+
 	if c.Flags.ConfigureContainerRegistries {
 		if c.Flags.Secrets.ContainerRegistryConfiguration == "" {
 			return fmt.Errorf("container registry configuration is required\n%w", ErrInvalidFlag)
@@ -444,12 +447,6 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			Version: c.Flags.ClusterAppVersion,
 			Values:  c.Flags.Secrets.ClusterValues,
 		},
-		DefaultApps: cmc.App{
-			Name:    c.Flags.DefaultAppsName,
-			AppName: fmt.Sprintf("%s-default-apps", c.Cluster),
-			Catalog: c.Flags.DefaultAppsCatalog,
-			Version: c.Flags.DefaultAppsVersion,
-		},
 		ClusterIntegratesDefaultApps: c.Flags.ClusterIntegratesDefaultApps,
 		MCAppsPreventDeletion:        c.Flags.MCAppsPreventDeletion,
 		PrivateCA:                    c.Flags.PrivateCA,
@@ -474,6 +471,14 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			KnownHosts: c.Flags.Secrets.SharedDeployKey.KnownHosts,
 		},
 		DisableDenyAllNetPol: disableDenyAllNetPol(c.Provider),
+	}
+	if !c.Flags.ClusterIntegratesDefaultApps {
+		newCMC.DefaultApps = cmc.App{
+			Name:    c.Flags.DefaultAppsName,
+			AppName: fmt.Sprintf("%s-default-apps", c.Cluster),
+			Catalog: c.Flags.DefaultAppsCatalog,
+			Version: c.Flags.DefaultAppsVersion,
+		}
 	}
 	if c.Flags.ConfigureContainerRegistries {
 		newCMC.ConfigureContainerRegistries = cmc.ConfigureContainerRegistries{

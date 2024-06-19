@@ -904,6 +904,163 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				PrivateMC:            true,
 			},
 		},
+		{
+			name: "integrated default apps",
+			flags: Config{
+				Provider: "capa",
+				Cluster:  "test",
+				Flags: CMCFlags{
+					ClusterAppName:               "test-app",
+					ClusterAppCatalog:            "test-catalog",
+					ClusterAppVersion:            "1.2.3",
+					ClusterIntegratesDefaultApps: true,
+					ClusterNamespace:             "test",
+					AgePubKey:                    "test-age-pub-key",
+
+					TaylorBotToken: "test-taylor-bot-token",
+					Secrets: SecretFlags{
+						ClusterValues: "test-values",
+						SSHDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+						CustomerDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+						SharedDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+					},
+				},
+			},
+			expected: &cmc.CMC{
+				Provider: cmc.Provider{
+					Name: "capa",
+				},
+				Cluster: "test",
+				ClusterApp: cmc.App{
+					Name:    "test-app",
+					AppName: "test",
+					Catalog: "test-catalog",
+					Version: "1.2.3",
+					Values:  "test-values",
+				},
+				ClusterIntegratesDefaultApps: true,
+				AgePubKey:                    "test-age-pub-key",
+
+				TaylorBotToken:   "test-taylor-bot-token",
+				ClusterNamespace: "test",
+				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+			},
+		},
+		{
+			name: "private mc with azure",
+			flags: Config{
+				Provider: "capz",
+				Cluster:  "test",
+				Flags: CMCFlags{
+					ClusterAppName:               "test-app",
+					ClusterAppCatalog:            "test-catalog",
+					ClusterAppVersion:            "1.2.3",
+					ClusterIntegratesDefaultApps: true,
+					PrivateMC:                    true,
+					ClusterNamespace:             "test",
+					AgePubKey:                    "test-age-pub-key",
+
+					TaylorBotToken: "test-taylor-bot-token",
+					Secrets: SecretFlags{
+						ClusterValues: "test-values",
+						SSHDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+						CustomerDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+						SharedDeployKey: DeployKey{
+							Passphrase: "test-deploy-key-passphrase",
+							Identity:   "test-deploy-key-identity",
+							KnownHosts: "test-deploy",
+						},
+						Azure: AzureFlags{
+							ClientID:       "test-client-id",
+							ClientSecret:   "test-client",
+							TenantID:       "test-tenant",
+							SubscriptionID: "test-subscription-id",
+							UAClientID:     "test-ua-client-id",
+							UATenantID:     "test-ua-tenant",
+							UAResourceID:   "test-ua-resource-id",
+						},
+					},
+				},
+			},
+			expected: &cmc.CMC{
+				Provider: cmc.Provider{
+					Name: "capz",
+					CAPZ: cmc.CAPZ{
+						UAClientID:     "test-ua-client-id",
+						UATenantID:     "test-ua-tenant",
+						UAResourceID:   "test-ua-resource-id",
+						ClientID:       "test-client-id",
+						ClientSecret:   "test-client",
+						TenantID:       "test-tenant",
+						SubscriptionID: "test-subscription-id",
+					},
+				},
+				Cluster: "test",
+				ClusterApp: cmc.App{
+					Name:    "test-app",
+					AppName: "test",
+					Catalog: "test-catalog",
+					Version: "1.2.3",
+					Values:  "test-values",
+				},
+				ClusterIntegratesDefaultApps: true,
+				PrivateMC:                    true,
+				AgePubKey:                    "test-age-pub-key",
+
+				TaylorBotToken:   "test-taylor-bot-token",
+				ClusterNamespace: "test",
+				SSHdeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				CustomerDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				SharedDeployKey: cmc.DeployKey{
+					Passphrase: "test-deploy-key-passphrase",
+					Identity:   "test-deploy-key-identity",
+					KnownHosts: "test-deploy",
+				},
+				DisableDenyAllNetPol: true,
+			},
+		},
 	}
 
 	for i, tc := range testCases {

@@ -96,6 +96,13 @@ func GetDefaultAppsValuesFile(c Config) (string, error) {
 
 func IntegrateDefaultAppsValuesInClusterValues(clusterValues string, c Config) (string, error) {
 	log.Debug().Msg("Integrating default apps values in cluster values")
+
+	if !c.PrivateCA &&
+		!(key.IsProviderAzure(c.Provider) && !c.PrivateMC) &&
+		!c.CertManagerDNSChallenge {
+		return clusterValues, nil
+	}
+
 	apps := IntegratedDefaultAppsValues{}
 
 	if c.PrivateCA {
@@ -121,6 +128,15 @@ func IntegrateDefaultAppsValuesInClusterValues(clusterValues string, c Config) (
 			Kind: "secret",
 			Name: key.GetCertManagerSecretName(c.Cluster),
 		})
+	}
+
+	data, err := key.GetData(apps)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal integrated default apps values.\n%w", err)
+	}
+	clusterValues, err = key.MergeValues(clusterValues, string(data))
+	if err != nil {
+		return "", fmt.Errorf("failed to merge default apps values in cluster values.\n%w", err)
 	}
 
 	return clusterValues, nil
