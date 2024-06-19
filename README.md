@@ -366,6 +366,7 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--azure-client-id` | | The Azure client ID. | overrides value from secret files
 |  | `--azure-tenant-id` |  | The Azure tenant ID. | overrides value from secret files
 |  | `--azure-client-secret` |  | The Azure client secret. | overrides value from secret files
+|  | `--azure-subscription-id` |  | The Azure subscription ID. | overrides value from secret files
 |  | `--container-registry-configuration` |  | The container registry configuration. | overrides value from secret files
 |  | `--cluster-values` |  | The cluster values. | overrides value from secret files
 |  | `--cert-manager-route53-region` |  | The cert-manager Route53 region. | overrides value from secret files
