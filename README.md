@@ -330,16 +330,19 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--team` | `TEAM_NAME` | The team name of the management cluster. |
 |  | `--aws-region` | `AWS_REGION` | The AWS region of the management cluster. |
 |  | `--aws-account-id` | `INSTALLATION_AWS_ACCOUNT` | The AWS account ID of the management cluster. |
+|  | `--ccr-repository` | `CCR_REPOSITORY` | The name of the ccr repository to use. |
 | `push cmc` | `--mc-apps-prevent-deletion` | `MC_APPS_PREVENT_DELETION` | Prevent deletion of mc apps. |
 |  | `--cluster-app-name` | `CLUSTER_APP_NAME` | The name of the cluster app. |
 |  | `--cluster-app-catalog` | `CLUSTER_APP_CATALOG` | The catalog of the cluster app. |
 |  | `--cluster-app-version` | `CLUSTER_APP_VERSION` | The version of the cluster app. |
+|  | `--cluster-integrates-default-apps` | `CLUSTER_INTEGRATES_DEFAULT_APPS` | Default apps are integrated into the cluster app. |
 |  | `--cluster-namespace` | `CLUSTER_NAMESPACE` | The namespace of the management cluster. |
 |  | `--configure-container-registries` | `CONFIGURE_CONTAINER_REGISTRIES` | Configure container registries. |
 |  | `--default-apps-name` | `DEFAULT_APPS_APP_NAME` | The name of the default apps. |
 |  | `--default-apps-catalog` | `DEFAULT_APPS_APP_CATALOG` | The catalog of the default apps. |
 |  | `--default-apps-version` | `DEFAULT_APPS_APP_VERSION` | The version of the default apps. |
 |  | `--private-ca` | `PRIVATE_CA` | Use a private CA. |
+|  | `--private-mc` | `MC_PRIVATE` | The management cluster is private. |
 |  | `--cert-manager-dns-challenge` | `CERT_MANAGER_DNS01_CHALLENGE` | Use cert-manager DNS challenge. |
 |  | `--mc-custom-coredns-config` | `MC_CUSTOM_COREDNS_CONFIG` | Use custom CoreDNS config. |
 |  | `--mc-proxy-enabled` | `MC_PROXY_ENABLED` | Use mc proxy. |
