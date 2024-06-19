@@ -375,7 +375,10 @@ func TestGetMapFromCMC(t *testing.T) {
 			}
 			tc.cmc.AgePubKey = agepubkey
 			t.Setenv(sops.EnvAgeKey, agekey)
-			tc.cmc.SetDefaultAppValues()
+			err = tc.cmc.SetDefaultAppValues()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
 			m, err := tc.cmc.GetMap(tc.template)
 			if err != nil && !tc.expectError {
