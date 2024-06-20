@@ -12,9 +12,9 @@ require (
 	github.com/rs/zerolog v1.32.0
 	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.2
+	github.com/spf13/viper v1.19.0
 	go.uber.org/config v1.4.0
-	golang.org/x/oauth2 v0.16.0
+	golang.org/x/oauth2 v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.28.6
 	k8s.io/apimachinery v0.29.3
@@ -57,7 +57,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/onsi/ginkgo/v2 v2.15.0 // indirect
 	github.com/onsi/gomega v1.31.1 // indirect
-	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect
