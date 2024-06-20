@@ -36,11 +36,13 @@ type CMCFlags struct {
 	ClusterAppCatalog            string
 	ClusterAppVersion            string
 	ClusterNamespace             string
+	ClusterIntegratesDefaultApps bool
 	ConfigureContainerRegistries bool
 	DefaultAppsName              string
 	DefaultAppsCatalog           string
 	DefaultAppsVersion           string
 	PrivateCA                    bool
+	PrivateMC                    bool
 	CertManagerDNSChallenge      bool
 	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
@@ -63,12 +65,13 @@ type SecretFlags struct {
 }
 
 type AzureFlags struct {
-	UAClientID   string
-	UATenantID   string
-	UAResourceID string
-	ClientID     string
-	TenantID     string
-	ClientSecret string
+	UAClientID     string
+	UATenantID     string
+	UAResourceID   string
+	ClientID       string
+	TenantID       string
+	ClientSecret   string
+	SubscriptionID string
 }
 
 type DeployKey struct {
@@ -313,15 +316,6 @@ func (c *Config) EnsureFlagsAreSet() error {
 	if c.Flags.ClusterAppVersion == "" {
 		return fmt.Errorf("cluster app version is required\n%w", ErrInvalidFlag)
 	}
-	if c.Flags.DefaultAppsName == "" {
-		return fmt.Errorf("default apps name is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.DefaultAppsCatalog == "" {
-		return fmt.Errorf("default apps catalog is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.DefaultAppsVersion == "" {
-		return fmt.Errorf("default apps version is required\n%w", ErrInvalidFlag)
-	}
 	if c.Flags.ClusterNamespace == "" {
 		return fmt.Errorf("cluster namespace is required\n%w", ErrInvalidFlag)
 	}
@@ -370,6 +364,18 @@ func (c *Config) EnsureFlagsAreSet() error {
 		return fmt.Errorf("cluster values are required\n%w", ErrInvalidFlag)
 	}
 	// Ensure that needed values for enabled features are set
+	if !c.Flags.ClusterIntegratesDefaultApps {
+		if c.Flags.DefaultAppsName == "" {
+			return fmt.Errorf("default apps name is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.DefaultAppsCatalog == "" {
+			return fmt.Errorf("default apps catalog is required\n%w", ErrInvalidFlag)
+		}
+		if c.Flags.DefaultAppsVersion == "" {
+			return fmt.Errorf("default apps version is required\n%w", ErrInvalidFlag)
+		}
+	}
+
 	if c.Flags.ConfigureContainerRegistries {
 		if c.Flags.Secrets.ContainerRegistryConfiguration == "" {
 			return fmt.Errorf("container registry configuration is required\n%w", ErrInvalidFlag)
@@ -413,6 +419,9 @@ func (c *Config) EnsureFlagsAreSet() error {
 		if c.Flags.Secrets.Azure.ClientSecret == "" {
 			return fmt.Errorf("azure client secret is required\n%w", ErrInvalidFlag)
 		}
+		if c.Flags.Secrets.Azure.SubscriptionID == "" {
+			return fmt.Errorf("azure subscription id is required\n%w", ErrInvalidFlag)
+		}
 		if c.Flags.Secrets.Azure.UAClientID == "" {
 			return fmt.Errorf("azure user assigned client id is required\n%w", ErrInvalidFlag)
 		}
@@ -438,14 +447,10 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			Version: c.Flags.ClusterAppVersion,
 			Values:  c.Flags.Secrets.ClusterValues,
 		},
-		DefaultApps: cmc.App{
-			Name:    c.Flags.DefaultAppsName,
-			AppName: fmt.Sprintf("%s-default-apps", c.Cluster),
-			Catalog: c.Flags.DefaultAppsCatalog,
-			Version: c.Flags.DefaultAppsVersion,
-		},
-		MCAppsPreventDeletion: c.Flags.MCAppsPreventDeletion,
-		PrivateCA:             c.Flags.PrivateCA,
+		ClusterIntegratesDefaultApps: c.Flags.ClusterIntegratesDefaultApps,
+		MCAppsPreventDeletion:        c.Flags.MCAppsPreventDeletion,
+		PrivateCA:                    c.Flags.PrivateCA,
+		PrivateMC:                    c.Flags.PrivateMC,
 		Provider: cmc.Provider{
 			Name: c.Provider,
 		},
@@ -466,6 +471,14 @@ func getCMC(c Config) (*cmc.CMC, error) {
 			KnownHosts: c.Flags.Secrets.SharedDeployKey.KnownHosts,
 		},
 		DisableDenyAllNetPol: disableDenyAllNetPol(c.Provider),
+	}
+	if !c.Flags.ClusterIntegratesDefaultApps {
+		newCMC.DefaultApps = cmc.App{
+			Name:    c.Flags.DefaultAppsName,
+			AppName: fmt.Sprintf("%s-default-apps", c.Cluster),
+			Catalog: c.Flags.DefaultAppsCatalog,
+			Version: c.Flags.DefaultAppsVersion,
+		}
 	}
 	if c.Flags.ConfigureContainerRegistries {
 		newCMC.ConfigureContainerRegistries = cmc.ConfigureContainerRegistries{
@@ -514,12 +527,13 @@ func getCMC(c Config) (*cmc.CMC, error) {
 		}
 	} else if key.IsProviderAzure(c.Provider) {
 		newCMC.Provider.CAPZ = cmc.CAPZ{
-			ClientID:     c.Flags.Secrets.Azure.ClientID,
-			TenantID:     c.Flags.Secrets.Azure.TenantID,
-			ClientSecret: c.Flags.Secrets.Azure.ClientSecret,
-			UAClientID:   c.Flags.Secrets.Azure.UAClientID,
-			UATenantID:   c.Flags.Secrets.Azure.UATenantID,
-			UAResourceID: c.Flags.Secrets.Azure.UAResourceID,
+			ClientID:       c.Flags.Secrets.Azure.ClientID,
+			TenantID:       c.Flags.Secrets.Azure.TenantID,
+			ClientSecret:   c.Flags.Secrets.Azure.ClientSecret,
+			SubscriptionID: c.Flags.Secrets.Azure.SubscriptionID,
+			UAClientID:     c.Flags.Secrets.Azure.UAClientID,
+			UATenantID:     c.Flags.Secrets.Azure.UATenantID,
+			UAResourceID:   c.Flags.Secrets.Azure.UAResourceID,
 		}
 	}
 	if err := newCMC.SetDefaultAppValues(); err != nil {

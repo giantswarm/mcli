@@ -16,9 +16,11 @@ type CMC struct {
 	AgePubKey                    string                       `yaml:"agePubKey"`
 	Cluster                      string                       `yaml:"cluster"`
 	ClusterApp                   App                          `yaml:"clusterApp"`
-	DefaultApps                  App                          `yaml:"defaultApps"`
+	DefaultApps                  App                          `yaml:"defaultApps,omitempty"`
+	ClusterIntegratesDefaultApps bool                         `yaml:"clusterIntegratesDefaultApps"`
 	MCAppsPreventDeletion        bool                         `yaml:"mcAppsPreventDeletion"`
 	PrivateCA                    bool                         `yaml:"privateCA"`
+	PrivateMC                    bool                         `yaml:"privateMC"`
 	ClusterNamespace             string                       `yaml:"clusterNamespace"`
 	Provider                     Provider                     `yaml:"provider"`
 	TaylorBotToken               string                       `yaml:"taylorBotToken"`
@@ -52,12 +54,13 @@ type CAPV struct {
 }
 
 type CAPZ struct {
-	UAClientID   string `yaml:"uaClientID"`
-	UATenantID   string `yaml:"uaTenantID"`
-	UAResourceID string `yaml:"uaResourceID"`
-	ClientID     string `yaml:"clientID"`
-	ClientSecret string `yaml:"clientSecret"`
-	TenantID     string `yaml:"tenantID"`
+	UAClientID     string `yaml:"uaClientID"`
+	UATenantID     string `yaml:"uaTenantID"`
+	UAResourceID   string `yaml:"uaResourceID"`
+	ClientID       string `yaml:"clientID"`
+	ClientSecret   string `yaml:"clientSecret"`
+	TenantID       string `yaml:"tenantID"`
+	SubscriptionID string `yaml:"subscriptionID"`
 }
 
 type CAPVCD struct {
@@ -143,20 +146,8 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.ClusterApp.Values != "" {
 		cmc.ClusterApp.Values = override.ClusterApp.Values
 	}
-	if override.DefaultApps.Name != "" {
-		cmc.DefaultApps.Name = override.DefaultApps.Name
-	}
-	if override.DefaultApps.AppName != "" {
-		cmc.DefaultApps.AppName = override.DefaultApps.AppName
-	}
-	if override.DefaultApps.Catalog != "" {
-		cmc.DefaultApps.Catalog = override.DefaultApps.Catalog
-	}
-	if override.DefaultApps.Version != "" {
-		cmc.DefaultApps.Version = override.DefaultApps.Version
-	}
-	if override.DefaultApps.Values != "" {
-		cmc.DefaultApps.Values = override.DefaultApps.Values
+	if override.ClusterIntegratesDefaultApps {
+		cmc.ClusterIntegratesDefaultApps = override.ClusterIntegratesDefaultApps
 	}
 	if override.MCAppsPreventDeletion {
 		cmc.MCAppsPreventDeletion = override.MCAppsPreventDeletion
@@ -164,8 +155,30 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.PrivateCA {
 		cmc.PrivateCA = override.PrivateCA
 	}
+	if override.PrivateMC {
+		cmc.PrivateMC = override.PrivateMC
+	}
 	if override.ClusterNamespace != "" {
 		cmc.ClusterNamespace = override.ClusterNamespace
+	}
+	if !override.ClusterIntegratesDefaultApps {
+		if override.DefaultApps.Name != "" {
+			cmc.DefaultApps.Name = override.DefaultApps.Name
+		}
+		if override.DefaultApps.AppName != "" {
+			cmc.DefaultApps.AppName = override.DefaultApps.AppName
+		}
+		if override.DefaultApps.Catalog != "" {
+			cmc.DefaultApps.Catalog = override.DefaultApps.Catalog
+		}
+		if override.DefaultApps.Version != "" {
+			cmc.DefaultApps.Version = override.DefaultApps.Version
+		}
+		if override.DefaultApps.Values != "" {
+			cmc.DefaultApps.Values = override.DefaultApps.Values
+		}
+	} else {
+		cmc.DefaultApps = App{}
 	}
 	if override.Provider.Name != "" {
 		cmc.Provider.Name = override.Provider.Name
@@ -191,6 +204,9 @@ func (c *CMC) Override(override *CMC) *CMC {
 			}
 			if override.Provider.CAPZ.TenantID != "" {
 				cmc.Provider.CAPZ.TenantID = override.Provider.CAPZ.TenantID
+			}
+			if override.Provider.CAPZ.SubscriptionID != "" {
+				cmc.Provider.CAPZ.SubscriptionID = override.Provider.CAPZ.SubscriptionID
 			}
 		} else if key.IsProviderVCD(override.Provider.Name) {
 			if override.Provider.CAPVCD.RefreshToken != "" {
@@ -289,23 +305,25 @@ func (c *CMC) Validate() error {
 	if c.ClusterApp.Values == "" {
 		return fmt.Errorf("cluster app values is empty")
 	}
-	if c.DefaultApps.Name == "" {
-		return fmt.Errorf("default app name is empty")
-	}
-	if c.DefaultApps.AppName == "" {
-		return fmt.Errorf("default app app name is empty")
-	}
-	if c.DefaultApps.Catalog == "" {
-		return fmt.Errorf("default app catalog is empty")
-	}
-	if c.DefaultApps.Version == "" {
-		return fmt.Errorf("default app version is empty")
-	}
-	if c.DefaultApps.Values == "" {
-		return fmt.Errorf("default app values is empty")
-	}
 	if c.Provider.Name == "" {
 		return fmt.Errorf("provider is empty")
+	}
+	if !c.ClusterIntegratesDefaultApps {
+		if c.DefaultApps.Name == "" {
+			return fmt.Errorf("default app name is empty")
+		}
+		if c.DefaultApps.AppName == "" {
+			return fmt.Errorf("default app app name is empty")
+		}
+		if c.DefaultApps.Catalog == "" {
+			return fmt.Errorf("default app catalog is empty")
+		}
+		if c.DefaultApps.Version == "" {
+			return fmt.Errorf("default app version is empty")
+		}
+		if c.DefaultApps.Values == "" {
+			return fmt.Errorf("default app values is empty")
+		}
 	}
 	if key.IsProviderVsphere(c.Provider.Name) {
 		if c.Provider.CAPV.CloudConfig == "" {
@@ -329,6 +347,9 @@ func (c *CMC) Validate() error {
 		}
 		if c.Provider.CAPZ.TenantID == "" {
 			return fmt.Errorf("provider azure tenant id is empty")
+		}
+		if c.Provider.CAPZ.SubscriptionID == "" {
+			return fmt.Errorf("provider azure subscription id is empty")
 		}
 	} else if key.IsProviderVCD(c.Provider.Name) {
 		if c.Provider.CAPVCD.RefreshToken == "" {
@@ -405,16 +426,31 @@ func (c *CMC) Equals(desired *CMC) bool {
 }
 
 func (c *CMC) SetDefaultAppValues() error {
-	values, err := defaultappsvalues.GetDefaultAppsValuesFile(defaultappsvalues.Config{
+	config := defaultappsvalues.Config{
 		Cluster:                 c.Cluster,
 		PrivateCA:               c.PrivateCA,
+		PrivateMC:               c.PrivateMC,
 		Provider:                c.Provider.Name,
 		CertManagerDNSChallenge: c.CertManagerDNSChallenge.Enabled,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get default apps values.\n%w", err)
 	}
-	c.DefaultApps.Values = values
+	if key.IsProviderAzure(config.Provider) && config.PrivateMC {
+		config.IdentityClientID = c.Provider.CAPZ.UAClientID
+		config.SubscriptionID = c.Provider.CAPZ.SubscriptionID
+	}
+
+	if c.ClusterIntegratesDefaultApps {
+		values, err := defaultappsvalues.IntegrateDefaultAppsValuesInClusterValues(c.ClusterApp.Values, config)
+		if err != nil {
+			return fmt.Errorf("failed to integrate default apps values in cluster values.\n%w", err)
+		}
+		c.ClusterApp.Values = values
+	} else {
+		values, err := defaultappsvalues.GetDefaultAppsValuesFile(config)
+		if err != nil {
+			return fmt.Errorf("failed to get default apps values.\n%w", err)
+		}
+		c.DefaultApps.Values = values
+	}
 	return nil
 }
 

@@ -74,5 +74,6 @@ spec:
     substitute:
       proxy_hostname: %s
       proxy_port: %s
+	  github_port: "8081"
 `, c.Hostname, c.Port)
 }

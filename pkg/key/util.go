@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	"go.uber.org/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -88,4 +89,27 @@ func GetData(data any) ([]byte, error) {
 		return nil, err
 	}
 	return w.Bytes(), nil
+}
+
+func MergeValues(valuesA string, valuesB string) (string, error) {
+	base := strings.NewReader(valuesA)
+	override := strings.NewReader(valuesB)
+
+	provider, err := config.NewYAML(config.Source(base), config.Source(override))
+	if err != nil {
+		return "", fmt.Errorf("failed to create yaml provider.\n%w", err)
+	}
+
+	var c map[string]interface{}
+	err = provider.Get(config.Root).Populate(&c)
+	if err != nil {
+		return "", fmt.Errorf("failed to populate config.\n%w", err)
+	}
+
+	data, err := GetData(c)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal merged values.\n%w", err)
+	}
+
+	return string(data), nil
 }
