@@ -18,6 +18,7 @@ import (
 type Config struct {
 	Cluster        string
 	Github         *github.Github
+	BaseDomain     string
 	CMCRepository  string
 	CMCBranch      string
 	Provider       string
@@ -47,6 +48,10 @@ type CMCFlags struct {
 	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
 	MCHTTPSProxy                 string
+	CatalogRegistryValues        string
+	MCBBranchSource              string
+	ConfigBranch                 string
+	MCAppCollectionBranch        string
 }
 
 type SecretFlags struct {
@@ -310,6 +315,21 @@ func (c *Config) EnsureFlagsAreSet() error {
 	if c.Flags.ClusterAppName == "" {
 		return fmt.Errorf("cluster app name is required\n%w", ErrInvalidFlag)
 	}
+	if c.BaseDomain == "" {
+		return fmt.Errorf("base domain is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.CatalogRegistryValues == "" {
+		return fmt.Errorf("catalog registry values are required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.ConfigBranch == "" {
+		return fmt.Errorf("config branch is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.MCBBranchSource == "" {
+		return fmt.Errorf("mcb branch source is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.MCAppCollectionBranch == "" {
+		return fmt.Errorf("mc app collection branch is required\n%w", ErrInvalidFlag)
+	}
 	if c.Flags.ClusterAppCatalog == "" {
 		return fmt.Errorf("cluster app catalog is required\n%w", ErrInvalidFlag)
 	}
@@ -437,8 +457,17 @@ func (c *Config) EnsureFlagsAreSet() error {
 
 func getCMC(c Config) (*cmc.CMC, error) {
 	newCMC := &cmc.CMC{
-		AgePubKey:        c.Flags.AgePubKey,
-		Cluster:          c.Cluster,
+		AgePubKey:             c.Flags.AgePubKey,
+		Cluster:               c.Cluster,
+		BaseDomain:            c.BaseDomain,
+		CatalogRegistryValues: c.Flags.CatalogRegistryValues,
+		GitOps: cmc.GitOps{
+			CMCRepository:         c.CMCRepository,
+			CMCBranch:             c.CMCBranch,
+			MCBBranchSource:       c.Flags.MCBBranchSource,
+			ConfigBranch:          c.Flags.ConfigBranch,
+			MCAppCollectionBranch: c.Flags.MCAppCollectionBranch,
+		},
 		ClusterNamespace: c.Flags.ClusterNamespace,
 		ClusterApp: cmc.App{
 			Name:    c.Flags.ClusterAppName,

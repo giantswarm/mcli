@@ -15,6 +15,7 @@ import (
 
 type Config struct {
 	Cluster             string
+	BaseDomain          string
 	GithubToken         string
 	InstallationsBranch string
 	Skip                []string
@@ -61,6 +62,7 @@ func (c *Config) Push(ctx context.Context) (*managementcluster.ManagementCluster
 			Flags:               c.InstallationsFlags,
 			Provider:            c.Provider,
 			CMCRepository:       c.CMCRepository,
+			BaseDomain:          c.BaseDomain,
 		}
 		if c.Input != "" {
 			i.Input = &mc.Installations
@@ -79,6 +81,7 @@ func (c *Config) Push(ctx context.Context) (*managementcluster.ManagementCluster
 			CMCRepository:  c.CMCRepository,
 			Flags:          c.CMCFlags,
 			DisplaySecrets: c.DisplaySecrets,
+			BaseDomain:     c.BaseDomain,
 		}
 		if c.Input != "" {
 			i.Input = &mc.CMC

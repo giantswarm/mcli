@@ -6,6 +6,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/age"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/base"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
@@ -208,6 +209,10 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 
 	c.EncodeSecrets()
 
+	cmcTemplate, err = c.GetBaseFiles(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to template base files.\n%w", err)
+	}
 	cmcTemplate, err = c.GetSops(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add sops file.\n%w", err)
@@ -260,6 +265,28 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to decode secrets.\n%w", err)
 	}
 
+	return cmcTemplate, nil
+}
+
+// BaseFiles
+func (c *CMC) GetBaseFiles(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	manifests, err := base.GetBaseFiles(base.Config{
+		PROVIDER:                 c.Provider.Name,
+		INSTALLATION:             c.Cluster,
+		BASE_DOMAIN:              c.BaseDomain,
+		CATALOG_REGISTRY_VALUES:  c.CatalogRegistryValues,
+		CMC_REPOSITORY:           c.GitOps.CMCRepository,
+		CMC_BRANCH:               c.GitOps.CMCBranch,
+		MCB_BRANCH_SOURCE:        c.GitOps.MCBBranchSource,
+		CONFIG_BRANCH:            c.GitOps.ConfigBranch,
+		MC_APP_COLLECTION_BRANCH: c.GitOps.MCAppCollectionBranch,
+	}, cmcTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base files.\n%w", err)
+	}
+	for k, v := range manifests {
+		cmcTemplate[k] = v
+	}
 	return cmcTemplate, nil
 }
 

@@ -24,20 +24,20 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "some flags",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
+				Team: "testteam",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test"},
 			expectError: true,
 		},
 		{
 			name: "all flags",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain:    "test.com",
 				Team:          "testteam",
 				Customer:      "giantswarm",
 				CCRRepository: "test",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Provider:      "capz",
 				Cluster:       "test",
@@ -57,7 +57,6 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags with AWS",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain:    "test.com",
 				Team:          "testteam",
 				Customer:      "test",
 				CCRRepository: "test",
@@ -66,6 +65,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 					InstallationAWSAccount: "123456789012",
 				},
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Provider:      "capa",
 				Cluster:       "test"},
@@ -98,10 +98,10 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags but missing AWS flags",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain:    "test.com",
 				Team:          "testteam",
 				CCRRepository: "test",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Provider:      "capa",
 				Cluster:       "test",
@@ -111,13 +111,13 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 		{
 			name: "all flags but missing AWS region",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain:    "test.com",
 				Team:          "testteam",
 				CCRRepository: "test",
 				AWS: AWSFlags{
 					InstallationAWSAccount: "123456789012",
 				},
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Provider:      "capa",
 				Cluster:       "test"},
@@ -158,9 +158,9 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		{
 			name: "some flags, no current",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
+				Team: "testteam",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test"},
 			current: &installations.Installations{},
 			expected: &installations.Installations{
@@ -172,11 +172,11 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		{
 			name: "all flags, no current",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain:    "test.com",
 				Customer:      "giantswarm",
 				Team:          "testteam",
 				CCRRepository: "test",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test",
 				Provider:      "capz",
 				Cluster:       "test"},
@@ -194,10 +194,10 @@ func TestOverrideInstallationsWithFlags(t *testing.T) {
 		{
 			name: "some flags, current values are set",
 			flags: Config{Flags: InstallationsFlags{
-				BaseDomain: "test.com",
-				Team:       "testteam",
-				Customer:   "giantswarm",
+				Team:     "testteam",
+				Customer: "giantswarm",
 			},
+				BaseDomain:    "test.com",
 				CMCRepository: "test"},
 			current: &installations.Installations{
 				Codename:        "test2",

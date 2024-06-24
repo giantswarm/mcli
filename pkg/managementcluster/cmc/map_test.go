@@ -413,8 +413,9 @@ func GetTestKeys() (string, string, error) {
 
 func GetTestTemplate() map[string]string {
 	return map[string]string{
-		"management-clusters/cluster/deny-all-policies.yaml": "deny-all-policies",
-		"management-clusters/cluster/kustomization.yaml":     GetTestKustomization(),
+		"management-clusters/cluster/deny-all-policies.yaml":                       "deny-all-policies",
+		"management-clusters/cluster/kustomization.yaml":                           GetTestKustomization(),
+		"management-clusters/cluster/custom-branch-management-clusters-fleet.yaml": GetTestRepo(),
 	}
 }
 
@@ -485,4 +486,15 @@ resources:
   - cluster-app-manifests.yaml
   - default-apps-manifests.yaml
   - deny-all-policies.yaml`
+}
+
+func GetTestRepo() string {
+	return `apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: giantswarm-config
+  namespace: flux-giantswarm
+spec:
+  ref:
+    branch: ${CONFIG_BRANCH}`
 }

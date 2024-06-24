@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	flagBaseDomain          = "base-domain"
 	flagCluster             = "cluster"
 	flagVerbose             = "verbose"
 	flagGithubToken         = "github-token"
@@ -24,6 +25,7 @@ const (
 )
 
 const (
+	envBaseDomain          = "BASE_DOMAIN"
 	envCluster             = "INSTALLATION"
 	envGithubToken         = "OPSCTL_GITHUB_TOKEN" // #nosec G101
 	envInstallationsBranch = "INSTALLATIONS_BRANCH"
@@ -34,6 +36,7 @@ const (
 )
 
 var (
+	baseDomain          string
 	cluster             string
 	verbose             bool
 	githubToken         string

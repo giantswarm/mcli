@@ -13,6 +13,7 @@ import (
 
 type Config struct {
 	Cluster             string
+	BaseDomain          string
 	Provider            string
 	CMCRepository       string
 	Github              *github.Github
@@ -23,7 +24,6 @@ type Config struct {
 
 type InstallationsFlags struct {
 	CCRRepository string
-	BaseDomain    string
 	Team          string
 	AWS           AWSFlags
 	Customer      string
@@ -177,7 +177,7 @@ func (c *Config) Branch(ctx context.Context) error {
 
 func getNewInstallationsFromFlags(flags Config) (*installations.Installations, error) {
 	//Ensure that all the needed flags are set
-	if flags.Flags.BaseDomain == "" {
+	if flags.BaseDomain == "" {
 		return nil, fmt.Errorf("base domain is not set.\n%w", ErrInvalidFlag)
 	}
 	if flags.CMCRepository == "" {
@@ -210,7 +210,7 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 	log.Debug().Msg("getting new installations object from flags")
 
 	c := installations.InstallationsConfig{
-		Base:            flags.Flags.BaseDomain,
+		Base:            flags.BaseDomain,
 		Codename:        flags.Cluster,
 		Customer:        flags.Flags.Customer,
 		CmcRepository:   flags.CMCRepository,
@@ -238,7 +238,7 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 
 	c := installations.InstallationsConfig{
 		Codename:        flags.Cluster,
-		Base:            flags.Flags.BaseDomain,
+		Base:            flags.BaseDomain,
 		CmcRepository:   flags.CMCRepository,
 		CcrRepository:   flags.Flags.CCRRepository,
 		AccountEngineer: flags.Flags.Team,
@@ -264,7 +264,7 @@ func (c *Config) Validate() error {
 		log.Debug().Msg("using input file. Other installations flags will be ignored")
 		return nil
 	}
-	if c.Flags.BaseDomain == "" &&
+	if c.BaseDomain == "" &&
 		c.CMCRepository == "" &&
 		c.Flags.CCRRepository == "" &&
 		c.Flags.Team == "" &&
