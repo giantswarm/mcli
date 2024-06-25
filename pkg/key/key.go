@@ -14,6 +14,7 @@ const (
 	RepositoryMCBootstrap   = "mc-bootstrap"
 	InstallationsMainBranch = "master"
 	CMCMainBranch           = "main"
+	MCBMainBranch           = "main"
 	Employees               = "employees"
 	Bots                    = "bots"
 	CMCTemplateRepository   = "template-management-clusters"
@@ -95,6 +96,10 @@ func GetCMCName(customer string) string {
 
 func GetDefaultPRBranch(cluster string) string {
 	return fmt.Sprintf("%s_auto_branch", cluster)
+}
+
+func GetDefaultConfigBranch(cluster string) string {
+	return fmt.Sprintf("%s_auto_config", cluster)
 }
 
 func GetOwnershipBranch(customer string) string {

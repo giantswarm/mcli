@@ -28,7 +28,7 @@ const (
 	SopsFile = ".sops.yaml"
 )
 
-func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
+func GetCMCFromMap(input map[string]string, cluster string, cmcRepository string) (*CMC, error) {
 
 	data, err := sops.DecryptDir(input)
 	if err != nil {
@@ -42,6 +42,10 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 
 	path := key.GetCMCPath(sopsConfig.Cluster)
 
+	baseConfig, err := base.GetBaseConfig(input, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base config.\n%w", err)
+	}
 	clusterAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.ClusterAppsFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster apps config.\n%w", err)
@@ -68,8 +72,10 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 	}
 
 	cmc := CMC{
-		Cluster:   sopsConfig.Cluster,
-		AgePubKey: sopsConfig.AgePubKey,
+		Cluster:        sopsConfig.Cluster,
+		AgePubKey:      sopsConfig.AgePubKey,
+		BaseDomain:     baseConfig.BaseDomain,
+		RegistryDomain: baseConfig.RegistryDomain,
 		ClusterApp: App{
 			Name:    clusterAppsConfig.Name,
 			AppName: clusterAppsConfig.AppName,
@@ -101,6 +107,13 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			Passphrase: sharedDeployKeyConfig.Passphrase,
 			Identity:   sharedDeployKeyConfig.Identity,
 			KnownHosts: sharedDeployKeyConfig.KnownHosts,
+		},
+		GitOps: GitOps{
+			CMCRepository:         cmcRepository,
+			CMCBranch:             baseConfig.CMCBranch,
+			MCBBranchSource:       baseConfig.MCBBranchSource,
+			ConfigBranch:          baseConfig.ConfigBranch,
+			MCAppCollectionBranch: baseConfig.MCAppCollectionBranch,
 		},
 	}
 
@@ -271,15 +284,15 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 // BaseFiles
 func (c *CMC) GetBaseFiles(cmcTemplate map[string]string, path string) (map[string]string, error) {
 	manifests, err := base.GetBaseFiles(base.Config{
-		PROVIDER:                 c.Provider.Name,
-		INSTALLATION:             c.Cluster,
-		BASE_DOMAIN:              c.BaseDomain,
-		CATALOG_REGISTRY_VALUES:  c.CatalogRegistryValues,
-		CMC_REPOSITORY:           c.GitOps.CMCRepository,
-		CMC_BRANCH:               c.GitOps.CMCBranch,
-		MCB_BRANCH_SOURCE:        c.GitOps.MCBBranchSource,
-		CONFIG_BRANCH:            c.GitOps.ConfigBranch,
-		MC_APP_COLLECTION_BRANCH: c.GitOps.MCAppCollectionBranch,
+		Provider:              c.Provider.Name,
+		Cluster:               c.Cluster,
+		CMCRepository:         c.GitOps.CMCRepository,
+		CMCBranch:             c.GitOps.CMCBranch,
+		MCBBranchSource:       c.GitOps.MCBBranchSource,
+		ConfigBranch:          c.GitOps.ConfigBranch,
+		MCAppCollectionBranch: c.GitOps.MCAppCollectionBranch,
+		BaseDomain:            c.BaseDomain,
+		RegistryDomain:        c.RegistryDomain,
 	}, cmcTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get base files.\n%w", err)
@@ -603,6 +616,7 @@ func (c *CMC) GetKustomization(cmcTemplate map[string]string, path string) (map[
 		CustomCoreDNS:                c.CustomCoreDNS.Enabled,
 		DisableDenyAllNetPol:         c.DisableDenyAllNetPol,
 		MCProxy:                      c.MCProxy.Enabled,
+		MCBBranchSource:              c.GitOps.MCBBranchSource,
 	}, cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.KustomizationFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kustomization file.\n%w", err)

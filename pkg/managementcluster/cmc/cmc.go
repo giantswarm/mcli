@@ -33,7 +33,7 @@ type CMC struct {
 	DisableDenyAllNetPol         bool                         `yaml:"disableDenyAllNetPol"`
 	MCProxy                      MCProxy                      `yaml:"mcProxy"`
 	BaseDomain                   string                       `yaml:"baseDomain,omitempty"`
-	CatalogRegistryValues        string                       `yaml:"catalogRegistryValues,omitempty"`
+	RegistryDomain               string                       `yaml:"registryDomain,omitempty"`
 	GitOps                       GitOps                       `yaml:"gitOps,omitempty"`
 }
 
@@ -142,8 +142,8 @@ func (c *CMC) Override(override *CMC) *CMC {
 	if override.BaseDomain != "" {
 		cmc.BaseDomain = override.BaseDomain
 	}
-	if override.CatalogRegistryValues != "" {
-		cmc.CatalogRegistryValues = override.CatalogRegistryValues
+	if override.RegistryDomain != "" {
+		cmc.RegistryDomain = override.RegistryDomain
 	}
 	if override.GitOps.CMCRepository != "" {
 		cmc.GitOps.CMCRepository = override.GitOps.CMCRepository
@@ -327,9 +327,6 @@ func (c *CMC) Validate() error {
 	}
 	if c.BaseDomain == "" {
 		return fmt.Errorf("base domain is empty")
-	}
-	if c.CatalogRegistryValues == "" {
-		return fmt.Errorf("catalog registry values is empty")
 	}
 	if c.GitOps.CMCRepository == "" {
 		return fmt.Errorf("gitops cmc repository is empty")

@@ -22,7 +22,8 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 0: valid aws CMC",
 			cmc: &CMC{
-				Cluster: "cluster",
+				Cluster:    "cluster",
+				BaseDomain: "basedomain.io",
 				ClusterApp: App{
 					Name:    "clusterapp-aws",
 					Values:  "clusterappvalues",
@@ -87,7 +88,8 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 1: valid CMC azure",
 			cmc: &CMC{
-				Cluster: "cluster",
+				BaseDomain: "basedomain.io",
+				Cluster:    "cluster",
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
 					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
@@ -161,7 +163,8 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 2: valid aws CMC integrated default apps",
 			cmc: &CMC{
-				Cluster: "cluster",
+				BaseDomain: "basedomain.io",
+				Cluster:    "cluster",
 				ClusterApp: App{
 					Name:    "clusterapp-aws",
 					Values:  "clusterappvalues",
@@ -220,7 +223,8 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 3: valid CMC azure private MC",
 			cmc: &CMC{
-				Cluster: "cluster",
+				BaseDomain: "basedomain.io",
+				Cluster:    "cluster",
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
 					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
@@ -289,7 +293,8 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 4: valid CMC azure private MC",
 			cmc: &CMC{
-				Cluster: "cluster",
+				BaseDomain: "basedomain.io",
+				Cluster:    "cluster",
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
 					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
@@ -387,7 +392,7 @@ func TestGetMapFromCMC(t *testing.T) {
 				t.Fatalf("expected error, got nil")
 			}
 
-			result, err := GetCMCFromMap(m, tc.cmc.Cluster)
+			result, err := GetCMCFromMap(m, tc.cmc.Cluster, "test-management-clusters")
 			if err != nil && !tc.expectError {
 				t.Fatalf("unexpected error: %v", err)
 			} else if err == nil && tc.expectError {

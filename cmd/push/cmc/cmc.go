@@ -48,7 +48,7 @@ type CMCFlags struct {
 	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
 	MCHTTPSProxy                 string
-	CatalogRegistryValues        string
+	RegistryDomain               string
 	MCBBranchSource              string
 	ConfigBranch                 string
 	MCAppCollectionBranch        string
@@ -206,7 +206,7 @@ func (c *Config) Create(ctx context.Context, sopsFile string) (*cmc.CMC, error) 
 func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*cmc.CMC, error) {
 	var err error
 	log.Debug().Msg(fmt.Sprintf("updating %s entry for %s", c.CMCRepository, c.Cluster))
-	currentCMC, err := cmc.GetCMCFromMap(currentCMCmap, c.Cluster)
+	currentCMC, err := cmc.GetCMCFromMap(currentCMCmap, c.Cluster, c.CMCRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
 	}
@@ -269,7 +269,7 @@ func (c *Config) Push(ctx context.Context, desiredCMC map[string]string, message
 		return nil, fmt.Errorf("failed to create directory %s.\n%w", key.GetCMCPath(c.Cluster), err)
 	}
 
-	result, err := cmc.GetCMCFromMap(desiredCMC, c.Cluster)
+	result, err := cmc.GetCMCFromMap(desiredCMC, c.Cluster, c.CMCRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
 	}
@@ -317,9 +317,6 @@ func (c *Config) EnsureFlagsAreSet() error {
 	}
 	if c.BaseDomain == "" {
 		return fmt.Errorf("base domain is required\n%w", ErrInvalidFlag)
-	}
-	if c.Flags.CatalogRegistryValues == "" {
-		return fmt.Errorf("catalog registry values are required\n%w", ErrInvalidFlag)
 	}
 	if c.Flags.ConfigBranch == "" {
 		return fmt.Errorf("config branch is required\n%w", ErrInvalidFlag)
@@ -457,10 +454,10 @@ func (c *Config) EnsureFlagsAreSet() error {
 
 func getCMC(c Config) (*cmc.CMC, error) {
 	newCMC := &cmc.CMC{
-		AgePubKey:             c.Flags.AgePubKey,
-		Cluster:               c.Cluster,
-		BaseDomain:            c.BaseDomain,
-		CatalogRegistryValues: c.Flags.CatalogRegistryValues,
+		AgePubKey:      c.Flags.AgePubKey,
+		Cluster:        c.Cluster,
+		BaseDomain:     c.BaseDomain,
+		RegistryDomain: c.Flags.RegistryDomain,
 		GitOps: cmc.GitOps{
 			CMCRepository:         c.CMCRepository,
 			CMCBranch:             c.CMCBranch,

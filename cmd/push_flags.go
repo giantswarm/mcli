@@ -60,7 +60,7 @@ const (
 	flagMCBBranchSource              = "mc-branch-source"
 	flagConfigBranch                 = "config-branch"
 	flagMCAppCollectionBranch        = "mc-app-collection-branch"
-	flagCatalogRegistryValues        = "catalog-registry-values"
+	flagRegistryDomain               = "registry-domain"
 )
 
 const (
@@ -85,7 +85,7 @@ const (
 	envMCBBranchSource              = "MCB_BRANCH_SOURCE"
 	envConfigBranch                 = "CONFIG_BRANCH"
 	envMCAppCollectionBranch        = "MC_APP_COLLECTION_BRANCH"
-	envCatalogRegistryValues        = "CATALOG_REGISTRY_VALUES"
+	envRegistryDomain               = "REGISTRY_DOMAIN"
 )
 
 var (
@@ -110,7 +110,7 @@ var (
 	mcbBranchSource              string
 	configBranch                 string
 	mcAppCollectionBranch        string
-	catalogRegistryValues        string
+	registryDomain               string
 )
 
 // extra cmc flags that are read from the secrets folder and not exposed
@@ -200,10 +200,10 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&mcCustomCoreDNSConfig, flagMCCustomCoreDNSConfig, viper.GetString(envMCCustomCoreDNSConfig), "Custom CoreDNS configuration")
 	pushCmd.PersistentFlags().BoolVar(&mcProxyEnabled, flagMCProxyEnabled, viper.GetBool(envMCProxyEnabled), "Use proxy")
 	pushCmd.PersistentFlags().StringVar(&mcHTTPSProxy, flagMCHTTPSProxy, viper.GetString(envMCHTTPSProxy), "HTTPS proxy to use")
-	pushCmd.PersistentFlags().StringVar(&mcbBranchSource, flagMCBBranchSource, viper.GetString(envMCBBranchSource), "Branch to use for the MCB repository")
+	pushCmd.PersistentFlags().StringVar(&mcbBranchSource, flagMCBBranchSource, viper.GetString(envMCBBranchSource), "Branch to use for the mcb repository")
 	pushCmd.PersistentFlags().StringVar(&configBranch, flagConfigBranch, viper.GetString(envConfigBranch), "Branch to use for the config repository")
 	pushCmd.PersistentFlags().StringVar(&mcAppCollectionBranch, flagMCAppCollectionBranch, viper.GetString(envMCAppCollectionBranch), "Branch to use for the MC app collection repository")
-	pushCmd.PersistentFlags().StringVar(&catalogRegistryValues, flagCatalogRegistryValues, viper.GetString(envCatalogRegistryValues), "Catalog registry values")
+	pushCmd.PersistentFlags().StringVar(&registryDomain, flagRegistryDomain, viper.GetString(envRegistryDomain), "Domain of the registry. Only needed if it's different from the default.")
 	pushCmd.PersistentFlags().StringVar(&agePubKey, flagAgePubKey, viper.GetString(envAgePubKey), "Age public key for the cluster")
 	err := pushCmd.PersistentFlags().MarkHidden(flagAgePubKey)
 	if err != nil {
@@ -314,10 +314,19 @@ func defaultPush() {
 	if cmcBranch == "" {
 		cmcBranch = key.GetDefaultPRBranch(cluster)
 	}
+	if mcAppCollectionBranch == "" {
+		mcAppCollectionBranch = key.GetDefaultPRBranch(cluster)
+	}
+	if configBranch == "" {
+		configBranch = key.GetDefaultConfigBranch(cluster)
+	}
 	if customer == "" {
 		customer = "giantswarm"
 	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
+	}
+	if mcbBranchSource == "" {
+		mcbBranchSource = key.MCBMainBranch
 	}
 }

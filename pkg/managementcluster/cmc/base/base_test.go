@@ -23,7 +23,7 @@ func TestGetBaseFiles(t *testing.T) {
 				"file1": GetTestFile(),
 			},
 			config: Config{
-				CONFIG_BRANCH: "main",
+				ConfigBranch: "auto",
 			},
 
 			expected: map[string]string{},
@@ -34,7 +34,7 @@ func TestGetBaseFiles(t *testing.T) {
 				"file1": GetTestTemplate(),
 			},
 			config: Config{
-				CONFIG_BRANCH: "main",
+				ConfigBranch: "auto",
 			},
 
 			expected: map[string]string{
@@ -49,7 +49,7 @@ func TestGetBaseFiles(t *testing.T) {
 				"file3": GetTestTemplate(),
 			},
 			config: Config{
-				CONFIG_BRANCH: "main",
+				ConfigBranch: "auto",
 			},
 
 			expected: map[string]string{
@@ -78,6 +78,121 @@ func TestGetBaseFiles(t *testing.T) {
 	}
 }
 
+func TestGetBaseConfig(t *testing.T) {
+	testCases := []struct {
+		name     string
+		template map[string]string
+
+		expected  Config
+		expectErr bool
+	}{
+		{
+			name:     "case 0: empty",
+			template: map[string]string{},
+
+			expectErr: true,
+		},
+		{
+			name: "case 1: catalog patch",
+			template: map[string]string{
+				"management-clusters/test/" + catalogPatchFile: GetTestPatch(),
+			},
+
+			expected: Config{
+				CMCBranch:             "main",
+				MCAppCollectionBranch: "main",
+				BaseDomain:            "test.base.domain.io",
+				RegistryDomain:        "registry.domain.test.io",
+				MCBBranchSource:       "main",
+				ConfigBranch:          "main",
+			},
+		},
+		{
+			name: "case 2: cmc branch",
+			template: map[string]string{
+				"management-clusters/test/" + customBranchCMCFile: GetTestFile(),
+				"management-clusters/test/" + catalogPatchFile:    GetTestPatch(),
+			},
+
+			expected: Config{
+				CMCBranch:             "auto",
+				MCAppCollectionBranch: "main",
+				BaseDomain:            "test.base.domain.io",
+				RegistryDomain:        "registry.domain.test.io",
+				MCBBranchSource:       "main",
+				ConfigBranch:          "main",
+			},
+		},
+		{
+			name: "case 3: config branch",
+			template: map[string]string{
+				"management-clusters/test/" + customBranchConfigFile: GetTestFile(),
+				"management-clusters/test/" + catalogPatchFile:       GetTestPatch(),
+			},
+
+			expected: Config{
+				CMCBranch:             "main",
+				MCAppCollectionBranch: "main",
+				BaseDomain:            "test.base.domain.io",
+				RegistryDomain:        "registry.domain.test.io",
+				MCBBranchSource:       "main",
+				ConfigBranch:          "auto",
+			},
+		},
+		{
+			name: "case 4: mc app collection branch",
+			template: map[string]string{
+				"management-clusters/test/" + customBranchCollectionFile: GetTestFile(),
+				"management-clusters/test/" + catalogPatchFile:           GetTestPatch(),
+			},
+
+			expected: Config{
+				CMCBranch:             "main",
+				MCAppCollectionBranch: "auto",
+				BaseDomain:            "test.base.domain.io",
+				RegistryDomain:        "registry.domain.test.io",
+				MCBBranchSource:       "main",
+				ConfigBranch:          "main",
+			},
+		},
+		{
+			name: "case 5: mcb branch source",
+			template: map[string]string{
+				"management-clusters/test/" + catalogKustomizationFile: GetTestKustomization(),
+				"management-clusters/test/" + catalogPatchFile:         GetTestPatch(),
+			},
+
+			expected: Config{
+				CMCBranch:             "main",
+				MCAppCollectionBranch: "main",
+				BaseDomain:            "test.base.domain.io",
+				RegistryDomain:        "registry.domain.test.io",
+				MCBBranchSource:       "hello",
+				ConfigBranch:          "main",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, err := GetBaseConfig(tc.template, "management-clusters/test")
+			if err != nil {
+				if !tc.expectErr {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				return
+			}
+			if tc.expectErr {
+				t.Fatalf("expected error, got nil")
+			}
+
+			if actual != tc.expected {
+				t.Fatalf("expected %v, got %v", tc.expected, actual)
+			}
+		})
+	}
+}
+
 func GetTestTemplate() string {
 	return `apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
@@ -97,5 +212,36 @@ metadata:
   namespace: flux-giantswarm
 spec:
   ref:
-    branch: main`
+    branch: auto`
+}
+
+func GetTestPatch() string {
+	return `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: appcatalog-default
+  namespace: flux-giantswarm
+spec:
+  values:
+    appCatalog:
+      config:
+        configMap:
+          values:
+            baseDomain: test.base.domain.io
+            managementCluster: test
+            provider: capa
+            image:
+              registry: registry.domain.test.io
+            registry:
+              domain: registry.domain.test.io`
+}
+
+func GetTestKustomization() string {
+	return `apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+patches:
+  - path: patches/appcatalog-default-patch.yaml
+resources:
+  - https://github.com/giantswarm/management-cluster-bases//bases/catalogs?ref=hello
+  - another-resource.yaml`
 }
