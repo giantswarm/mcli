@@ -147,7 +147,7 @@ installations:
   codename: $CLUSTER
   customer: $CUSTOMER
   cmc_repository: $CUSTOMER-management-clusters
-  ccr_repository: $CUSTOMER--configs
+  ccr_repository: $CUSTOMER-configs
   accountEngineer: Elmo
   pipeline: stable
   provider: capa
@@ -221,7 +221,7 @@ cmc:
     enabled: false
   baseDomain: awstest.gigantic.io
   gitOps:
-    cmcRepository: $CUSTOMER--management-clusters
+    cmcRepository: $CUSTOMER-management-clusters
     cmcBranch: $CLUSTER_auto_branch
     mcbBranchSource: main
     configBranch: $CLUSTER_auto_config
