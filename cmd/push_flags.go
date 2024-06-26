@@ -57,7 +57,7 @@ const (
 	flagMCHTTPSProxy                 = "mc-https-proxy"
 	flagAgePubKey                    = "age-pub-key"
 	flagTaylorBotToken               = "taylor-bot-token"
-	flagMCBBranchSource              = "mc-branch-source"
+	flagMCBBranchSource              = "mcb-branch-source"
 	flagConfigBranch                 = "config-branch"
 	flagMCAppCollectionBranch        = "mc-app-collection-branch"
 	flagRegistryDomain               = "registry-domain"
