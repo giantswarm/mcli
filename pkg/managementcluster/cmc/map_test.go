@@ -24,9 +24,16 @@ func TestGetMapFromCMC(t *testing.T) {
 			cmc: &CMC{
 				Cluster:    "cluster",
 				BaseDomain: "basedomain.io",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
 				ClusterApp: App{
 					Name:    "clusterapp-aws",
-					Values:  "clusterappvalues",
+					Values:  "global:\n  clusterapp: values",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-aws",
@@ -90,9 +97,16 @@ func TestGetMapFromCMC(t *testing.T) {
 			cmc: &CMC{
 				BaseDomain: "basedomain.io",
 				Cluster:    "cluster",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
-					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
+					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-azure",
@@ -165,9 +179,16 @@ func TestGetMapFromCMC(t *testing.T) {
 			cmc: &CMC{
 				BaseDomain: "basedomain.io",
 				Cluster:    "cluster",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
 				ClusterApp: App{
 					Name:    "clusterapp-aws",
-					Values:  "clusterappvalues",
+					Values:  "global:\n  clusterapp: values",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-aws",
@@ -225,9 +246,16 @@ func TestGetMapFromCMC(t *testing.T) {
 			cmc: &CMC{
 				BaseDomain: "basedomain.io",
 				Cluster:    "cluster",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
-					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
+					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-azure",
@@ -295,9 +323,16 @@ func TestGetMapFromCMC(t *testing.T) {
 			cmc: &CMC{
 				BaseDomain: "basedomain.io",
 				Cluster:    "cluster",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
 				ClusterApp: App{
 					Name:    "clusterapp-azure",
-					Values:  "clusterappvalues\nsubscriptionID: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
+					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
 					Version: "clusterappversion",
 					Catalog: "clustercatalog",
 					AppName: "clusterappname-azure",
@@ -324,6 +359,74 @@ func TestGetMapFromCMC(t *testing.T) {
 						TenantID:       "tenantid",
 						SubscriptionID: "subid",
 					},
+				},
+				TaylorBotToken: "taylorbottoken",
+				SSHdeployKey: DeployKey{
+					Identity:   "identity",
+					Passphrase: "passphrase",
+					KnownHosts: "knownhosts",
+				},
+				CustomerDeployKey: DeployKey{
+					Identity:   "customeridentity",
+					Passphrase: "customerpassphrase",
+					KnownHosts: "customerknownhosts",
+				},
+				SharedDeployKey: DeployKey{
+					Identity:   "sharedidentity",
+					Passphrase: "sharedpassphrase",
+					KnownHosts: "sharedknownhosts",
+				},
+				ConfigureContainerRegistries: ConfigureContainerRegistries{
+					Enabled: true,
+					Values:  "configurecontainerregistriesvalues",
+				},
+				CertManagerDNSChallenge: CertManagerDNSChallenge{
+					Enabled:         true,
+					AccessKeyID:     "accesskeyid",
+					Region:          "region",
+					Role:            "role",
+					SecretAccessKey: "secretaccesskey",
+				},
+				CustomCoreDNS: CustomCoreDNS{
+					Enabled: true,
+					Values:  "customcorednsvalues",
+				},
+				DisableDenyAllNetPol: true,
+				MCProxy: MCProxy{
+					Enabled:  true,
+					Hostname: "hostname",
+					Port:     "1234",
+				},
+			},
+			template:    GetTestTemplate(),
+			expectError: false,
+		},
+		{
+			name: "case 5: custom registry domain",
+			cmc: &CMC{
+				BaseDomain:     "basedomain.io",
+				RegistryDomain: "registrydomain.io",
+				Cluster:        "cluster",
+				GitOps: GitOps{
+					CMCRepository:         "test-management-clusters",
+					CMCBranch:             "cmc-branch",
+					MCBBranchSource:       "mcb-branch",
+					ConfigBranch:          "config-branch",
+					MCAppCollectionBranch: "mc-app-collection-branch",
+				},
+				ClusterApp: App{
+					Name:    "clusterapp-aws",
+					Values:  "global:\n  clusterapp: values",
+					Version: "clusterappversion",
+					Catalog: "clustercatalog",
+					AppName: "clusterappname-aws",
+				},
+				ClusterIntegratesDefaultApps: true,
+				MCAppsPreventDeletion:        true,
+				PrivateCA:                    true,
+				ClusterNamespace:             "clusternamespace",
+				Provider: Provider{
+					Name: key.ProviderAWS,
 				},
 				TaylorBotToken: "taylorbottoken",
 				SSHdeployKey: DeployKey{
@@ -418,9 +521,13 @@ func GetTestKeys() (string, string, error) {
 
 func GetTestTemplate() map[string]string {
 	return map[string]string{
-		"management-clusters/cluster/deny-all-policies.yaml":                       "deny-all-policies",
-		"management-clusters/cluster/kustomization.yaml":                           GetTestKustomization(),
-		"management-clusters/cluster/custom-branch-management-clusters-fleet.yaml": GetTestRepo(),
+		"management-clusters/cluster/deny-all-policies.yaml":                         "deny-all-policies",
+		"management-clusters/cluster/kustomization.yaml":                             GetTestKustomization(),
+		"management-clusters/cluster/custom-branch-management-clusters-fleet.yaml":   GetTestRepo("CMC_BRANCH"),
+		"management-clusters/cluster/custom-branch-config.yaml":                      GetTestRepo("CONFIG_BRANCH"),
+		"management-clusters/cluster/custom-branch-collection.yaml":                  GetTestRepo("MC_APP_COLLECTION_BRANCH"),
+		"management-clusters/cluster/catalogs/kustomization.yaml":                    GetTestCatalog(),
+		"management-clusters/cluster/catalogs/patches/appcatalog-default-patch.yaml": GetTestPatch(),
 	}
 }
 
@@ -493,13 +600,41 @@ resources:
   - deny-all-policies.yaml`
 }
 
-func GetTestRepo() string {
-	return `apiVersion: source.toolkit.fluxcd.io/v1
+func GetTestRepo(branch string) string {
+	return fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: giantswarm-config
+  name: collection
   namespace: flux-giantswarm
 spec:
   ref:
-    branch: ${CONFIG_BRANCH}`
+    branch: ${%s}`, branch)
+}
+
+func GetTestPatch() string {
+	return `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: appcatalog-default
+  namespace: flux-giantswarm
+spec:
+  values:
+    appCatalog:
+      config:
+        configMap:
+          values:
+            baseDomain: ${BASE_DOMAIN}
+            managementCluster: ${INSTALLATION}
+            provider: ${PROVIDER}
+${CATALOG_REGISTRY_VALUES}`
+}
+
+func GetTestCatalog() string {
+	return `apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+patches:
+  - path: patches/appcatalog-default-patch.yaml
+resources:
+  - https://github.com/giantswarm/management-cluster-bases//bases/catalogs?ref=${MCB_BRANCH_SOURCE}
+  - another-resource.yaml`
 }
