@@ -2,6 +2,10 @@ package base
 
 import "testing"
 
+const (
+	path = "management-clusters/test/"
+)
+
 func TestGetBaseFiles(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -95,7 +99,7 @@ func TestGetBaseConfig(t *testing.T) {
 		{
 			name: "case 1: catalog patch",
 			template: map[string]string{
-				"management-clusters/test/" + catalogPatchFile: GetTestPatch(),
+				path + catalogPatchFile: GetTestPatch(),
 			},
 
 			expected: Config{
@@ -110,8 +114,8 @@ func TestGetBaseConfig(t *testing.T) {
 		{
 			name: "case 2: cmc branch",
 			template: map[string]string{
-				"management-clusters/test/" + customBranchCMCFile: GetTestFile(),
-				"management-clusters/test/" + catalogPatchFile:    GetTestPatch(),
+				path + customBranchCMCFile: GetTestFile(),
+				path + catalogPatchFile:    GetTestPatch(),
 			},
 
 			expected: Config{
@@ -126,8 +130,8 @@ func TestGetBaseConfig(t *testing.T) {
 		{
 			name: "case 3: config branch",
 			template: map[string]string{
-				"management-clusters/test/" + customBranchConfigFile: GetTestFile(),
-				"management-clusters/test/" + catalogPatchFile:       GetTestPatch(),
+				path + customBranchConfigFile: GetTestFile(),
+				path + catalogPatchFile:       GetTestPatch(),
 			},
 
 			expected: Config{
@@ -142,8 +146,8 @@ func TestGetBaseConfig(t *testing.T) {
 		{
 			name: "case 4: mc app collection branch",
 			template: map[string]string{
-				"management-clusters/test/" + customBranchCollectionFile: GetTestFile(),
-				"management-clusters/test/" + catalogPatchFile:           GetTestPatch(),
+				path + customBranchCollectionFile: GetTestFile(),
+				path + catalogPatchFile:           GetTestPatch(),
 			},
 
 			expected: Config{
@@ -158,8 +162,8 @@ func TestGetBaseConfig(t *testing.T) {
 		{
 			name: "case 5: mcb branch source",
 			template: map[string]string{
-				"management-clusters/test/" + catalogKustomizationFile: GetTestKustomization(),
-				"management-clusters/test/" + catalogPatchFile:         GetTestPatch(),
+				path + catalogKustomizationFile: GetTestKustomization(),
+				path + catalogPatchFile:         GetTestPatch(),
 			},
 
 			expected: Config{
