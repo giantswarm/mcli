@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/template"
-	"github.com/rs/zerolog/log"
 )
 
 const (
