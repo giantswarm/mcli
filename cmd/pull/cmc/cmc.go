@@ -43,7 +43,7 @@ func (c *Config) Run(ctx context.Context) (*cmc.CMC, error) {
 	}
 	data[cmc.SopsFile] = sopsfile
 
-	result, err := cmc.GetCMCFromMap(data, c.Cluster)
+	result, err := cmc.GetCMCFromMap(data, c.Cluster, c.CMCRepository)
 	if err != nil {
 		return nil, err
 	}

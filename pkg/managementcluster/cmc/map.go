@@ -6,6 +6,7 @@ import (
 	"github.com/giantswarm/mcli/pkg/key"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/age"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/apps"
+	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/base"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/certmanager"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/coredns"
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc/defaultappsvalues"
@@ -27,7 +28,7 @@ const (
 	SopsFile = ".sops.yaml"
 )
 
-func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
+func GetCMCFromMap(input map[string]string, cluster string, cmcRepository string) (*CMC, error) {
 
 	data, err := sops.DecryptDir(input)
 	if err != nil {
@@ -41,6 +42,10 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 
 	path := key.GetCMCPath(sopsConfig.Cluster)
 
+	baseConfig, err := base.GetBaseConfig(input, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base config.\n%w", err)
+	}
 	clusterAppsConfig, err := apps.GetAppsConfig(data[fmt.Sprintf("%s/%s", path, kustomization.ClusterAppsFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster apps config.\n%w", err)
@@ -67,8 +72,10 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 	}
 
 	cmc := CMC{
-		Cluster:   sopsConfig.Cluster,
-		AgePubKey: sopsConfig.AgePubKey,
+		Cluster:        sopsConfig.Cluster,
+		AgePubKey:      sopsConfig.AgePubKey,
+		BaseDomain:     baseConfig.BaseDomain,
+		RegistryDomain: baseConfig.RegistryDomain,
 		ClusterApp: App{
 			Name:    clusterAppsConfig.Name,
 			AppName: clusterAppsConfig.AppName,
@@ -100,6 +107,13 @@ func GetCMCFromMap(input map[string]string, cluster string) (*CMC, error) {
 			Passphrase: sharedDeployKeyConfig.Passphrase,
 			Identity:   sharedDeployKeyConfig.Identity,
 			KnownHosts: sharedDeployKeyConfig.KnownHosts,
+		},
+		GitOps: GitOps{
+			CMCRepository:         cmcRepository,
+			CMCBranch:             baseConfig.CMCBranch,
+			MCBBranchSource:       baseConfig.MCBBranchSource,
+			ConfigBranch:          baseConfig.ConfigBranch,
+			MCAppCollectionBranch: baseConfig.MCAppCollectionBranch,
 		},
 	}
 
@@ -208,6 +222,10 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 
 	c.EncodeSecrets()
 
+	cmcTemplate, err = c.GetBaseFiles(cmcTemplate, path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to template base files.\n%w", err)
+	}
 	cmcTemplate, err = c.GetSops(cmcTemplate, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add sops file.\n%w", err)
@@ -260,6 +278,28 @@ func (c *CMC) GetMap(cmcTemplate map[string]string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to decode secrets.\n%w", err)
 	}
 
+	return cmcTemplate, nil
+}
+
+// BaseFiles
+func (c *CMC) GetBaseFiles(cmcTemplate map[string]string, path string) (map[string]string, error) {
+	manifests, err := base.GetBaseFiles(base.Config{
+		Provider:              c.Provider.Name,
+		Cluster:               c.Cluster,
+		CMCRepository:         c.GitOps.CMCRepository,
+		CMCBranch:             c.GitOps.CMCBranch,
+		MCBBranchSource:       c.GitOps.MCBBranchSource,
+		ConfigBranch:          c.GitOps.ConfigBranch,
+		MCAppCollectionBranch: c.GitOps.MCAppCollectionBranch,
+		BaseDomain:            c.BaseDomain,
+		RegistryDomain:        c.RegistryDomain,
+	}, cmcTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base files.\n%w", err)
+	}
+	for k, v := range manifests {
+		cmcTemplate[k] = v
+	}
 	return cmcTemplate, nil
 }
 
@@ -576,6 +616,7 @@ func (c *CMC) GetKustomization(cmcTemplate map[string]string, path string) (map[
 		CustomCoreDNS:                c.CustomCoreDNS.Enabled,
 		DisableDenyAllNetPol:         c.DisableDenyAllNetPol,
 		MCProxy:                      c.MCProxy.Enabled,
+		MCBBranchSource:              c.GitOps.MCBBranchSource,
 	}, cmcTemplate[fmt.Sprintf("%s/%s", path, kustomization.KustomizationFile)])
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kustomization file.\n%w", err)

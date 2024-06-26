@@ -16,7 +16,6 @@ import (
 
 // installations flags
 const (
-	flagBaseDomain    = "base-domain"
 	flagCCRRepository = "ccr-repository"
 	flagTeam          = "team"
 	flagAWSRegion     = "aws-region"
@@ -24,7 +23,6 @@ const (
 )
 
 const (
-	envBaseDomain    = "BASE_DOMAIN"
 	envCCRRepository = "CCR_REPOSITORY"
 	envTeam          = "TEAM_NAME"
 	envAWSRegion     = "AWS_REGION"
@@ -32,7 +30,6 @@ const (
 )
 
 var (
-	baseDomain    string
 	ccrRepository string
 	team          string
 	awsRegion     string
@@ -60,6 +57,10 @@ const (
 	flagMCHTTPSProxy                 = "mc-https-proxy"
 	flagAgePubKey                    = "age-pub-key"
 	flagTaylorBotToken               = "taylor-bot-token"
+	flagMCBBranchSource              = "mcb-branch-source"
+	flagConfigBranch                 = "config-branch"
+	flagMCAppCollectionBranch        = "mc-app-collection-branch"
+	flagRegistryDomain               = "registry-domain"
 )
 
 const (
@@ -81,6 +82,10 @@ const (
 	envMCProxyEnabled               = "MC_PROXY_ENABLED"
 	envMCHTTPSProxy                 = "MC_HTTPS_PROXY"
 	envAgePubKey                    = "AGE_PUBKEY"
+	envMCBBranchSource              = "MCB_BRANCH_SOURCE"
+	envConfigBranch                 = "CONFIG_BRANCH"
+	envMCAppCollectionBranch        = "MC_APP_COLLECTION_BRANCH"
+	envRegistryDomain               = "REGISTRY_DOMAIN"
 )
 
 var (
@@ -102,6 +107,10 @@ var (
 	mcProxyEnabled               bool
 	mcHTTPSProxy                 string
 	agePubKey                    string
+	mcbBranchSource              string
+	configBranch                 string
+	mcAppCollectionBranch        string
+	registryDomain               string
 )
 
 // extra cmc flags that are read from the secrets folder and not exposed
@@ -165,9 +174,9 @@ func addFlagsPush() {
 	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
 	pushCmd.PersistentFlags().StringVar(&provider, flagProvider, viper.GetString(envProvider), "Provider of the cluster")
+	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
 
 	// add installations flags
-	pushCmd.PersistentFlags().StringVar(&baseDomain, flagBaseDomain, viper.GetString(envBaseDomain), "Base domain to use for the cluster")
 	pushCmd.PersistentFlags().StringVar(&ccrRepository, flagCCRRepository, viper.GetString(envCCRRepository), "CCR repository to use for the cluster")
 	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
@@ -191,6 +200,10 @@ func addFlagsPush() {
 	pushCmd.PersistentFlags().StringVar(&mcCustomCoreDNSConfig, flagMCCustomCoreDNSConfig, viper.GetString(envMCCustomCoreDNSConfig), "Custom CoreDNS configuration")
 	pushCmd.PersistentFlags().BoolVar(&mcProxyEnabled, flagMCProxyEnabled, viper.GetBool(envMCProxyEnabled), "Use proxy")
 	pushCmd.PersistentFlags().StringVar(&mcHTTPSProxy, flagMCHTTPSProxy, viper.GetString(envMCHTTPSProxy), "HTTPS proxy to use")
+	pushCmd.PersistentFlags().StringVar(&mcbBranchSource, flagMCBBranchSource, viper.GetString(envMCBBranchSource), "Branch to use for the mcb repository")
+	pushCmd.PersistentFlags().StringVar(&configBranch, flagConfigBranch, viper.GetString(envConfigBranch), "Branch to use for the config repository")
+	pushCmd.PersistentFlags().StringVar(&mcAppCollectionBranch, flagMCAppCollectionBranch, viper.GetString(envMCAppCollectionBranch), "Branch to use for the MC app collection repository")
+	pushCmd.PersistentFlags().StringVar(&registryDomain, flagRegistryDomain, viper.GetString(envRegistryDomain), "Domain of the registry. Only needed if it's different from the default.")
 	pushCmd.PersistentFlags().StringVar(&agePubKey, flagAgePubKey, viper.GetString(envAgePubKey), "Age public key for the cluster")
 	err := pushCmd.PersistentFlags().MarkHidden(flagAgePubKey)
 	if err != nil {
@@ -301,10 +314,19 @@ func defaultPush() {
 	if cmcBranch == "" {
 		cmcBranch = key.GetDefaultPRBranch(cluster)
 	}
+	if mcAppCollectionBranch == "" {
+		mcAppCollectionBranch = key.GetDefaultPRBranch(cluster)
+	}
+	if configBranch == "" {
+		configBranch = key.GetDefaultConfigBranch(cluster)
+	}
 	if customer == "" {
 		customer = "giantswarm"
 	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
+	}
+	if mcbBranchSource == "" {
+		mcbBranchSource = key.MCBMainBranch
 	}
 }

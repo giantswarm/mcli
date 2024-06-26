@@ -18,6 +18,7 @@ import (
 type Config struct {
 	Cluster        string
 	Github         *github.Github
+	BaseDomain     string
 	CMCRepository  string
 	CMCBranch      string
 	Provider       string
@@ -47,6 +48,10 @@ type CMCFlags struct {
 	MCCustomCoreDNSConfig        string
 	MCProxyEnabled               bool
 	MCHTTPSProxy                 string
+	RegistryDomain               string
+	MCBBranchSource              string
+	ConfigBranch                 string
+	MCAppCollectionBranch        string
 }
 
 type SecretFlags struct {
@@ -201,7 +206,7 @@ func (c *Config) Create(ctx context.Context, sopsFile string) (*cmc.CMC, error) 
 func (c *Config) Update(ctx context.Context, currentCMCmap map[string]string) (*cmc.CMC, error) {
 	var err error
 	log.Debug().Msg(fmt.Sprintf("updating %s entry for %s", c.CMCRepository, c.Cluster))
-	currentCMC, err := cmc.GetCMCFromMap(currentCMCmap, c.Cluster)
+	currentCMC, err := cmc.GetCMCFromMap(currentCMCmap, c.Cluster, c.CMCRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
 	}
@@ -264,7 +269,7 @@ func (c *Config) Push(ctx context.Context, desiredCMC map[string]string, message
 		return nil, fmt.Errorf("failed to create directory %s.\n%w", key.GetCMCPath(c.Cluster), err)
 	}
 
-	result, err := cmc.GetCMCFromMap(desiredCMC, c.Cluster)
+	result, err := cmc.GetCMCFromMap(desiredCMC, c.Cluster, c.CMCRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmc from map.\n%w", err)
 	}
@@ -309,6 +314,18 @@ func (c *Config) EnsureFlagsAreSet() error {
 	// Ensure that all the needed flags are set
 	if c.Flags.ClusterAppName == "" {
 		return fmt.Errorf("cluster app name is required\n%w", ErrInvalidFlag)
+	}
+	if c.BaseDomain == "" {
+		return fmt.Errorf("base domain is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.ConfigBranch == "" {
+		return fmt.Errorf("config branch is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.MCBBranchSource == "" {
+		return fmt.Errorf("mcb branch source is required\n%w", ErrInvalidFlag)
+	}
+	if c.Flags.MCAppCollectionBranch == "" {
+		return fmt.Errorf("mc app collection branch is required\n%w", ErrInvalidFlag)
 	}
 	if c.Flags.ClusterAppCatalog == "" {
 		return fmt.Errorf("cluster app catalog is required\n%w", ErrInvalidFlag)
@@ -437,8 +454,17 @@ func (c *Config) EnsureFlagsAreSet() error {
 
 func getCMC(c Config) (*cmc.CMC, error) {
 	newCMC := &cmc.CMC{
-		AgePubKey:        c.Flags.AgePubKey,
-		Cluster:          c.Cluster,
+		AgePubKey:      c.Flags.AgePubKey,
+		Cluster:        c.Cluster,
+		BaseDomain:     c.BaseDomain,
+		RegistryDomain: c.Flags.RegistryDomain,
+		GitOps: cmc.GitOps{
+			CMCRepository:         c.CMCRepository,
+			CMCBranch:             c.CMCBranch,
+			MCBBranchSource:       c.Flags.MCBBranchSource,
+			ConfigBranch:          c.Flags.ConfigBranch,
+			MCAppCollectionBranch: c.Flags.MCAppCollectionBranch,
+		},
 		ClusterNamespace: c.Flags.ClusterNamespace,
 		ClusterApp: cmc.App{
 			Name:    c.Flags.ClusterAppName,

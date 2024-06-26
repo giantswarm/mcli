@@ -39,11 +39,11 @@ const (
 	ExternalDNSFile                    = "external-dns-configmap.yaml"
 )
 
-func GetSourceControllerPatchPath() string {
-	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-host-alias.yaml", key.CMCMainBranch)
+func GetSourceControllerPatchPath(branch string) string {
+	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-host-alias.yaml", branch)
 }
-func GetSourceControllerSocatSidecarPath() string {
-	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-socat.yaml", key.CMCMainBranch)
+func GetSourceControllerSocatSidecarPath(branch string) string {
+	return fmt.Sprintf("https://raw.githubusercontent.com/giantswarm/management-cluster-bases/%s/extras/flux/patch-source-controller-deployment-socat.yaml", branch)
 }
 
 type Config struct {
@@ -56,6 +56,7 @@ type Config struct {
 	DisableDenyAllNetPol         bool
 	MCProxy                      bool
 	IntegratedDefaultAppsValues  bool
+	MCBBranchSource              string
 }
 
 func GetKustomizationConfig(file string) (Config, error) {
@@ -123,8 +124,8 @@ func GetKustomizationFile(c Config, file string) (string, error) {
 		k.Resources = removeResource(k.Resources, DenyNetPolFile)
 	}
 	if c.MCProxy {
-		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerPatchPath()})
-		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerSocatSidecarPath(),
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerPatchPath(c.MCBBranchSource)})
+		k.Patches = appendPatch(k.Patches, kustomize.Patch{Path: GetSourceControllerSocatSidecarPath(c.MCBBranchSource),
 			Target: &kustomize.Selector{
 				ResId: resid.ResId{
 					Gvk: resid.Gvk{

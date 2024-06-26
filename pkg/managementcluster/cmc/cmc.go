@@ -32,6 +32,9 @@ type CMC struct {
 	CustomCoreDNS                CustomCoreDNS                `yaml:"customCoreDNS"`
 	DisableDenyAllNetPol         bool                         `yaml:"disableDenyAllNetPol"`
 	MCProxy                      MCProxy                      `yaml:"mcProxy"`
+	BaseDomain                   string                       `yaml:"baseDomain,omitempty"`
+	RegistryDomain               string                       `yaml:"registryDomain,omitempty"`
+	GitOps                       GitOps                       `yaml:"gitOps,omitempty"`
 }
 
 type App struct {
@@ -47,6 +50,14 @@ type Provider struct {
 	CAPV   CAPV   `yaml:"capv,omitempty"`
 	CAPZ   CAPZ   `yaml:"capz,omitempty"`
 	CAPVCD CAPVCD `yaml:"capvcd,omitempty"`
+}
+
+type GitOps struct {
+	CMCRepository         string `yaml:"cmcRepository"`
+	CMCBranch             string `yaml:"cmcBranch"`
+	MCBBranchSource       string `yaml:"mcbBranchSource"`
+	ConfigBranch          string `yaml:"configBranch"`
+	MCAppCollectionBranch string `yaml:"mcAppCollectionBranch"`
 }
 
 type CAPV struct {
@@ -127,6 +138,27 @@ func (c *CMC) Override(override *CMC) *CMC {
 	cmc := *c
 	if override.AgePubKey != "" {
 		cmc.AgePubKey = override.AgePubKey
+	}
+	if override.BaseDomain != "" {
+		cmc.BaseDomain = override.BaseDomain
+	}
+	if override.RegistryDomain != "" {
+		cmc.RegistryDomain = override.RegistryDomain
+	}
+	if override.GitOps.CMCRepository != "" {
+		cmc.GitOps.CMCRepository = override.GitOps.CMCRepository
+	}
+	if override.GitOps.CMCBranch != "" {
+		cmc.GitOps.CMCBranch = override.GitOps.CMCBranch
+	}
+	if override.GitOps.MCBBranchSource != "" {
+		cmc.GitOps.MCBBranchSource = override.GitOps.MCBBranchSource
+	}
+	if override.GitOps.ConfigBranch != "" {
+		cmc.GitOps.ConfigBranch = override.GitOps.ConfigBranch
+	}
+	if override.GitOps.MCAppCollectionBranch != "" {
+		cmc.GitOps.MCAppCollectionBranch = override.GitOps.MCAppCollectionBranch
 	}
 	if override.Cluster != "" {
 		cmc.Cluster = override.Cluster
@@ -289,6 +321,27 @@ func (c *CMC) Validate() error {
 	}
 	if c.Cluster == "" {
 		return fmt.Errorf("cluster is empty")
+	}
+	if c.ClusterNamespace == "" {
+		return fmt.Errorf("cluster namespace is empty")
+	}
+	if c.BaseDomain == "" {
+		return fmt.Errorf("base domain is empty")
+	}
+	if c.GitOps.CMCRepository == "" {
+		return fmt.Errorf("gitops cmc repository is empty")
+	}
+	if c.GitOps.CMCBranch == "" {
+		return fmt.Errorf("gitops cmc branch is empty")
+	}
+	if c.GitOps.MCBBranchSource == "" {
+		return fmt.Errorf("gitops mcb branch source is empty")
+	}
+	if c.GitOps.ConfigBranch == "" {
+		return fmt.Errorf("gitops config branch is empty")
+	}
+	if c.GitOps.MCAppCollectionBranch == "" {
+		return fmt.Errorf("gitops mc app collection branch is empty")
 	}
 	if c.ClusterApp.Name == "" {
 		return fmt.Errorf("cluster app name is empty")

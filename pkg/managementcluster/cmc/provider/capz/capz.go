@@ -17,7 +17,7 @@ const (
 	UAClientIDKey     = "clientID"
 	UATenantIDKey     = "tenantID"
 	UAResourceIDKey   = "resourceID"
-	SubscriptionIDKey = "subscriptionID"
+	SubscriptionIDKey = "subscriptionId"
 )
 
 const (

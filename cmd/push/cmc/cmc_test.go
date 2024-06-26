@@ -34,19 +34,22 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "all flags",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				Provider:   "capa",
+				Cluster:    "test",
+				BaseDomain: "test.base.domain.io",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
-
-					TaylorBotToken: "test-taylor-bot-token",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
+					TaylorBotToken:        "test-taylor-bot-token",
 					Secrets: SecretFlags{
 						ClusterValues: "test-values",
 						SSHDeployKey: DeployKey{
@@ -68,6 +71,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capa",
 				},
@@ -110,17 +119,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "all flags with azure",
 			flags: Config{
-				Provider: "capz",
-				Cluster:  "test",
+				Provider:   "capz",
+				Cluster:    "test",
+				BaseDomain: "test.base.domain.io",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -153,6 +166,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capz",
 					CAPZ: cmc.CAPZ{
@@ -205,17 +224,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "all flags with azure and credentials are missing",
 			flags: Config{
-				Provider: "capz",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capz",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -243,17 +266,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "CertManager DNS challenge enabled",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken:          "test-taylor-bot-token",
 					CertManagerDNSChallenge: true,
@@ -282,6 +309,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capa",
 				},
@@ -331,17 +364,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Provider vsphere",
 			flags: Config{
-				Provider: "vsphere",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "vsphere",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -366,6 +403,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "vsphere",
 					CAPV: cmc.CAPV{
@@ -411,17 +454,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Provider vcd",
 			flags: Config{
-				Provider: "cloud-director",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "cloud-director",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -446,6 +493,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "cloud-director",
 					CAPVCD: cmc.CAPVCD{
@@ -491,17 +544,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Configure container registries enabled",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken:               "test-taylor-bot-token",
 					ConfigureContainerRegistries: true,
@@ -527,6 +584,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capa",
 				},
@@ -573,17 +636,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "MC proxy enabled",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					MCProxyEnabled: true,
@@ -609,6 +676,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capa",
 				},
@@ -656,17 +729,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Provider vsphere missing configuration",
 			flags: Config{
-				Provider: "vsphere",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "vsphere",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -694,17 +771,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Provider vcd missing configuration",
 			flags: Config{
-				Provider: "cloud-director",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "cloud-director",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -732,17 +813,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "Configure container registries enabled missing configuration",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken:               "test-taylor-bot-token",
 					ConfigureContainerRegistries: true,
@@ -771,17 +856,21 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "MC proxy enabled missing configuration",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					MCProxyEnabled: true,
@@ -810,18 +899,22 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "azure private MC",
 			flags: Config{
-				Provider: "capz",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capz",
+				Cluster:    "test",
 				Flags: CMCFlags{
-					ClusterAppName:     "test-app",
-					ClusterAppCatalog:  "test-catalog",
-					ClusterAppVersion:  "1.2.3",
-					DefaultAppsName:    "test-default-apps",
-					DefaultAppsCatalog: "test-default-catalog",
-					DefaultAppsVersion: "3.4.5",
-					ClusterNamespace:   "test",
-					PrivateMC:          true,
-					AgePubKey:          "test-age-pub-key",
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+					ClusterAppName:        "test-app",
+					ClusterAppCatalog:     "test-catalog",
+					ClusterAppVersion:     "1.2.3",
+					DefaultAppsName:       "test-default-apps",
+					DefaultAppsCatalog:    "test-default-catalog",
+					DefaultAppsVersion:    "3.4.5",
+					ClusterNamespace:      "test",
+					PrivateMC:             true,
+					AgePubKey:             "test-age-pub-key",
 
 					TaylorBotToken: "test-taylor-bot-token",
 					Secrets: SecretFlags{
@@ -854,6 +947,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capz",
 					CAPZ: cmc.CAPZ{
@@ -907,9 +1006,13 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "integrated default apps",
 			flags: Config{
-				Provider: "capa",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capa",
+				Cluster:    "test",
 				Flags: CMCFlags{
+					MCBBranchSource:              "test-branch-source",
+					ConfigBranch:                 "test-config-branch",
+					MCAppCollectionBranch:        "test-app-collection-branch",
 					ClusterAppName:               "test-app",
 					ClusterAppCatalog:            "test-catalog",
 					ClusterAppVersion:            "1.2.3",
@@ -939,6 +1042,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capa",
 				},
@@ -975,9 +1084,13 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 		{
 			name: "private mc with azure",
 			flags: Config{
-				Provider: "capz",
-				Cluster:  "test",
+				BaseDomain: "test.base.domain.io",
+				Provider:   "capz",
+				Cluster:    "test",
 				Flags: CMCFlags{
+					MCBBranchSource:              "test-branch-source",
+					ConfigBranch:                 "test-config-branch",
+					MCAppCollectionBranch:        "test-app-collection-branch",
 					ClusterAppName:               "test-app",
 					ClusterAppCatalog:            "test-catalog",
 					ClusterAppVersion:            "1.2.3",
@@ -1017,6 +1130,12 @@ func TestGetNewCMCFromFlags(t *testing.T) {
 				},
 			},
 			expected: &cmc.CMC{
+				GitOps: cmc.GitOps{
+					MCBBranchSource:       "test-branch-source",
+					ConfigBranch:          "test-config-branch",
+					MCAppCollectionBranch: "test-app-collection-branch",
+				},
+				BaseDomain: "test.base.domain.io",
 				Provider: cmc.Provider{
 					Name: "capz",
 					CAPZ: cmc.CAPZ{

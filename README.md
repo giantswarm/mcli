@@ -147,6 +147,7 @@ installations:
   codename: $CLUSTER
   customer: $CUSTOMER
   cmc_repository: $CUSTOMER-management-clusters
+  ccr_repository: $CUSTOMER-configs
   accountEngineer: Elmo
   pipeline: stable
   provider: capa
@@ -185,8 +186,10 @@ cmc:
       organization: giantswarm
       managementCluster: $CLUSTER
     appName: default-apps-aws
+  clusterIntegratesDefaultApps: false
   mcAppsPreventDeletion: true
   privateCA: false
+  privateMC: false
   clusterNamespace: org-giantswarm
   provider:
     name: capa
@@ -216,6 +219,13 @@ cmc:
   disableDenyAllNetPol: false
   mcProxy:
     enabled: false
+  baseDomain: awstest.gigantic.io
+  gitOps:
+    cmcRepository: $CUSTOMER-management-clusters
+    cmcBranch: $CLUSTER_auto_branch
+    mcbBranchSource: main
+    configBranch: $CLUSTER_auto_config
+    mcAppCollectionBranch: $CLUSTER_auto_branch
 ```
 
 Alternatively, the `cmc` and `installations` repositories can be accessed separately.
@@ -315,19 +325,19 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 | Command | Flag | Environment variable | Description | Note |
 | --- | --- | --- | --- | --- |
 | all | `--cluster`, `-c` | `INSTALLATION` | The name of the management cluster. |
-|  | `--customer`, `-u` | `CUSTOMER` | The name of the customer. |
-|  | `--cmc-branch` | `CMC_BRANCH` | The branch of the cmc repository to use. |
-|  | `--cmc-repository` | `CMC_REPOSITORY` | The name of the cmc repository to use. |
+|  | `--customer`, `-u` | `CUSTOMER` | The name of the customer. | Defaults to "giantswarm"
+|  | `--cmc-branch` | `CMC_BRANCH` | The branch of the cmc repository to use. | Defaults to "main" in pull case and auto naming in push case
+|  | `--cmc-repository` | `CMC_REPOSITORY` | The name of the cmc repository to use. | Defaults to "giantswarm-management-clusters"
 |  | `--input` | | The path to the input file. |
 |  | `--verbose`, `-v` | | Print logs to stdout. |
 |  | `--display-secrets` |  | Display secrets in the output. |
 |  | `--github-token` | `OPSCTL_GITHUB_TOKEN` | The GitHub token to use. |
 |  | `--skip` | | Repositories to skip. |
-|  | `--installations-branch` | `INSTALLATIONS_BRANCH` | The branch of the installations repository to use. |
+|  | `--installations-branch` | `INSTALLATIONS_BRANCH` | The branch of the installations repository to use. | Defaults to "master" in pull case and auto naming in push case
 |  |  |  |  |
 | `push` | `--provider` | `PROVIDER` | The provider of the management cluster. |
-| `push installations`  | `--base-domain` | `BASE_DOMAIN` | The base domain of the management cluster. |
-|  | `--team` | `TEAM_NAME` | The team name of the management cluster. |
+|  | `--base-domain` | `BASE_DOMAIN` | The base domain of the management cluster. |
+| `push installations` | `--team` | `TEAM_NAME` | The team name of the management cluster. |
 |  | `--aws-region` | `AWS_REGION` | The AWS region of the management cluster. |
 |  | `--aws-account-id` | `INSTALLATION_AWS_ACCOUNT` | The AWS account ID of the management cluster. |
 |  | `--ccr-repository` | `CCR_REPOSITORY` | The name of the ccr repository to use. |
@@ -348,6 +358,10 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--mc-proxy-enabled` | `MC_PROXY_ENABLED` | Use mc proxy. |
 |  | `--mc-https-proxy` | `MC_HTTPS_PROXY` | Use mc https proxy. |
 |  | `--age-pub-key` | `AGE_PUBKEY` | The age public key. |
+|  | `--mcb-branch-source` | `MCB_BRANCH_SOURCE` | The source branch of the mcb repository to use. | Defaults to "main"
+|  | `--config-branch` | `CONFIG_BRANCH` | The branch of the config repository to use. | Defaults to auto naming
+|  | `--mc-app-collection-branch` | `MC_APP_COLLECTION_BRANCH` | The branch of the mc-app-collection repository to use. | Defaults to auto naming
+|  | `--registry-domain` | `REGISTRY_DOMAIN` | Custom registry domain. |
 |  | `--taylor-bot-token` |  | The Taylor bot token. | overrides value from secret files
 |  | `--deploy-key` |  | The deploy key passphrase. |  overrides value from secret files
 |  | `--deploy-key-identity` |  | The deploy key identity. | overrides value from secret files
