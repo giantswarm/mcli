@@ -1,5 +1,7 @@
 filippo.io/age v1.1.1 h1:pIpO7l151hCnQ4BdyBujnGP2YlUo0uj6sAVNHGBvXHg=
 filippo.io/age v1.1.1/go.mod h1:l03SrzDUrBkdBx8+IILdnn2KZysqQdbEBUQ4p3sqEQE=
+filippo.io/age v1.2.0 h1:vRDp7pUMaAJzXNIWJVAZnEf/Dyi4Vu4wI8S1LBzufhE=
+filippo.io/age v1.2.0/go.mod h1:JL9ew2lTN+Pyft4RiNGguFfOpewKwSHm5ayKD/A4004=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=

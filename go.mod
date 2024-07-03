@@ -3,7 +3,7 @@ module github.com/giantswarm/mcli
 go 1.21
 
 require (
-	filippo.io/age v1.1.1
+	filippo.io/age v1.2.0
 	github.com/giantswarm/apiextensions-application v0.6.2
 	github.com/giantswarm/k8smetadata v0.24.0
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
