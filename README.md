@@ -33,10 +33,12 @@ Ensure that you have [installed `sops`](https://github.com/getsops/sops) and tha
 
 Furthermore, ensure that the `SOPS_AGE_KEY` environment variable is set before running a command.
 This is always the case when running `mc-bootstrap` to create a new management cluster.
-When using the tool to update an existing management cluster, you need to retrieve the key from lastpass like so:
+When using the tool to update an existing management cluster, make sure to set the `SOPS_AGE_KEY` environment variable to the correct value.
+Please only use secure mechanisms to store and retrieve this key and do not expose it in the command line.
+For example, if it is stored in LastPass, it can be set like this:
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
+export SOPS_AGE_KEY=$(lpass show "Path/To/Secret/$CLUSTER.agekey" --notes)
 ```
 
 ## Usage
@@ -136,7 +138,6 @@ Some examples of how the tool can be used.
 Pull the configuration of mc called `$CLUSTER` belonging to `$CUSTOMER` and print it to stdout.
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
 mcli pull --cluster $CLUSTER --customer $CUSTOMER
 ```
 The output will look something like this:
@@ -231,7 +232,6 @@ cmc:
 Alternatively, the `cmc` and `installations` repositories can be accessed separately.
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
 mcli pull cmc --cluster $CLUSTER --customer $CUSTOMER
 ```
 
@@ -274,7 +274,6 @@ _Below examples assume that the cluster either already exists and we are updatin
 Push the configuration of mc called `$CLUSTER` belonging to `$CUSTOMER` to repositories.
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
 mcli push --cluster $CLUSTER --customer $CUSTOMER --input config.yaml
 ```
 
@@ -284,7 +283,6 @@ It should also create a new branch in the affected repositories.
 Alternatively, the `cmc` and `installations` repositories can be accessed separately.
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
 mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --input cmc-config.yaml
 ```
 
@@ -309,7 +307,6 @@ Update the configuration of mc called `$CLUSTER` belonging to `$CUSTOMER` in the
 Here, cert-manager-dns-challenge is enabled.
 
 ```bash
-export SOPS_AGE_KEY=$(lpass show "Shared-Dev Common/Installations/$CLUSTER.agekey" --notes)
 mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challenge --secret-folder secret/folder
 ```
 

@@ -48,7 +48,7 @@ func GetSecrets(cluster string) []string {
 }
 
 // We read the secrets from the provided secrets folder location to get the values
-// This is assuming that the secrets are created beforehand or pulled from lastpass within mc-bootstrap
+// This is assuming that the secrets are created beforehand or pulled within mc-bootstrap
 // Todo: Implement the actual secret management within mcli
 
 func (c *Config) ReadSecretFlags() error {
