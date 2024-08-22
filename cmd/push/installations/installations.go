@@ -225,9 +225,6 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 		c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.Flags.AWS.InstallationAWSAccount)
 		c.AwsHostClusterCloudtrailBucket = ""
 		c.AwsHostClusterGuardDuty = false
-		c.AwsGuestClusterAccount = flags.Flags.AWS.InstallationAWSAccount
-		c.AwsGuestClusterCloudtrailBucket = ""
-		c.AwsGuestClusterGuardDuty = false
 	}
 
 	return installations.NewInstallations(c), nil
@@ -249,7 +246,6 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 		c.AwsRegion = flags.Flags.AWS.Region
 		if flags.Flags.AWS.InstallationAWSAccount != "" {
 			c.AwsHostClusterAccount = flags.Flags.AWS.InstallationAWSAccount
-			c.AwsGuestClusterAccount = flags.Flags.AWS.InstallationAWSAccount
 			c.AwsHostClusterAdminRoleArn = fmt.Sprintf("arn:aws:iam::%s:role/GiantSwarmAdmin", flags.Flags.AWS.InstallationAWSAccount)
 		}
 	}
