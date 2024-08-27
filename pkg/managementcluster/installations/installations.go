@@ -24,9 +24,8 @@ type Installations struct {
 }
 
 type AwsConfig struct {
-	Region       string       `yaml:"region"`
-	HostCluster  HostCluster  `yaml:"hostCluster"`
-	GuestCluster GuestCluster `yaml:"guestCluster"`
+	Region      string      `yaml:"region"`
+	HostCluster HostCluster `yaml:"hostCluster"`
 }
 
 type HostCluster struct {
@@ -36,29 +35,20 @@ type HostCluster struct {
 	GuardDuty        bool   `yaml:"guardDuty"`
 }
 
-type GuestCluster struct {
-	Account          string `yaml:"account"`
-	CloudtrailBucket string `yaml:"cloudtrailBucket"`
-	GuardDuty        bool   `yaml:"guardDuty"`
-}
-
 type InstallationsConfig struct {
-	Base                            string
-	Codename                        string
-	Customer                        string
-	CmcRepository                   string
-	CcrRepository                   string
-	AccountEngineer                 string
-	Pipeline                        string
-	Provider                        string
-	AwsRegion                       string
-	AwsHostClusterAccount           string
-	AwsHostClusterAdminRoleArn      string
-	AwsHostClusterGuardDuty         bool
-	AwsHostClusterCloudtrailBucket  string
-	AwsGuestClusterAccount          string
-	AwsGuestClusterCloudtrailBucket string
-	AwsGuestClusterGuardDuty        bool
+	Base                           string
+	Codename                       string
+	Customer                       string
+	CmcRepository                  string
+	CcrRepository                  string
+	AccountEngineer                string
+	Pipeline                       string
+	Provider                       string
+	AwsRegion                      string
+	AwsHostClusterAccount          string
+	AwsHostClusterAdminRoleArn     string
+	AwsHostClusterGuardDuty        bool
+	AwsHostClusterCloudtrailBucket string
 }
 
 func NewInstallations(installationsConfig InstallationsConfig) *Installations {
@@ -78,11 +68,6 @@ func NewInstallations(installationsConfig InstallationsConfig) *Installations {
 				AdminRoleArn:     installationsConfig.AwsHostClusterAdminRoleArn,
 				CloudtrailBucket: installationsConfig.AwsHostClusterCloudtrailBucket,
 				GuardDuty:        installationsConfig.AwsHostClusterGuardDuty,
-			},
-			GuestCluster: GuestCluster{
-				Account:          installationsConfig.AwsGuestClusterAccount,
-				CloudtrailBucket: installationsConfig.AwsGuestClusterCloudtrailBucket,
-				GuardDuty:        installationsConfig.AwsGuestClusterGuardDuty,
 			},
 		},
 	}
@@ -151,15 +136,6 @@ func (i *Installations) Override(override *Installations) *Installations {
 	if override.Aws.HostCluster.GuardDuty {
 		installation.Aws.HostCluster.GuardDuty = override.Aws.HostCluster.GuardDuty
 	}
-	if override.Aws.GuestCluster.Account != "" {
-		installation.Aws.GuestCluster.Account = override.Aws.GuestCluster.Account
-	}
-	if override.Aws.GuestCluster.CloudtrailBucket != "" {
-		installation.Aws.GuestCluster.CloudtrailBucket = override.Aws.GuestCluster.CloudtrailBucket
-	}
-	if override.Aws.GuestCluster.GuardDuty {
-		installation.Aws.GuestCluster.GuardDuty = override.Aws.GuestCluster.GuardDuty
-	}
 	return &installation
 }
 
@@ -197,9 +173,6 @@ func (i *Installations) Validate() error {
 		}
 		if i.Aws.HostCluster.AdminRoleArn == "" {
 			return fmt.Errorf("aws host cluster admin role arn is empty")
-		}
-		if i.Aws.GuestCluster.Account == "" {
-			return fmt.Errorf("aws guest cluster account is empty")
 		}
 	}
 	return nil

@@ -86,11 +86,6 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 						CloudtrailBucket: "",
 						GuardDuty:        false,
 					},
-					GuestCluster: installations.GuestCluster{
-						Account:          "123456789012",
-						CloudtrailBucket: "",
-						GuardDuty:        false,
-					},
 				},
 			},
 			expectError: false,
