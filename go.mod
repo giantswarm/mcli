@@ -1,6 +1,8 @@
 module github.com/giantswarm/mcli
 
-go 1.21
+go 1.22.7
+
+toolchain go1.23.2
 
 require (
 	filippo.io/age v1.1.1
@@ -19,7 +21,7 @@ require (
 	k8s.io/api v0.28.6
 	k8s.io/apimachinery v0.29.3
 	sigs.k8s.io/kustomize/api v0.16.0
-	sigs.k8s.io/kustomize/kyaml v0.16.0
+	sigs.k8s.io/kustomize/kyaml v0.18.1
 	sigs.k8s.io/yaml v1.4.0
 )
 
