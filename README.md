@@ -338,6 +338,7 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--aws-region` | `AWS_REGION` | The AWS region of the management cluster. |
 |  | `--aws-account-id` | `INSTALLATION_AWS_ACCOUNT` | The AWS account ID of the management cluster. |
 |  | `--ccr-repository` | `CCR_REPOSITORY` | The name of the ccr repository to use. |
+|  | `--pipeline` | `MC_PIPELINE` | The pipeline to use for the installation. Defaults to "testing" |
 | `push cmc` | `--mc-apps-prevent-deletion` | `MC_APPS_PREVENT_DELETION` | Prevent deletion of mc apps. |
 |  | `--cluster-app-name` | `CLUSTER_APP_NAME` | The name of the cluster app. |
 |  | `--cluster-app-catalog` | `CLUSTER_APP_CATALOG` | The catalog of the cluster app. |

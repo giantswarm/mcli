@@ -325,10 +325,10 @@ func defaultPush() {
 		configBranch = key.GetDefaultConfigBranch(cluster)
 	}
 	if customer == "" {
-		customer = "giantswarm"
+		customer = key.OrganizationGiantSwarm
 	}
 	if customer == "gs" {
-		customer = "giantswarm"
+		customer = key.OrganizationGiantSwarm
 	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
