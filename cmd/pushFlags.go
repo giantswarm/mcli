@@ -17,6 +17,7 @@ import (
 // installations flags
 const (
 	flagCCRRepository = "ccr-repository"
+	flagPipeline      = "pipeline"
 	flagTeam          = "team"
 	flagAWSRegion     = "aws-region"
 	flagAWSAccountID  = "aws-account-id"
@@ -24,6 +25,7 @@ const (
 
 const (
 	envCCRRepository = "CCR_REPOSITORY"
+	envPipeline      = "MC_PIPELINE"
 	envTeam          = "TEAM_NAME"
 	envAWSRegion     = "AWS_REGION"
 	envAWSAccountID  = "INSTALLATION_AWS_ACCOUNT"
@@ -31,6 +33,7 @@ const (
 
 var (
 	ccrRepository string
+	pipeline      string
 	team          string
 	awsRegion     string
 	awsAccountID  string
@@ -178,6 +181,7 @@ func addFlagsPush() {
 
 	// add installations flags
 	pushCmd.PersistentFlags().StringVar(&ccrRepository, flagCCRRepository, viper.GetString(envCCRRepository), "CCR repository to use for the cluster")
+	pushCmd.PersistentFlags().StringVar(&pipeline, flagPipeline, viper.GetString(envPipeline), "Pipeline to use for the cluster")
 	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
@@ -323,10 +327,16 @@ func defaultPush() {
 	if customer == "" {
 		customer = "giantswarm"
 	}
+	if customer == "gs" {
+		customer = "giantswarm"
+	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
 	}
 	if mcbBranchSource == "" {
 		mcbBranchSource = key.MCBMainBranch
+	}
+	if pipeline == "" {
+		pipeline = "testing"
 	}
 }

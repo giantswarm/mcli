@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `pipeline` flag to `mcli push installation` command to allow users to specify the pipeline to use for the installation.
+
 ## [0.1.1] - 2024-07-04
 
 ## [0.1.0] - 2024-07-03
