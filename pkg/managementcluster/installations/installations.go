@@ -12,15 +12,16 @@ import (
 )
 
 type Installations struct {
-	Base            string    `yaml:"base"`
-	Codename        string    `yaml:"codename"`
-	Customer        string    `yaml:"customer"`
-	CmcRepository   string    `yaml:"cmc_repository"`
-	CcrRepository   string    `yaml:"ccr_repository"`
-	AccountEngineer string    `yaml:"accountEngineer"`
-	Pipeline        string    `yaml:"pipeline"`
-	Provider        string    `yaml:"provider"`
-	Aws             AwsConfig `yaml:"aws,omitempty"`
+	Base                string    `yaml:"base"`
+	Codename            string    `yaml:"codename"`
+	Customer            string    `yaml:"customer"`
+	CmcRepository       string    `yaml:"cmc_repository"`
+	CcrRepository       string    `yaml:"ccr_repository"`
+	AccountEngineer     string    `yaml:"accountEngineer"`
+	Pipeline            string    `yaml:"pipeline"`
+	Provider            string    `yaml:"provider"`
+	AdditionalProviders []string  `yaml:"additionalProviders,omitempty"`
+	Aws                 AwsConfig `yaml:"aws,omitempty"`
 }
 
 type AwsConfig struct {
@@ -44,6 +45,7 @@ type InstallationsConfig struct {
 	AccountEngineer                string
 	Pipeline                       string
 	Provider                       string
+	AdditionalProviders            []string
 	AwsRegion                      string
 	AwsHostClusterAccount          string
 	AwsHostClusterAdminRoleArn     string
@@ -53,14 +55,15 @@ type InstallationsConfig struct {
 
 func NewInstallations(installationsConfig InstallationsConfig) *Installations {
 	return &Installations{
-		Base:            installationsConfig.Base,
-		Codename:        installationsConfig.Codename,
-		Customer:        installationsConfig.Customer,
-		CmcRepository:   installationsConfig.CmcRepository,
-		CcrRepository:   installationsConfig.CcrRepository,
-		AccountEngineer: installationsConfig.AccountEngineer,
-		Pipeline:        installationsConfig.Pipeline,
-		Provider:        installationsConfig.Provider,
+		Base:                installationsConfig.Base,
+		Codename:            installationsConfig.Codename,
+		Customer:            installationsConfig.Customer,
+		CmcRepository:       installationsConfig.CmcRepository,
+		CcrRepository:       installationsConfig.CcrRepository,
+		AccountEngineer:     installationsConfig.AccountEngineer,
+		Pipeline:            installationsConfig.Pipeline,
+		Provider:            installationsConfig.Provider,
+		AdditionalProviders: installationsConfig.AdditionalProviders,
 		Aws: AwsConfig{
 			Region: installationsConfig.AwsRegion,
 			HostCluster: HostCluster{
@@ -123,6 +126,9 @@ func (i *Installations) Override(override *Installations) *Installations {
 	}
 	if override.Provider != "" {
 		installation.Provider = override.Provider
+	}
+	if len(override.AdditionalProviders) > 0 {
+		installation.AdditionalProviders = override.AdditionalProviders
 	}
 	if override.Aws.Region != "" {
 		installation.Aws.Region = override.Aws.Region
