@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-12-19
+
 ### Added
 
 - Add `pipeline` flag to `mcli push installation` command to allow users to specify the pipeline to use for the installation.
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `push` command to push configuration of a management cluster.
 - Add `create` command to create a repository.
 
-[Unreleased]: https://github.com/giantswarm/mcli/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/giantswarm/mcli/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/giantswarm/mcli/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/giantswarm/mcli/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/giantswarm/mcli/releases/tag/v0.1.0
