@@ -173,6 +173,8 @@ var (
 )
 
 func addFlagsPush() {
+	viper.AutomaticEnv()
+
 	// add general flags
 	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")

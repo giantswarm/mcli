@@ -27,7 +27,7 @@ const (
 const (
 	envBaseDomain          = "BASE_DOMAIN"
 	envCluster             = "INSTALLATION"
-	envGithubToken         = "OPSCTL_GITHUB_TOKEN" // #nosec G101
+	envGithubToken         = "GITHUB_TOKEN" // #nosec G101
 	envInstallationsBranch = "INSTALLATIONS_BRANCH"
 	envCMCRepository       = "CMC_REPOSITORY"
 	envCMCBranch           = "CMC_BRANCH"
