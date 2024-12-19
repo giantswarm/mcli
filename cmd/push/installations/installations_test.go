@@ -36,6 +36,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				Team:          "testteam",
 				Customer:      "giantswarm",
 				CCRRepository: "test",
+				Pipeline:      "stable",
 			},
 				BaseDomain:    "test.com",
 				CMCRepository: "test",
@@ -47,7 +48,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				Codename:        "test",
 				Customer:        "giantswarm",
 				Provider:        "capz-test",
-				Pipeline:        "testing",
+				Pipeline:        "stable",
 				CmcRepository:   "test",
 				CcrRepository:   "test",
 				AccountEngineer: "testteam",
@@ -60,6 +61,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 				Team:          "testteam",
 				Customer:      "test",
 				CCRRepository: "test",
+				Pipeline:      "testing",
 				AWS: AWSFlags{
 					Region:                 "eu-west-1",
 					InstallationAWSAccount: "123456789012",
@@ -95,6 +97,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 			flags: Config{Flags: InstallationsFlags{
 				Team:          "testteam",
 				CCRRepository: "test",
+				Pipeline:      "testing",
 			},
 				BaseDomain:    "test.com",
 				CMCRepository: "test",
@@ -108,6 +111,7 @@ func TestGetNewInstallationsFromFlags(t *testing.T) {
 			flags: Config{Flags: InstallationsFlags{
 				Team:          "testteam",
 				CCRRepository: "test",
+				Pipeline:      "testing",
 				AWS: AWSFlags{
 					InstallationAWSAccount: "123456789012",
 				},

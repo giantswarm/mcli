@@ -17,6 +17,7 @@ import (
 // installations flags
 const (
 	flagCCRRepository = "ccr-repository"
+	flagPipeline      = "pipeline"
 	flagTeam          = "team"
 	flagAWSRegion     = "aws-region"
 	flagAWSAccountID  = "aws-account-id"
@@ -24,6 +25,7 @@ const (
 
 const (
 	envCCRRepository = "CCR_REPOSITORY"
+	envPipeline      = "MC_PIPELINE"
 	envTeam          = "TEAM_NAME"
 	envAWSRegion     = "AWS_REGION"
 	envAWSAccountID  = "INSTALLATION_AWS_ACCOUNT"
@@ -31,6 +33,7 @@ const (
 
 var (
 	ccrRepository string
+	pipeline      string
 	team          string
 	awsRegion     string
 	awsAccountID  string
@@ -170,6 +173,8 @@ var (
 )
 
 func addFlagsPush() {
+	viper.AutomaticEnv()
+
 	// add general flags
 	pushCmd.Flags().StringArrayVarP(&skip, flagSkip, "s", []string{}, fmt.Sprintf("List of repositories to skip. (default: none) Valid values: %s", key.GetValidRepositories()))
 	pushCmd.PersistentFlags().StringVarP(&input, flagInput, "i", "", "Input configuration file to use. If not specified, configuration is read from other flags.")
@@ -178,6 +183,7 @@ func addFlagsPush() {
 
 	// add installations flags
 	pushCmd.PersistentFlags().StringVar(&ccrRepository, flagCCRRepository, viper.GetString(envCCRRepository), "CCR repository to use for the cluster")
+	pushCmd.PersistentFlags().StringVar(&pipeline, flagPipeline, viper.GetString(envPipeline), "Pipeline to use for the cluster")
 	pushCmd.PersistentFlags().StringVar(&team, flagTeam, viper.GetString(envTeam), "Name of the team that owns the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsRegion, flagAWSRegion, viper.GetString(envAWSRegion), "AWS region of the cluster")
 	pushCmd.PersistentFlags().StringVar(&awsAccountID, flagAWSAccountID, viper.GetString(envAWSAccountID), "AWS account ID of the cluster")
@@ -321,12 +327,21 @@ func defaultPush() {
 		configBranch = key.GetDefaultConfigBranch(cluster)
 	}
 	if customer == "" {
-		customer = "giantswarm"
+		customer = key.OrganizationGiantSwarm
+	}
+	if customer == "gs" {
+		customer = key.OrganizationGiantSwarm
 	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
 	}
+	if ccrRepository == "" {
+		ccrRepository = key.GetCCRName(customer)
+	}
 	if mcbBranchSource == "" {
 		mcbBranchSource = key.MCBMainBranch
+	}
+	if pipeline == "" {
+		pipeline = "testing"
 	}
 }

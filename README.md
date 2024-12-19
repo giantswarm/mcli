@@ -24,7 +24,7 @@ go install github.com/giantswarm/mcli@latest
 
 ### GitHub
 
-Ensure that you have a valid GitHub token set in the `OPSCTL_GITHUB_TOKEN` environment variable.
+Ensure that you have a valid GitHub token set in the `GITHUB_TOKEN` environment variable.
 
 ### SOPS
 
@@ -322,13 +322,13 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 | Command | Flag | Environment variable | Description | Note |
 | --- | --- | --- | --- | --- |
 | all | `--cluster`, `-c` | `INSTALLATION` | The name of the management cluster. |
-|  | `--customer`, `-u` | `CUSTOMER` | The name of the customer. | Defaults to "giantswarm"
+|  | `--customer` | `CUSTOMER` | The name of the customer. | Defaults to "giantswarm"
 |  | `--cmc-branch` | `CMC_BRANCH` | The branch of the cmc repository to use. | Defaults to "main" in pull case and auto naming in push case
 |  | `--cmc-repository` | `CMC_REPOSITORY` | The name of the cmc repository to use. | Defaults to "giantswarm-management-clusters"
 |  | `--input` | | The path to the input file. |
 |  | `--verbose`, `-v` | | Print logs to stdout. |
 |  | `--display-secrets` |  | Display secrets in the output. |
-|  | `--github-token` | `OPSCTL_GITHUB_TOKEN` | The GitHub token to use. |
+|  | `--github-token` | `GITHUB_TOKEN` | The GitHub token to use. |
 |  | `--skip` | | Repositories to skip. |
 |  | `--installations-branch` | `INSTALLATIONS_BRANCH` | The branch of the installations repository to use. | Defaults to "master" in pull case and auto naming in push case
 |  |  |  |  |
@@ -338,6 +338,7 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 |  | `--aws-region` | `AWS_REGION` | The AWS region of the management cluster. |
 |  | `--aws-account-id` | `INSTALLATION_AWS_ACCOUNT` | The AWS account ID of the management cluster. |
 |  | `--ccr-repository` | `CCR_REPOSITORY` | The name of the ccr repository to use. |
+|  | `--pipeline` | `MC_PIPELINE` | The pipeline to use for the installation. Defaults to "testing" |
 | `push cmc` | `--mc-apps-prevent-deletion` | `MC_APPS_PREVENT_DELETION` | Prevent deletion of mc apps. |
 |  | `--cluster-app-name` | `CLUSTER_APP_NAME` | The name of the cluster app. |
 |  | `--cluster-app-catalog` | `CLUSTER_APP_CATALOG` | The catalog of the cluster app. |

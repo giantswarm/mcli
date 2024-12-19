@@ -21,7 +21,7 @@ func defaultPull() {
 		cmcBranch = key.CMCMainBranch
 	}
 	if customer == "" {
-		customer = "giantswarm"
+		customer = key.OrganizationGiantSwarm
 	}
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
