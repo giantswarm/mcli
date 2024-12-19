@@ -94,6 +94,10 @@ func GetCMCName(customer string) string {
 	return fmt.Sprintf("%s-management-clusters", customer)
 }
 
+func GetCCRName(customer string) string {
+	return fmt.Sprintf("%s-configs", customer)
+}
+
 func GetDefaultPRBranch(cluster string) string {
 	return fmt.Sprintf("%s_auto_branch", cluster)
 }

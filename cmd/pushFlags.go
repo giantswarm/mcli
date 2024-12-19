@@ -333,6 +333,9 @@ func defaultPush() {
 	if cmcRepository == "" {
 		cmcRepository = key.GetCMCName(customer)
 	}
+	if ccrRepository == "" {
+		ccrRepository = key.GetCCRName(customer)
+	}
 	if mcbBranchSource == "" {
 		mcbBranchSource = key.MCBMainBranch
 	}
