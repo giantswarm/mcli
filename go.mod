@@ -1,6 +1,8 @@
 module github.com/giantswarm/mcli
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
 	filippo.io/age v1.1.1
@@ -9,6 +11,7 @@ require (
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v57 v57.0.0
+	github.com/google/go-github/v70 v70.0.0
 	github.com/rs/zerolog v1.32.0
 	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
 	github.com/spf13/cobra v1.8.0
