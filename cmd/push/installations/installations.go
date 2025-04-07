@@ -3,6 +3,7 @@ package pushinstallations
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 
@@ -27,6 +28,7 @@ type InstallationsFlags struct {
 	Team          string
 	AWS           AWSFlags
 	Customer      string
+	Pipeline      string
 }
 
 type AWSFlags struct {
@@ -35,6 +37,7 @@ type AWSFlags struct {
 }
 
 func (c *Config) Run(ctx context.Context) (*installations.Installations, error) {
+	c.Default()
 	err := c.Validate()
 	if err != nil {
 		return nil, err
@@ -186,6 +189,9 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 	if flags.Flags.CCRRepository == "" {
 		return nil, fmt.Errorf("CCR repository is not set.\n%w", ErrInvalidFlag)
 	}
+	if flags.Flags.Pipeline == "" {
+		return nil, fmt.Errorf("pipeline is not set.\n%w", ErrInvalidFlag)
+	}
 	if flags.Flags.Team == "" {
 		return nil, fmt.Errorf("team is not set.\n%w", ErrInvalidFlag)
 	}
@@ -216,7 +222,7 @@ func getNewInstallationsFromFlags(flags Config) (*installations.Installations, e
 		CmcRepository:   flags.CMCRepository,
 		CcrRepository:   flags.Flags.CCRRepository,
 		AccountEngineer: flags.Flags.Team,
-		Pipeline:        "testing",
+		Pipeline:        flags.Flags.Pipeline,
 		Provider:        fmt.Sprintf("%s-test", flags.Provider),
 	}
 	if key.IsProviderAWS(flags.Provider) {
@@ -238,6 +244,7 @@ func overrideInstallationsWithFlags(current *installations.Installations, flags 
 		Base:            flags.BaseDomain,
 		CmcRepository:   flags.CMCRepository,
 		CcrRepository:   flags.Flags.CCRRepository,
+		Pipeline:        flags.Flags.Pipeline,
 		AccountEngineer: flags.Flags.Team,
 		Provider:        flags.Provider,
 		Customer:        flags.Flags.Customer,
@@ -263,6 +270,7 @@ func (c *Config) Validate() error {
 	if c.BaseDomain == "" &&
 		c.CMCRepository == "" &&
 		c.Flags.CCRRepository == "" &&
+		c.Flags.Pipeline == "" &&
 		c.Flags.Team == "" &&
 		c.Provider == "" &&
 		c.Flags.AWS.Region == "" &&
@@ -278,4 +286,9 @@ func (c *Config) Validate() error {
 	}
 	// todo: check format of other flags if they are set
 	return nil
+}
+
+func (c *Config) Default() {
+	// customer has to be lower case
+	c.Flags.Customer = strings.ToLower(c.Flags.Customer)
 }
