@@ -5,13 +5,12 @@ go 1.24.0
 toolchain go1.25.5
 
 require (
-	filippo.io/age v1.1.1
+	filippo.io/age v1.2.1
 	github.com/giantswarm/apiextensions-application v0.6.2
 	github.com/giantswarm/k8smetadata v0.24.0
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v57 v57.0.0
-	github.com/google/go-github/v80 v80.0.0
 	github.com/rs/zerolog v1.34.0
 	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
 	github.com/spf13/cobra v1.10.2
@@ -56,8 +55,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/onsi/ginkgo/v2 v2.19.0 // indirect
-	github.com/onsi/gomega v1.33.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
