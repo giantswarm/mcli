@@ -1,6 +1,8 @@
 module github.com/giantswarm/mcli
 
-go 1.23.0
+go 1.24.0
+
+toolchain go1.24.11
 
 require (
 	filippo.io/age v1.1.1
@@ -79,7 +81,6 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
