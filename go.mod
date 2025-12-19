@@ -20,7 +20,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.28.6
 	k8s.io/apimachinery v0.29.3
-	sigs.k8s.io/kustomize/api v0.16.0
+	sigs.k8s.io/kustomize/api v0.21.0
 	sigs.k8s.io/kustomize/kyaml v0.21.0
 	sigs.k8s.io/yaml v1.6.0
 )
