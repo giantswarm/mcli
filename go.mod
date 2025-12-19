@@ -12,7 +12,7 @@ require (
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v57 v57.0.0
 	github.com/rs/zerolog v1.34.0
-	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
+	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.18.2
 	go.uber.org/config v1.4.0
@@ -73,7 +73,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.3 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
