@@ -145,6 +145,16 @@ func (c *Config) Push(ctx context.Context, i *installations.Installations) (*ins
 		Organization: key.OrganizationGiantSwarm,
 		Branch:       c.InstallationsBranch,
 	}
+
+	// Prepend schema header if schema.json exists in the repository
+	schemaExists, err := installationsRepository.FileExists(ctx, key.SchemaFile)
+	if err != nil {
+		log.Debug().Msg(fmt.Sprintf("failed to check if schema.json exists: %v", err))
+	} else if schemaExists {
+		// Config files are at $cluster/cluster.yaml, schema is at schema.json
+		data = key.PrependSchemaHeader(data, "../"+key.SchemaFile)
+	}
+
 	err = installationsRepository.CreateFile(ctx, data, key.GetInstallationsPath(c.Cluster))
 	if err != nil {
 		return nil, err

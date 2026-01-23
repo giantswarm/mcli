@@ -113,3 +113,12 @@ func MergeValues(valuesA string, valuesB string) (string, error) {
 
 	return string(data), nil
 }
+
+func GetSchemaHeader(schemaPath string) string {
+	return fmt.Sprintf("# yaml-language-server: $schema=%s\n", schemaPath)
+}
+
+func PrependSchemaHeader(data []byte, schemaPath string) []byte {
+	header := GetSchemaHeader(schemaPath)
+	return append([]byte(header), data...)
+}

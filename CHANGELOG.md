@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add JSON schema headers to `cluster.yaml` if `schema.json` is present in the installation repository
+
 ## [0.2.0] - 2024-12-19
 
 ### Added
