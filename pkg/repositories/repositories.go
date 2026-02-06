@@ -20,11 +20,10 @@ type Repo struct {
 }
 
 type Gen struct {
-	Flavours                []string `yaml:"flavours,omitempty"`
-	Language                string   `yaml:"language,omitempty"`
-	EnableFloatingMajorTags bool     `yaml:"enableFloatingMajorTags,omitempty"`
-	InstallUpdateChart      bool     `yaml:"installUpdateChart,omitempty"`
-	RunSecurityScoreCard    bool     `yaml:"runSecurityScoreCard,omitempty"`
+	Flavours             []string `yaml:"flavours,omitempty"`
+	Language             string   `yaml:"language,omitempty"`
+	InstallUpdateChart   bool     `yaml:"installUpdateChart,omitempty"`
+	RunSecurityScoreCard bool     `yaml:"runSecurityScoreCard,omitempty"`
 }
 
 func GetRepos(data []byte) ([]Repo, error) {
