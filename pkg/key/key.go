@@ -20,6 +20,7 @@ const (
 	CMCTemplateRepository   = "template-management-clusters"
 	CMCEntryTemplatePath    = "scripts/setup-cmc-branch/management-cluster-template"
 	FluxNamespace           = "flux-giantswarm"
+	SchemaFile              = "schema.json"
 )
 
 const (

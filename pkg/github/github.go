@@ -400,6 +400,20 @@ func (r *Repository) GetFileSHA(ctx context.Context, path string) (string, error
 	return sha, nil
 }
 
+func (r *Repository) FileExists(ctx context.Context, path string) (bool, error) {
+	log.Debug().Msg(fmt.Sprintf("checking if file %s exists in branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
+	_, _, resp, err := r.Repositories.GetContents(ctx, r.Organization, r.Name, path, &github.RepositoryContentGetOptions{
+		Ref: r.Branch,
+	})
+	if err != nil {
+		if resp.StatusCode == 404 {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if file %s exists in branch %s of repository %s/%s.\n%w", path, r.Branch, r.Organization, r.Name, err)
+	}
+	return true, nil
+}
+
 func (r *Repository) CreatePrivateRepo(ctx context.Context, description string, template string) error {
 	// check if Organization exists
 	if err := r.CheckOrganization(ctx); err != nil {

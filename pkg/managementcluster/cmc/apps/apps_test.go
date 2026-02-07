@@ -233,7 +233,6 @@ data:
     managementCluster: test
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   name: test-default-apps-user-values
   namespace: test-namespace
 ---
@@ -274,7 +273,6 @@ data:
     managementCluster: test
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   labels:
     giantswarm.io/prevent-deletion: "true"
   name: test-default-apps-user-values
@@ -349,7 +347,6 @@ data:
         enforced: true
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   name: test-user-values
   namespace: test-namespace
 ---
@@ -416,7 +413,6 @@ data:
         enforced: true
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   labels:
     giantswarm.io/prevent-deletion: "true"
   name: test-user-values
@@ -486,7 +482,6 @@ data:
         enforced: true
 kind: ConfigMap
 metadata:
-  creationTimestamp: null
   name: test-user-values
   namespace: test-namespace
 ---
