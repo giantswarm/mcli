@@ -12,7 +12,7 @@ require (
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v57 v57.0.0
 	github.com/rs/zerolog v1.34.0
-	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
+	github.com/shurcooL/githubv4 v0.0.0-20260209031235-2402fdf4a9ed
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	go.uber.org/config v1.4.0
