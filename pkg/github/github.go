@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v57/github"
+	"github.com/google/go-github/v84/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -251,7 +251,7 @@ func (r *Repository) CreateDirectory(ctx context.Context, content map[string]str
 
 	// create the commit
 	log.Debug().Msg(fmt.Sprintf("creating commit of branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
-	commit, _, err := r.Git.CreateCommit(ctx, r.Organization, r.Name, &github.Commit{
+	commit, _, err := r.Git.CreateCommit(ctx, r.Organization, r.Name, github.Commit{
 		Message: github.String(message),
 		Tree:    tree,
 		Parents: []*github.Commit{{SHA: &baseSHA}},
@@ -262,12 +262,10 @@ func (r *Repository) CreateDirectory(ctx context.Context, content map[string]str
 
 	// update the branch
 	log.Debug().Msg(fmt.Sprintf("updating branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
-	_, _, err = r.Git.UpdateRef(ctx, r.Organization, r.Name, &github.Reference{
-		Ref: github.String(fmt.Sprintf("refs/heads/%s", r.Branch)),
-		Object: &github.GitObject{
-			SHA: commit.SHA,
-		},
-	}, false)
+	_, _, err = r.Git.UpdateRef(ctx, r.Organization, r.Name, fmt.Sprintf("refs/heads/%s", r.Branch), github.UpdateRef{
+		SHA:   commit.GetSHA(),
+		Force: github.Bool(false),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to update branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
 	}
@@ -365,13 +363,10 @@ func (r *Repository) CreateBranch(ctx context.Context, mainbranch string) error 
 
 	// create Branch called r.Branch from main
 	log.Debug().Msg(fmt.Sprintf("creating branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
-	reference := &github.Reference{
-		Ref: github.String(fmt.Sprintf("refs/heads/%s", r.Branch)),
-		Object: &github.GitObject{
-			SHA: branch.Commit.SHA,
-		},
-	}
-	_, _, err = r.Git.CreateRef(ctx, r.Organization, r.Name, reference)
+	_, _, err = r.Git.CreateRef(ctx, r.Organization, r.Name, github.CreateRef{
+		Ref: fmt.Sprintf("refs/heads/%s", r.Branch),
+		SHA: branch.GetCommit().GetSHA(),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
 	}
@@ -445,8 +440,8 @@ func (r *Repository) AddCollaborator(ctx context.Context, slug string, permissio
 			return fmt.Errorf("failed to check if %s is already a collaborator of repository %s/%s.\n%w", collaborator, r.Organization, r.Name, err)
 		}
 	}
-	if result != nil {
-		if result.Permissions[permission] {
+	if result != nil && result.Permissions != nil {
+		if hasPermission(result.Permissions, permission) {
 			return nil
 		}
 	}
@@ -540,4 +535,24 @@ func (r *Repository) CreatePullRequest(ctx context.Context, title string, base s
 
 func noChangesMade(content string) bool {
 	return strings.HasSuffix(content, ActionNoChangesMarker)
+}
+
+func hasPermission(p *github.RepositoryPermissions, permission string) bool {
+	if p == nil {
+		return false
+	}
+	switch permission {
+	case "admin":
+		return p.GetAdmin()
+	case "maintain":
+		return p.GetMaintain()
+	case "push":
+		return p.GetPush()
+	case "triage":
+		return p.GetTriage()
+	case "pull":
+		return p.GetPull()
+	default:
+		return false
+	}
 }
