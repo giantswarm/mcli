@@ -2,7 +2,7 @@ module github.com/giantswarm/mcli
 
 go 1.25.0
 
-toolchain go1.26.0
+toolchain go1.26.1
 
 require (
 	filippo.io/age v1.3.1
