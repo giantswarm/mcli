@@ -10,7 +10,7 @@ require (
 	github.com/giantswarm/k8smetadata v0.26.0
 	github.com/giantswarm/kubectl-gs/v2 v2.52.1
 	github.com/giantswarm/microerror v0.4.1
-	github.com/google/go-github/v84 v84.0.0
+	github.com/google/go-github/v85 v85.0.0
 	github.com/rs/zerolog v1.35.0
 	github.com/shurcooL/githubv4 v0.0.0-20260209031235-2402fdf4a9ed
 	github.com/spf13/cobra v1.10.2
