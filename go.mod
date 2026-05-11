@@ -8,7 +8,7 @@ require (
 	filippo.io/age v1.3.1
 	github.com/giantswarm/apiextensions-application v0.6.2
 	github.com/giantswarm/k8smetadata v0.26.0
-	github.com/giantswarm/kubectl-gs/v2 v2.52.1
+	github.com/giantswarm/kubectl-gs/v2 v2.57.0
 	github.com/giantswarm/microerror v0.4.1
 	github.com/google/go-github/v86 v86.0.0
 	github.com/rs/zerolog v1.35.1
@@ -33,7 +33,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
-	github.com/giantswarm/release-operator/v4 v4.1.1 // indirect
+	github.com/giantswarm/release-operator/v4 v4.2.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
