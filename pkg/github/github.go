@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v86/github"
+	"github.com/google/go-github/v87/github"
 	"github.com/rs/zerolog/log"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -40,8 +40,13 @@ func New(config Config) *Github {
 	src := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: config.Token})
 	httpClient := oauth2.NewClient(context.Background(), src)
 
+	client, err := github.NewClient(github.WithHTTPClient(httpClient))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create github client")
+	}
+
 	return &Github{
-		Client: github.NewClient(httpClient),
+		Client: client,
 		Graph:  githubv4.NewClient(httpClient),
 	}
 }
