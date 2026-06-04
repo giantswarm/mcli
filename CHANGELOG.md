@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add JSON schema headers to `cluster.yaml` if `schema.json` is present in the installation repository
 
+### Changed
+
+- Release binaries now include darwin/amd64, darwin/arm64, windows/amd64, and windows/arm64 alongside the existing linux targets. Windows binaries are named `mcli-windows-<arch>.exe`.
+
 ## [0.2.0] - 2024-12-19
 
 ### Added
