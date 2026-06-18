@@ -91,7 +91,7 @@ replace github.com/cloudflare/circl => github.com/cloudflare/circl v1.6.3
 
 replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.4
 
-replace github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
+replace github.com/golang-jwt/jwt/v5 => github.com/golang-jwt/jwt/v4 v5.3.1
 
 replace github.com/hashicorp/go-retryablehttp => github.com/hashicorp/go-retryablehttp v0.7.8
 
