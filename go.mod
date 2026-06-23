@@ -95,7 +95,7 @@ replace github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
 
 replace github.com/hashicorp/go-retryablehttp => github.com/hashicorp/go-retryablehttp v0.7.8
 
-replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.4.3
+replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.5.0
 
 replace github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.15
 
