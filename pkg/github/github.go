@@ -538,6 +538,29 @@ func (r *Repository) CreatePullRequest(ctx context.Context, title string, base s
 	return nil
 }
 
+func (r *Repository) PullRequestExists(ctx context.Context, title string) (bool, error) {
+	log.Debug().Msg(fmt.Sprintf("checking if an open pull request titled %q exists in repository %s/%s", title, r.Organization, r.Name))
+	opts := &github.PullRequestListOptions{
+		State:       "open",
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+	for {
+		pullRequests, resp, err := r.PullRequests.List(ctx, r.Organization, r.Name, opts)
+		if err != nil {
+			return false, fmt.Errorf("failed to list pull requests of repository %s/%s.\n%w", r.Organization, r.Name, err)
+		}
+		for _, pullRequest := range pullRequests {
+			if pullRequest.GetTitle() == title {
+				return true, nil
+			}
+		}
+		if resp.NextPage == 0 {
+			return false, nil
+		}
+		opts.Page = resp.NextPage
+	}
+}
+
 func noChangesMade(content string) bool {
 	return strings.HasSuffix(content, ActionNoChangesMarker)
 }

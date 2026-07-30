@@ -194,9 +194,19 @@ func (c *Config) createOwnershipPR(ctx context.Context) error {
 		return fmt.Errorf("failed to update ownership file %s.\n%w", ownershipFile, err)
 	}
 
+	title := fmt.Sprintf("chore: Add %s to team honeybadger", c.CMCRepository)
+	exists, err := githubRepository.PullRequestExists(ctx, title)
+	if err != nil {
+		return fmt.Errorf("failed to check for an existing ownership PR.\n%w", err)
+	}
+	if exists {
+		log.Debug().Msgf("ownership PR %q already exists", title)
+		return nil
+	}
+
 	log.Debug().Msgf("creating PR for ownership file %s", ownershipFile)
 	// create PR
-	if err := githubRepository.CreatePullRequest(ctx, fmt.Sprintf("Add %s to to team honeybadger", c.CMCRepository), key.CMCMainBranch); err != nil {
+	if err := githubRepository.CreatePullRequest(ctx, title, key.CMCMainBranch); err != nil {
 		return fmt.Errorf("failed to create PR for ownership file.\n%w", err)
 	}
 	return nil
