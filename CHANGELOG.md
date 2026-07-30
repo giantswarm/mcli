@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Release binaries now include darwin/amd64, darwin/arm64, windows/amd64, and windows/arm64 alongside the existing linux targets. Windows binaries are named `mcli-windows-<arch>.exe`.
 
+### Fixed
+
+- Skip creating the team ownership pull request if one with the same title is already open
+
 ## [0.2.0] - 2024-12-19
 
 ### Added
