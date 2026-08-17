@@ -99,10 +99,10 @@ replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.5.1
 
 replace github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.16
 
-replace go.opentelemetry.io/otel => go.opentelemetry.io/otel v1.44.0
+replace go.opentelemetry.io/otel => go.opentelemetry.io/otel v1.45.0
 
-replace go.opentelemetry.io/otel/sdk => go.opentelemetry.io/otel/sdk v1.44.0
+replace go.opentelemetry.io/otel/sdk => go.opentelemetry.io/otel/sdk v1.45.0
 
-replace go.opentelemetry.io/otel/metric => go.opentelemetry.io/otel/metric v1.44.0
+replace go.opentelemetry.io/otel/metric => go.opentelemetry.io/otel/metric v1.45.0
 
-replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.44.0
+replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.45.0
