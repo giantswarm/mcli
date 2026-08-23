@@ -79,7 +79,7 @@ mcli pull installations --cluster=gigmac`,
 }
 
 var pullCMCCmd = &cobra.Command{
-	Use:   "cmc",
+	Use:   cmcUse,
 	Short: "Pulls the current configuration of the Management Clusters CMC repository entry",
 	Long: `Pulls the current configuration of a Management Clusters CMC repository entry from
 installations repository. For example:

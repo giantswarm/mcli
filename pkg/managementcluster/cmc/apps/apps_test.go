@@ -7,6 +7,17 @@ import (
 	"github.com/giantswarm/mcli/pkg/key"
 )
 
+const (
+	testCaseSimple          = "case 0: simple"
+	testCasePreventDeletion = "case 1: prevent deletion"
+	testName                = "test"
+	testNamespace           = "test-namespace"
+	testClusterAppName      = "cluster-aws"
+	testClusterCatalog      = "cluster"
+	testAppVersion          = "0.1.0"
+	testClusterValues       = "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n"
+)
+
 func TestGetAppsConfig(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -16,33 +27,33 @@ func TestGetAppsConfig(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name: "case 0: simple",
+			name: testCaseSimple,
 			file: getValidClusterApps(),
 
 			expected: Config{
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
+				Values:                       testClusterValues,
 				ConfigureContainerRegistries: false,
 				MCAppsPreventDeletion:        false,
 			},
 		},
 		{
-			name: "case 1: prevent deletion",
+			name: testCasePreventDeletion,
 			file: getValidClusterAppsPreventDeletion(),
 
 			expected: Config{
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
+				Values:                       testClusterValues,
 				ConfigureContainerRegistries: false,
 				MCAppsPreventDeletion:        true,
 			},
@@ -52,13 +63,13 @@ func TestGetAppsConfig(t *testing.T) {
 			file: getValidClusterAppsConfigureContainerRegistries(),
 
 			expected: Config{
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
+				Values:                       testClusterValues,
 				ConfigureContainerRegistries: true,
 				MCAppsPreventDeletion:        false,
 			},
@@ -93,51 +104,51 @@ func TestGetClusterAppsFile(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name: "case 0: simple",
+			name: testCaseSimple,
 			c: Config{
-				Cluster:                      "test",
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Cluster:                      testName,
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
 				ConfigureContainerRegistries: false,
 				MCAppsPreventDeletion:        false,
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				Values:                       testClusterValues,
 			},
 
 			expected: getValidClusterApps(),
 		},
 		{
-			name: "case 1: prevent deletion",
+			name: testCasePreventDeletion,
 			c: Config{
-				Cluster:                      "test",
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Cluster:                      testName,
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
 				ConfigureContainerRegistries: false,
 				MCAppsPreventDeletion:        true,
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				Values:                       testClusterValues,
 			},
 			expected: getValidClusterAppsPreventDeletion(),
 		},
 		{
 			name: "case 2: configure container registries",
 			c: Config{
-				Cluster:                      "test",
-				Name:                         "test",
-				Namespace:                    "test-namespace",
+				Cluster:                      testName,
+				Name:                         testName,
+				Namespace:                    testNamespace,
 				Provider:                     key.ProviderAWS,
-				AppName:                      "cluster-aws",
-				Catalog:                      "cluster",
-				Version:                      "0.1.0",
+				AppName:                      testClusterAppName,
+				Catalog:                      testClusterCatalog,
+				Version:                      testAppVersion,
 				ConfigureContainerRegistries: true,
 				MCAppsPreventDeletion:        false,
-				Values:                       "global:\n  controlPlane:\n    some: value\n    and:\n      another: value\n    this:\n    - is\n    - a\n    - list\n    oidc:\n      issuerUrl: https://dex.gigantic.io/dex\n      clientId: dex-k8s-authenticator\n      usernameClaim: email\n      groupsClaim: groups\n  providerSpecific:\n    awsClusterRoleIdentityName: \"default\"\n    region: \"eu-west-2\"\n  metadata:\n    preventDeletion: true\n    description: \"test MC\"\n    name: \"test\"\n    organization: \"giantswarm\"\n  nodePools:\n    hello:\n      availabilityZones:\n      - eu-west-2a\n      instanceType: r6i.xlarge\n      minSize: 3\n      maxSize: 6\n      rootVolumeSizeGB: 300\n      customNodeLabels:\n      - label=test\n  podSecurityStandards:\n    enforced: true\n",
+				Values:                       testClusterValues,
 			},
 			expected: getValidClusterAppsConfigureContainerRegistries(),
 		},
@@ -171,15 +182,15 @@ func TestGetDefaultAppsFile(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name: "case 0: simple",
+			name: testCaseSimple,
 			c: Config{
-				Cluster:               "test",
+				Cluster:               testName,
 				Name:                  "test-default-apps",
-				Namespace:             "test-namespace",
+				Namespace:             testNamespace,
 				Provider:              key.ProviderAWS,
 				AppName:               "default-apps-aws",
-				Catalog:               "cluster",
-				Version:               "0.1.0",
+				Catalog:               testClusterCatalog,
+				Version:               testAppVersion,
 				MCAppsPreventDeletion: false,
 				Values:                "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 			},
@@ -187,15 +198,15 @@ func TestGetDefaultAppsFile(t *testing.T) {
 			expected: getValidDefaultApps(),
 		},
 		{
-			name: "case 1: prevent deletion",
+			name: testCasePreventDeletion,
 			c: Config{
-				Cluster:               "test",
+				Cluster:               testName,
 				Name:                  "test-default-apps",
-				Namespace:             "test-namespace",
+				Namespace:             testNamespace,
 				Provider:              key.ProviderAWS,
 				AppName:               "default-apps-aws",
-				Catalog:               "cluster",
-				Version:               "0.1.0",
+				Catalog:               testClusterCatalog,
+				Version:               testAppVersion,
 				MCAppsPreventDeletion: true,
 				Values:                "clusterName: test\norganization: giantswarm\nmanagementCluster: test\n",
 			},

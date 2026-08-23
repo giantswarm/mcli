@@ -98,7 +98,7 @@ func IntegrateDefaultAppsValuesInClusterValues(clusterValues string, c Config) (
 	log.Debug().Msg("Integrating default apps values in cluster values")
 
 	if !c.PrivateCA &&
-		!(key.IsProviderAzure(c.Provider) && !c.PrivateMC) &&
+		(!key.IsProviderAzure(c.Provider) || c.PrivateMC) &&
 		!c.CertManagerDNSChallenge {
 		return clusterValues, nil
 	}

@@ -207,10 +207,10 @@ func (r *Repository) createFile(ctx context.Context, content []byte, path string
 	// create the file and the directory structure if necessary
 	log.Debug().Msg(fmt.Sprintf("creating file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
 	_, _, err = r.Repositories.CreateFile(ctx, r.Organization, r.Name, path, &github.RepositoryContentFileOptions{
-		Message: github.String(message),
+		Message: github.Ptr(message),
 		Content: content,
-		Branch:  github.String(r.Branch),
-		SHA:     github.String(fileSHA),
+		Branch:  github.Ptr(r.Branch),
+		SHA:     github.Ptr(fileSHA),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create file %s of branch %s of repository %s/%s.\n%w", path, r.Branch, r.Organization, r.Name, err)
@@ -257,7 +257,7 @@ func (r *Repository) CreateDirectory(ctx context.Context, content map[string]str
 	// create the commit
 	log.Debug().Msg(fmt.Sprintf("creating commit of branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
 	commit, _, err := r.Git.CreateCommit(ctx, r.Organization, r.Name, github.Commit{
-		Message: github.String(message),
+		Message: github.Ptr(message),
 		Tree:    tree,
 		Parents: []*github.Commit{{SHA: &baseSHA}},
 	}, &github.CreateCommitOptions{})
@@ -269,7 +269,7 @@ func (r *Repository) CreateDirectory(ctx context.Context, content map[string]str
 	log.Debug().Msg(fmt.Sprintf("updating branch %s of repository %s/%s", r.Branch, r.Organization, r.Name))
 	_, _, err = r.Git.UpdateRef(ctx, r.Organization, r.Name, fmt.Sprintf("refs/heads/%s", r.Branch), github.UpdateRef{
 		SHA:   commit.GetSHA(),
-		Force: github.Bool(false),
+		Force: github.Ptr(false),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update branch %s of repository %s/%s.\n%w", r.Branch, r.Organization, r.Name, err)
@@ -309,10 +309,10 @@ func (r *Repository) createEntry(ctx context.Context, path string, content strin
 	// create the tree entry
 	log.Debug().Msg(fmt.Sprintf("creating file %s of branch %s of repository %s/%s", path, r.Branch, r.Organization, r.Name))
 	return &github.TreeEntry{
-		Path:    github.String(path),
-		Mode:    github.String("100644"),
-		Type:    github.String("blob"),
-		Content: github.String(content),
+		Path:    github.Ptr(path),
+		Mode:    github.Ptr("100644"),
+		Type:    github.Ptr("blob"),
+		Content: github.Ptr(content),
 	}, nil
 }
 
@@ -423,10 +423,10 @@ func (r *Repository) CreatePrivateRepo(ctx context.Context, description string, 
 	// create a private repository from the template
 	log.Debug().Msg(fmt.Sprintf("creating repository %s/%s", r.Organization, r.Name))
 	_, _, err := r.Repositories.CreateFromTemplate(ctx, r.Organization, template, github.TemplateRepoRequest{
-		Owner:       github.String(r.Organization),
+		Owner:       github.Ptr(r.Organization),
 		Name:        r.Name,
-		Description: github.String(description),
-		Private:     github.Bool(true),
+		Description: github.Ptr(description),
+		Private:     github.Ptr(true),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create repository %s/%s.\n%w", r.Organization, r.Name, err)
@@ -473,7 +473,7 @@ func (r *Repository) SetupBranchProtection(ctx context.Context, branch string) e
 		"owner": githubv4.String(r.Organization),
 		"name":  githubv4.String(r.Name),
 	}
-	err := r.Github.Graph.Query(ctx, &query, variables)
+	err := r.Graph.Query(ctx, &query, variables)
 	if err != nil {
 		return fmt.Errorf("failed to get id of repository %s/%s.\n%w", r.Organization, r.Name, err)
 	}
@@ -489,7 +489,7 @@ func (r *Repository) SetupBranchProtection(ctx context.Context, branch string) e
 			} `graphql:"branchProtectionRules(first: 100)"`
 		} `graphql:"repository(owner: $owner, name: $name)"`
 	}
-	err = r.Github.Graph.Query(ctx, &check, variables)
+	err = r.Graph.Query(ctx, &check, variables)
 	if err != nil {
 		return fmt.Errorf("failed to check if branch protection rule for branch %s of repository %s/%s already exists.\n%w", branch, r.Organization, r.Name, err)
 	}
@@ -516,7 +516,7 @@ func (r *Repository) SetupBranchProtection(ctx context.Context, branch string) e
 		RequiresStrictStatusChecks:   githubv4.NewBoolean(githubv4.Boolean(true)),
 		IsAdminEnforced:              githubv4.NewBoolean(githubv4.Boolean(true)),
 	}
-	err = r.Github.Graph.Mutate(ctx, &mutation, input, nil)
+	err = r.Graph.Mutate(ctx, &mutation, input, nil)
 	if err != nil {
 		return fmt.Errorf("failed to protect branch %s of repository %s/%s.\n%w", branch, r.Organization, r.Name, err)
 	}
@@ -526,11 +526,11 @@ func (r *Repository) SetupBranchProtection(ctx context.Context, branch string) e
 func (r *Repository) CreatePullRequest(ctx context.Context, title string, base string) error {
 	log.Debug().Msg(fmt.Sprintf("creating pull request to merge %s into %s of repository %s/%s", r.Branch, base, r.Organization, r.Name))
 	_, _, err := r.PullRequests.Create(ctx, r.Organization, r.Name, github.CreatePullRequest{
-		Title: github.String(title),
-		Body:  github.String("Pull request was generated by: 'mcli'."),
+		Title: github.Ptr(title),
+		Body:  github.Ptr("Pull request was generated by: 'mcli'."),
 		Head:  r.Branch,
 		Base:  base,
-		Draft: github.Bool(true),
+		Draft: github.Ptr(true),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create pull request to merge %s into %s of repository %s/%s.\n%w", r.Branch, base, r.Organization, r.Name, err)

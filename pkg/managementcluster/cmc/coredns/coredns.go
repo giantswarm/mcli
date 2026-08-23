@@ -9,19 +9,21 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const coreDNSName = "coredns"
+
 func GetCoreDNSFile(config string) (string, error) {
 	log.Debug().Msg("Creating CoreDNS configmap")
 	configmap := v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "coredns",
+			Name:      coreDNSName,
 			Namespace: "kube-system",
 			Annotations: map[string]string{
-				"meta.helm.sh/release-name":      "coredns",
+				"meta.helm.sh/release-name":      coreDNSName,
 				"meta.helm.sh/release-namespace": "kube-system",
 			},
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": "Helm",
-				"k8s-app":                      "coredns",
+				"k8s-app":                      coreDNSName,
 			},
 		},
 		Data: map[string]string{

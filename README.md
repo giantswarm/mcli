@@ -311,7 +311,7 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 ```
 
 > [!NOTE]
-> The `--secret-folder` flag is used here to specify the folder where the secrets are stored. 
+> The `--secret-folder` flag is used here to specify the folder where the secrets are stored.
 > When using the tool with flags the expectation is that the secrets are stored in a folder and the tool will read them from there.
 > More information on the secret folder can be found in the [mc-bootstrap repository](github.com/giantswarm/mc-bootstrap).
 

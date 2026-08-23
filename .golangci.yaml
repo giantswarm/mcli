@@ -1,0 +1,13 @@
+version: "2"
+
+linters:
+  exclusions:
+    rules:
+      # gosec G101 flags the deliberately fake credential fixtures used in
+      # table-driven tests (e.g. "test-taylor-bot-token", "test-vcd-credentials",
+      # testdata deploy-key contents). These are spurious by design; scoped to
+      # test files and to rule G101 only (precedent: giantswarm/mcp-oauth#549).
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G101:"

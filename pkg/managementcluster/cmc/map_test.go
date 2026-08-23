@@ -12,6 +12,51 @@ import (
 	"github.com/giantswarm/mcli/pkg/sops"
 )
 
+const (
+	testCluster                   = "cluster"
+	testBaseDomain                = "basedomain.io"
+	testMCRepository              = "test-management-clusters"
+	testCMCBranch                 = "cmc-branch"
+	testMCBBranch                 = "mcb-branch"
+	testConfigBranch              = "config-branch"
+	testMCAppCollectionBranch     = "mc-app-collection-branch"
+	testClusterAppAWS             = "clusterapp-aws"
+	testClusterAppValues          = "global:\n  clusterapp: values"
+	testClusterAppVersion         = "clusterappversion"
+	testClusterCatalog            = "clustercatalog"
+	testClusterAppNameAWS         = "clusterappname-aws"
+	testDefaultAppValues          = "defaultappvalues"
+	testDefaultAppVersion         = "defaultappversion"
+	testDefaultCatalog            = "defaultcatalog"
+	testClusterNamespace          = "clusternamespace"
+	testTaylorBotToken            = "taylorbottoken"
+	testIdentity                  = "identity"
+	testPassphrase                = "passphrase"
+	testKnownHosts                = "knownhosts"
+	testCustomerIdentity          = "customeridentity"
+	testCustomerPassphrase        = "customerpassphrase"
+	testCustomerKnownHosts        = "customerknownhosts"
+	testSharedIdentity            = "sharedidentity"
+	testSharedPassphrase          = "sharedpassphrase"
+	testSharedKnownHosts          = "sharedknownhosts"
+	testContainerRegistriesValues = "configurecontainerregistriesvalues"
+	testAccessKeyID               = "accesskeyid"
+	testRegion                    = "region"
+	testRole                      = "role"
+	testSecretAccessKey           = "secretaccesskey"
+	testCoreDNSValues             = "customcorednsvalues"
+	testHostname                  = "hostname"
+	testClusterAppAzure           = "clusterapp-azure"
+	testClusterAppValuesAzure     = "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n"
+	testClusterAppNameAzure       = "clusterappname-azure"
+	testUAClientID                = "uaclientid"
+	testTenantID                  = "tenantid"
+	testUAResourceID              = "uaresourceid"
+	testClientID                  = "clientid"
+	testClientSecret              = "clientsecret"
+	testSubscriptionID            = "subid"
+)
+
 func TestGetMapFromCMC(t *testing.T) {
 	var testCases = []struct {
 		name        string
@@ -22,70 +67,70 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 0: valid aws CMC",
 			cmc: &CMC{
-				Cluster:    "cluster",
-				BaseDomain: "basedomain.io",
+				Cluster:    testCluster,
+				BaseDomain: testBaseDomain,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-aws",
-					Values:  "global:\n  clusterapp: values",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-aws",
+					Name:    testClusterAppAWS,
+					Values:  testClusterAppValues,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAWS,
 				},
 				DefaultApps: App{
 					Name:    "defaultapp-aws",
-					Values:  "defaultappvalues",
-					Version: "defaultappversion",
-					Catalog: "defaultcatalog",
+					Values:  testDefaultAppValues,
+					Version: testDefaultAppVersion,
+					Catalog: testDefaultCatalog,
 					AppName: "defaultappname-aws",
 				},
 				MCAppsPreventDeletion: true,
 				PrivateCA:             true,
-				ClusterNamespace:      "clusternamespace",
+				ClusterNamespace:      testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAWS,
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -95,79 +140,79 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 1: valid CMC azure",
 			cmc: &CMC{
-				BaseDomain: "basedomain.io",
-				Cluster:    "cluster",
+				BaseDomain: testBaseDomain,
+				Cluster:    testCluster,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-azure",
-					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-azure",
+					Name:    testClusterAppAzure,
+					Values:  testClusterAppValuesAzure,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAzure,
 				},
 				DefaultApps: App{
 					Name:    "defaultapp-azure",
-					Values:  "defaultappvalues",
-					Version: "defaultappversion",
-					Catalog: "defaultcatalog",
+					Values:  testDefaultAppValues,
+					Version: testDefaultAppVersion,
+					Catalog: testDefaultCatalog,
 					AppName: "defaultappname-azure",
 				},
 				MCAppsPreventDeletion: true,
 				PrivateCA:             true,
-				ClusterNamespace:      "clusternamespace",
+				ClusterNamespace:      testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAzure,
 					CAPZ: CAPZ{
-						UAClientID:     "uaclientid",
-						UATenantID:     "tenantid",
-						UAResourceID:   "uaresourceid",
-						ClientID:       "clientid",
-						ClientSecret:   "clientsecret",
-						TenantID:       "tenantid",
-						SubscriptionID: "subid",
+						UAClientID:     testUAClientID,
+						UATenantID:     testTenantID,
+						UAResourceID:   testUAResourceID,
+						ClientID:       testClientID,
+						ClientSecret:   testClientSecret,
+						TenantID:       testTenantID,
+						SubscriptionID: testSubscriptionID,
 					},
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -177,64 +222,64 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 2: valid aws CMC integrated default apps",
 			cmc: &CMC{
-				BaseDomain: "basedomain.io",
-				Cluster:    "cluster",
+				BaseDomain: testBaseDomain,
+				Cluster:    testCluster,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-aws",
-					Values:  "global:\n  clusterapp: values",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-aws",
+					Name:    testClusterAppAWS,
+					Values:  testClusterAppValues,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAWS,
 				},
 				ClusterIntegratesDefaultApps: true,
 				MCAppsPreventDeletion:        true,
 				PrivateCA:                    true,
-				ClusterNamespace:             "clusternamespace",
+				ClusterNamespace:             testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAWS,
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -244,74 +289,74 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 3: valid CMC azure private MC",
 			cmc: &CMC{
-				BaseDomain: "basedomain.io",
-				Cluster:    "cluster",
+				BaseDomain: testBaseDomain,
+				Cluster:    testCluster,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-azure",
-					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-azure",
+					Name:    testClusterAppAzure,
+					Values:  testClusterAppValuesAzure,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAzure,
 				},
 				MCAppsPreventDeletion:        true,
 				PrivateCA:                    true,
 				PrivateMC:                    true,
 				ClusterIntegratesDefaultApps: true,
-				ClusterNamespace:             "clusternamespace",
+				ClusterNamespace:             testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAzure,
 					CAPZ: CAPZ{
-						UAClientID:     "uaclientid",
-						UATenantID:     "tenantid",
-						UAResourceID:   "uaresourceid",
-						ClientID:       "clientid",
-						ClientSecret:   "clientsecret",
-						TenantID:       "tenantid",
-						SubscriptionID: "subid",
+						UAClientID:     testUAClientID,
+						UATenantID:     testTenantID,
+						UAResourceID:   testUAResourceID,
+						ClientID:       testClientID,
+						ClientSecret:   testClientSecret,
+						TenantID:       testTenantID,
+						SubscriptionID: testSubscriptionID,
 					},
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -321,80 +366,80 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 4: valid CMC azure private MC",
 			cmc: &CMC{
-				BaseDomain: "basedomain.io",
-				Cluster:    "cluster",
+				BaseDomain: testBaseDomain,
+				Cluster:    testCluster,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-azure",
-					Values:  "global:\n  clusterapp: values\nsubscriptionId: subid\ntenantID: tenantid\nclientID: clientid\nclientSecret: clientsecret\nresourceID: uaresourceid\nuaClientID: uaclientid\nuaTenantID: uatenantid\n",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-azure",
+					Name:    testClusterAppAzure,
+					Values:  testClusterAppValuesAzure,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAzure,
 				},
 				DefaultApps: App{
 					Name:    "defaultapp-azure",
-					Values:  "defaultappvalues",
-					Version: "defaultappversion",
-					Catalog: "defaultcatalog",
+					Values:  testDefaultAppValues,
+					Version: testDefaultAppVersion,
+					Catalog: testDefaultCatalog,
 					AppName: "defaultappname-azure",
 				},
 				MCAppsPreventDeletion: true,
 				PrivateCA:             true,
 				PrivateMC:             true,
-				ClusterNamespace:      "clusternamespace",
+				ClusterNamespace:      testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAzure,
 					CAPZ: CAPZ{
-						UAClientID:     "uaclientid",
-						UATenantID:     "tenantid",
-						UAResourceID:   "uaresourceid",
-						ClientID:       "clientid",
-						ClientSecret:   "clientsecret",
-						TenantID:       "tenantid",
-						SubscriptionID: "subid",
+						UAClientID:     testUAClientID,
+						UATenantID:     testTenantID,
+						UAResourceID:   testUAResourceID,
+						ClientID:       testClientID,
+						ClientSecret:   testClientSecret,
+						TenantID:       testTenantID,
+						SubscriptionID: testSubscriptionID,
 					},
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -404,65 +449,65 @@ func TestGetMapFromCMC(t *testing.T) {
 		{
 			name: "case 5: custom registry domain",
 			cmc: &CMC{
-				BaseDomain:     "basedomain.io",
+				BaseDomain:     testBaseDomain,
 				RegistryDomain: "registrydomain.io",
-				Cluster:        "cluster",
+				Cluster:        testCluster,
 				GitOps: GitOps{
-					CMCRepository:         "test-management-clusters",
-					CMCBranch:             "cmc-branch",
-					MCBBranchSource:       "mcb-branch",
-					ConfigBranch:          "config-branch",
-					MCAppCollectionBranch: "mc-app-collection-branch",
+					CMCRepository:         testMCRepository,
+					CMCBranch:             testCMCBranch,
+					MCBBranchSource:       testMCBBranch,
+					ConfigBranch:          testConfigBranch,
+					MCAppCollectionBranch: testMCAppCollectionBranch,
 				},
 				ClusterApp: App{
-					Name:    "clusterapp-aws",
-					Values:  "global:\n  clusterapp: values",
-					Version: "clusterappversion",
-					Catalog: "clustercatalog",
-					AppName: "clusterappname-aws",
+					Name:    testClusterAppAWS,
+					Values:  testClusterAppValues,
+					Version: testClusterAppVersion,
+					Catalog: testClusterCatalog,
+					AppName: testClusterAppNameAWS,
 				},
 				ClusterIntegratesDefaultApps: true,
 				MCAppsPreventDeletion:        true,
 				PrivateCA:                    true,
-				ClusterNamespace:             "clusternamespace",
+				ClusterNamespace:             testClusterNamespace,
 				Provider: Provider{
 					Name: key.ProviderAWS,
 				},
-				TaylorBotToken: "taylorbottoken",
+				TaylorBotToken: testTaylorBotToken,
 				SSHdeployKey: DeployKey{
-					Identity:   "identity",
-					Passphrase: "passphrase",
-					KnownHosts: "knownhosts",
+					Identity:   testIdentity,
+					Passphrase: testPassphrase,
+					KnownHosts: testKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Identity:   "customeridentity",
-					Passphrase: "customerpassphrase",
-					KnownHosts: "customerknownhosts",
+					Identity:   testCustomerIdentity,
+					Passphrase: testCustomerPassphrase,
+					KnownHosts: testCustomerKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Identity:   "sharedidentity",
-					Passphrase: "sharedpassphrase",
-					KnownHosts: "sharedknownhosts",
+					Identity:   testSharedIdentity,
+					Passphrase: testSharedPassphrase,
+					KnownHosts: testSharedKnownHosts,
 				},
 				ConfigureContainerRegistries: ConfigureContainerRegistries{
 					Enabled: true,
-					Values:  "configurecontainerregistriesvalues",
+					Values:  testContainerRegistriesValues,
 				},
 				CertManagerDNSChallenge: CertManagerDNSChallenge{
 					Enabled:         true,
-					AccessKeyID:     "accesskeyid",
-					Region:          "region",
-					Role:            "role",
-					SecretAccessKey: "secretaccesskey",
+					AccessKeyID:     testAccessKeyID,
+					Region:          testRegion,
+					Role:            testRole,
+					SecretAccessKey: testSecretAccessKey,
 				},
 				CustomCoreDNS: CustomCoreDNS{
 					Enabled: true,
-					Values:  "customcorednsvalues",
+					Values:  testCoreDNSValues,
 				},
 				DisableDenyAllNetPol: true,
 				MCProxy: MCProxy{
 					Enabled:  true,
-					Hostname: "hostname",
+					Hostname: testHostname,
 					Port:     "1234",
 				},
 			},
@@ -495,7 +540,7 @@ func TestGetMapFromCMC(t *testing.T) {
 				t.Fatalf("expected error, got nil")
 			}
 
-			result, err := GetCMCFromMap(m, tc.cmc.Cluster, "test-management-clusters")
+			result, err := GetCMCFromMap(m, tc.cmc.Cluster, testMCRepository)
 			if err != nil && !tc.expectError {
 				t.Fatalf("unexpected error: %v", err)
 			} else if err == nil && tc.expectError {

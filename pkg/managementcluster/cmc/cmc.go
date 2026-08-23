@@ -3,6 +3,7 @@ package cmc
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/rs/zerolog/log"
@@ -509,7 +510,7 @@ func (c *CMC) SetDefaultAppValues() error {
 
 func GetCMCFromFile(file string) (*CMC, error) {
 	log.Debug().Msg(fmt.Sprintf("getting CMC object from file %s", file))
-	data, err := os.ReadFile(file)
+	data, err := os.ReadFile(filepath.Clean(file))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read CMC file %s.\n%w", file, err)
 	}
