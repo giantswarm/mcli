@@ -3,6 +3,7 @@ package managementcluster
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -44,7 +45,7 @@ func GetManagementClusterFromFile(input string) (*ManagementCluster, error) {
 	log.Debug().Msg("getting new management cluster object from input file")
 
 	// read data from input file
-	data, err := os.ReadFile(input)
+	data, err := os.ReadFile(filepath.Clean(input))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read input file %s.\n%w", input, err)
 	}

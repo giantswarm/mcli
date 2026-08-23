@@ -181,7 +181,7 @@ mcli push installations --cluster=gigmac --input=cluster.yaml`,
 
 // pushCMCCmd represents the push CMC command
 var pushCMCCmd = &cobra.Command{
-	Use:   "cmc",
+	Use:   cmcUse,
 	Short: "Pushes configuration of a Management Cluster CMC repository entry",
 	Long: `Pushes configuration of a Management Cluster CMC repository entry to
 CMC repository. For example:

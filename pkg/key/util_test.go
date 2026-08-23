@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+const (
+	testSchemaPath     = "../schema.json"
+	testKeyName        = "key"
+	testValue          = "value"
+	testMultilineValue = "value\nvalue"
+)
+
 func TestGetSchemaHeader(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -13,7 +20,7 @@ func TestGetSchemaHeader(t *testing.T) {
 	}{
 		{
 			name:       "relative path",
-			schemaPath: "../schema.json",
+			schemaPath: testSchemaPath,
 			expected:   "# yaml-language-server: $schema=../schema.json\n",
 		},
 		{
@@ -47,13 +54,13 @@ func TestPrependSchemaHeader(t *testing.T) {
 		{
 			name:       "prepend to yaml",
 			data:       []byte("key: value\n"),
-			schemaPath: "../schema.json",
+			schemaPath: testSchemaPath,
 			expected:   "# yaml-language-server: $schema=../schema.json\nkey: value\n",
 		},
 		{
 			name:       "prepend to empty data",
 			data:       []byte{},
-			schemaPath: "../schema.json",
+			schemaPath: testSchemaPath,
 			expected:   "# yaml-language-server: $schema=../schema.json\n",
 		},
 	}
@@ -69,7 +76,7 @@ func TestPrependSchemaHeader(t *testing.T) {
 
 func TestPrependSchemaHeaderStartsWithComment(t *testing.T) {
 	data := []byte("key: value\n")
-	result := PrependSchemaHeader(data, "../schema.json")
+	result := PrependSchemaHeader(data, testSchemaPath)
 	if !strings.HasPrefix(string(result), "#") {
 		t.Fatal("expected result to start with #")
 	}
@@ -84,39 +91,39 @@ func TestGetSecretValue(t *testing.T) {
 	}{
 		{
 			name:     "simple",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: value",
-			expected: "value",
+			expected: testValue,
 		},
 		{
 			name:     "multiline",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: |\n  value\n  value",
-			expected: "value\nvalue",
+			expected: testMultilineValue,
 		},
 		{
 			name:     "more keys",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: value\nkey2: value2",
-			expected: "value",
+			expected: testValue,
 		},
 		{
 			name:     "more keys multiline",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: |\n  value\n  value\nkey2: value2",
-			expected: "value\nvalue",
+			expected: testMultilineValue,
 		},
 		{
 			name:     "more keys multiline with other keys",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: |\n  value\n  value\nkey2: value2\nkey3: |\n  value\n  value",
-			expected: "value\nvalue",
+			expected: testMultilineValue,
 		},
 		{
 			name:     "base64 encoded",
-			key:      "key",
+			key:      testKeyName,
 			data:     "key: dmFsdWU=",
-			expected: "value",
+			expected: testValue,
 		},
 	}
 	for _, tc := range testCases {

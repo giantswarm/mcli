@@ -6,6 +6,15 @@ import (
 	"testing"
 
 	"github.com/giantswarm/mcli/pkg/managementcluster/cmc"
+
+	"github.com/giantswarm/mcli/pkg/key"
+)
+
+const (
+	testSecretPassphrase    = "deploy-key-passphrase\n"
+	testSecretIdentity      = "deploy-key-identity\n"
+	testSecretKnownHosts    = "deploy-key-known-hosts\n"
+	testSecretClusterValues = "cluster-values\n"
 )
 
 func TestConfig_ReadSecretFlags(t *testing.T) {
@@ -23,24 +32,24 @@ func TestConfig_ReadSecretFlags(t *testing.T) {
 		{
 			name:          "valid secrets folder",
 			secretsFolder: "testdata/valid",
-			provider:      "capa",
+			provider:      key.ProviderAWS,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues: "cluster-values\n",
+				ClusterValues: testSecretClusterValues,
 			},
 		},
 		{
@@ -51,56 +60,56 @@ func TestConfig_ReadSecretFlags(t *testing.T) {
 		{
 			name:                         "valid secrets folder with container registries",
 			secretsFolder:                "testdata/validcontainerregistries",
-			provider:                     "capa",
+			provider:                     key.ProviderAWS,
 			configureContainerRegistries: true,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues:                  "cluster-values\n",
+				ClusterValues:                  testSecretClusterValues,
 				ContainerRegistryConfiguration: "container: registries\nconfiguration:\n- 1\n- 2\nand:\n  so: on\n",
 			},
 		},
 		{
 			name:                         "secrets folder with nonexistant container registries",
 			secretsFolder:                "testdata/invalidcontainerregistries",
-			provider:                     "capa",
+			provider:                     key.ProviderAWS,
 			configureContainerRegistries: true,
 			expectErr:                    true,
 		},
 		{
 			name:          "valid secrets folder with capz provider",
 			secretsFolder: "testdata/validcapz",
-			provider:      "capz",
+			provider:      key.ProviderAzure,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues: "cluster-values\n",
+				ClusterValues: testSecretClusterValues,
 				Azure: AzureFlags{
 					ClientID:       "clientid",
 					ClientSecret:   "testsecret",
@@ -115,91 +124,91 @@ func TestConfig_ReadSecretFlags(t *testing.T) {
 		{
 			name:          "invalid secrets folder with capz provider",
 			secretsFolder: "testdata/invalidcapz",
-			provider:      "capz",
+			provider:      key.ProviderAzure,
 			expectErr:     true,
 		},
 		{
 			name:          "valid secrets folder with capv provider",
 			secretsFolder: "testdata/validcapv",
-			provider:      "vsphere",
+			provider:      key.ProviderVsphere,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues:      "cluster-values\n",
+				ClusterValues:      testSecretClusterValues,
 				VSphereCredentials: "cloud: config\n",
 			},
 		},
 		{
 			name:          "invalid secrets folder with capv provider",
 			secretsFolder: "testdata/invalidcapv",
-			provider:      "vsphere",
+			provider:      key.ProviderVsphere,
 			expectErr:     true,
 		},
 		{
 			name:          "valid secrets folder with capvcd provider",
 			secretsFolder: "testdata/validcapvcd",
-			provider:      "cloud-director",
+			provider:      key.ProviderVCD,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues:             "cluster-values\n",
+				ClusterValues:             testSecretClusterValues,
 				CloudDirectorRefreshToken: "test-refresh-token",
 			},
 		},
 		{
 			name:          "invalid secrets folder with capvcd provider",
 			secretsFolder: "testdata/invalidcapvcd",
-			provider:      "cloud-director",
+			provider:      key.ProviderVCD,
 			expectErr:     true,
 		},
 		{
 			name:                 "valid secrets folder with cert manager",
 			secretsFolder:        "testdata/validcertmanager",
-			provider:             "capa",
+			provider:             key.ProviderAWS,
 			configureCertManager: true,
 			expectOutput: SecretFlags{
 				SSHDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				CustomerDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
 				SharedDeployKey: DeployKey{
-					Passphrase: "deploy-key-passphrase\n",
-					Identity:   "deploy-key-identity\n",
-					KnownHosts: "deploy-key-known-hosts\n",
+					Passphrase: testSecretPassphrase,
+					Identity:   testSecretIdentity,
+					KnownHosts: testSecretKnownHosts,
 				},
-				ClusterValues:                     "cluster-values\n",
+				ClusterValues:                     testSecretClusterValues,
 				CertManagerRoute53Region:          "region",
 				CertManagerRoute53Role:            "arn:aws:iam::1234:role/role-test",
 				CertManagerRoute53AccessKeyID:     "test-key",
@@ -216,7 +225,7 @@ func TestConfig_ReadSecretFlags(t *testing.T) {
 					SecretFolder:                 tc.secretsFolder,
 					CertManagerDNSChallenge:      tc.configureCertManager,
 				},
-				Cluster:  "test",
+				Cluster:  testName,
 				Provider: tc.provider,
 			}
 

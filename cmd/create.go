@@ -17,7 +17,7 @@ var createCmd = &cobra.Command{
 }
 
 var createCMCCmd = &cobra.Command{
-	Use:   "cmc",
+	Use:   cmcUse,
 	Short: "Creates CMC repository",
 	Long: `Creates CMC repository. For example:
 

@@ -3,6 +3,7 @@ package pushcmc
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -271,7 +272,7 @@ func readFlagsFromFile(file string) (map[string]string, error) {
 }
 
 func readFile(file string) (string, error) {
-	data, err := os.ReadFile(file)
+	data, err := os.ReadFile(filepath.Clean(file))
 	if err != nil {
 		return "", fmt.Errorf("error reading file %s: %v", file, err)
 	}

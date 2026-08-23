@@ -21,11 +21,11 @@ const EnvAgeKey = "SOPS_AGE_KEY"
 func decrypt(data string, path string) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Decrypting file %s", path))
 	// create any needed parent directories
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return "", fmt.Errorf("failed to create parent directories: %w", err)
 	}
 	// create a temp file
-	f, err := os.Create(path)
+	f, err := os.Create(filepath.Clean(path))
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -50,11 +50,11 @@ func decrypt(data string, path string) (string, error) {
 func encrypt(data string, path string, age string) (string, error) {
 	log.Debug().Msg(fmt.Sprintf("Encrypting file %s", path))
 	// create any needed parent directories
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return "", fmt.Errorf("failed to create parent directories: %w", err)
 	}
 	// create a temp file
-	f, err := os.Create(path)
+	f, err := os.Create(filepath.Clean(path))
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}

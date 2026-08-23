@@ -203,11 +203,12 @@ func containsPatch(patches []kustomize.Patch, patch string) bool {
 
 func getProvider(resources []string) string {
 	for _, r := range resources {
-		if r == VsphereCredentialsFile {
+		switch r {
+		case VsphereCredentialsFile:
 			return key.ProviderVsphere
-		} else if r == CloudDirectorCredentialsFile {
+		case CloudDirectorCredentialsFile:
 			return key.ProviderVCD
-		} else if r == AzureClusterIdentitySPFile {
+		case AzureClusterIdentitySPFile:
 			return key.ProviderAzure
 		}
 	}

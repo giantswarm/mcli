@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+const (
+	testName              = "test"
+	testConfigurationRepo = "configuration"
+	testGenericFlavour    = "generic"
+	testDependabotRemove  = "dependabotRemove"
+)
+
 func TestGetDataFromRepositories(t *testing.T) {
 	var testCases = []struct {
 		name        string
@@ -16,14 +23,14 @@ func TestGetDataFromRepositories(t *testing.T) {
 			name: "one repository",
 			repos: []Repo{
 				{
-					Name:          "test",
-					ComponentType: "configuration",
+					Name:          testName,
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 			},
@@ -33,25 +40,25 @@ func TestGetDataFromRepositories(t *testing.T) {
 			name: "two repositories",
 			repos: []Repo{
 				{
-					Name:          "test",
-					ComponentType: "configuration",
+					Name:          testName,
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 				{
 					Name:          "test2",
-					ComponentType: "configuration",
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 			},
@@ -86,14 +93,14 @@ func TestGetReposFromData(t *testing.T) {
 			data: "- name: test\n  componentType: configuration\n  gen:\n    flavours:\n      - generic\n    language: generic\n  replace:\n    dependabotRemove: true\n",
 			expected: []Repo{
 				{
-					Name:          "test",
-					ComponentType: "configuration",
+					Name:          testName,
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 			},
@@ -103,25 +110,25 @@ func TestGetReposFromData(t *testing.T) {
 			data: "- name: test\n  componentType: configuration\n  gen:\n    flavours:\n      - generic\n    language: generic\n  replace:\n    dependabotRemove: true\n- name: test2\n  componentType: configuration\n  gen:\n    flavours:\n      - generic\n    language: generic\n  replace:\n    dependabotRemove: true\n",
 			expected: []Repo{
 				{
-					Name:          "test",
-					ComponentType: "configuration",
+					Name:          testName,
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 				{
 					Name:          "test2",
-					ComponentType: "configuration",
+					ComponentType: testConfigurationRepo,
 					Gen: Gen{
-						Flavours: []string{"generic"},
-						Language: "generic",
+						Flavours: []string{testGenericFlavour},
+						Language: testGenericFlavour,
 					},
 					Replace: map[string]bool{
-						"dependabotRemove": true,
+						testDependabotRemove: true,
 					},
 				},
 			},

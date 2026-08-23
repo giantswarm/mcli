@@ -3,6 +3,14 @@ package base
 import "testing"
 
 const (
+	testFileName       = "file1"
+	testConfigBranch   = "auto"
+	testMainBranch     = "main"
+	testBaseDomain     = "test.base.domain.io"
+	testRegistryDomain = "registry.domain.test.io"
+)
+
+const (
 	path = "management-clusters/test/"
 )
 
@@ -24,10 +32,10 @@ func TestGetBaseFiles(t *testing.T) {
 		{
 			name: "case 1: no variables",
 			template: map[string]string{
-				"file1": GetTestFile(),
+				testFileName: GetTestFile(),
 			},
 			config: Config{
-				ConfigBranch: "auto",
+				ConfigBranch: testConfigBranch,
 			},
 
 			expected: map[string]string{},
@@ -35,30 +43,30 @@ func TestGetBaseFiles(t *testing.T) {
 		{
 			name: "case 2: one variable",
 			template: map[string]string{
-				"file1": GetTestTemplate(),
+				testFileName: GetTestTemplate(),
 			},
 			config: Config{
-				ConfigBranch: "auto",
+				ConfigBranch: testConfigBranch,
 			},
 
 			expected: map[string]string{
-				"file1": GetTestFile(),
+				testFileName: GetTestFile(),
 			},
 		},
 		{
 			name: "case 3: multiple variables",
 			template: map[string]string{
-				"file1": GetTestTemplate(),
-				"file2": GetTestFile(),
-				"file3": GetTestTemplate(),
+				testFileName: GetTestTemplate(),
+				"file2":      GetTestFile(),
+				"file3":      GetTestTemplate(),
 			},
 			config: Config{
-				ConfigBranch: "auto",
+				ConfigBranch: testConfigBranch,
 			},
 
 			expected: map[string]string{
-				"file1": GetTestFile(),
-				"file3": GetTestFile(),
+				testFileName: GetTestFile(),
+				"file3":      GetTestFile(),
 			},
 		},
 	}
@@ -103,12 +111,12 @@ func TestGetBaseConfig(t *testing.T) {
 			},
 
 			expected: Config{
-				CMCBranch:             "main",
-				MCAppCollectionBranch: "main",
-				BaseDomain:            "test.base.domain.io",
-				RegistryDomain:        "registry.domain.test.io",
-				MCBBranchSource:       "main",
-				ConfigBranch:          "main",
+				CMCBranch:             testMainBranch,
+				MCAppCollectionBranch: testMainBranch,
+				BaseDomain:            testBaseDomain,
+				RegistryDomain:        testRegistryDomain,
+				MCBBranchSource:       testMainBranch,
+				ConfigBranch:          testMainBranch,
 			},
 		},
 		{
@@ -119,12 +127,12 @@ func TestGetBaseConfig(t *testing.T) {
 			},
 
 			expected: Config{
-				CMCBranch:             "auto",
-				MCAppCollectionBranch: "main",
-				BaseDomain:            "test.base.domain.io",
-				RegistryDomain:        "registry.domain.test.io",
-				MCBBranchSource:       "main",
-				ConfigBranch:          "main",
+				CMCBranch:             testConfigBranch,
+				MCAppCollectionBranch: testMainBranch,
+				BaseDomain:            testBaseDomain,
+				RegistryDomain:        testRegistryDomain,
+				MCBBranchSource:       testMainBranch,
+				ConfigBranch:          testMainBranch,
 			},
 		},
 		{
@@ -135,12 +143,12 @@ func TestGetBaseConfig(t *testing.T) {
 			},
 
 			expected: Config{
-				CMCBranch:             "main",
-				MCAppCollectionBranch: "main",
-				BaseDomain:            "test.base.domain.io",
-				RegistryDomain:        "registry.domain.test.io",
-				MCBBranchSource:       "main",
-				ConfigBranch:          "auto",
+				CMCBranch:             testMainBranch,
+				MCAppCollectionBranch: testMainBranch,
+				BaseDomain:            testBaseDomain,
+				RegistryDomain:        testRegistryDomain,
+				MCBBranchSource:       testMainBranch,
+				ConfigBranch:          testConfigBranch,
 			},
 		},
 		{
@@ -151,12 +159,12 @@ func TestGetBaseConfig(t *testing.T) {
 			},
 
 			expected: Config{
-				CMCBranch:             "main",
-				MCAppCollectionBranch: "auto",
-				BaseDomain:            "test.base.domain.io",
-				RegistryDomain:        "registry.domain.test.io",
-				MCBBranchSource:       "main",
-				ConfigBranch:          "main",
+				CMCBranch:             testMainBranch,
+				MCAppCollectionBranch: testConfigBranch,
+				BaseDomain:            testBaseDomain,
+				RegistryDomain:        testRegistryDomain,
+				MCBBranchSource:       testMainBranch,
+				ConfigBranch:          testMainBranch,
 			},
 		},
 		{
@@ -167,12 +175,12 @@ func TestGetBaseConfig(t *testing.T) {
 			},
 
 			expected: Config{
-				CMCBranch:             "main",
-				MCAppCollectionBranch: "main",
-				BaseDomain:            "test.base.domain.io",
-				RegistryDomain:        "registry.domain.test.io",
+				CMCBranch:             testMainBranch,
+				MCAppCollectionBranch: testMainBranch,
+				BaseDomain:            testBaseDomain,
+				RegistryDomain:        testRegistryDomain,
 				MCBBranchSource:       "hello",
-				ConfigBranch:          "main",
+				ConfigBranch:          testMainBranch,
 			},
 		},
 	}

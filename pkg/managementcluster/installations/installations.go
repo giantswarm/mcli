@@ -3,6 +3,7 @@ package installations
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/rs/zerolog/log"
@@ -191,7 +192,7 @@ func (i *Installations) Equals(other *Installations) bool {
 func GetInstallationsFromFile(path string) (*Installations, error) {
 	log.Debug().Msg(fmt.Sprintf("getting installations object from file %s", path))
 	// read data from input file
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read input file %s.\n%w", path, err)
 	}

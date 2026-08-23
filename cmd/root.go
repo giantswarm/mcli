@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// cmcUse is the cobra `Use` string of the cmc subcommands.
+const cmcUse = "cmc"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mcli",
