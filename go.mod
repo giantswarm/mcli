@@ -64,9 +64,9 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
@@ -106,3 +106,10 @@ replace go.opentelemetry.io/otel/sdk => go.opentelemetry.io/otel/sdk v1.46.0
 replace go.opentelemetry.io/otel/metric => go.opentelemetry.io/otel/metric v1.46.0
 
 replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
+
+// Pin transitive modules flagged by the OSS Index scan (nancy) in CI.
+// go mod tidy would otherwise resolve them below the fixed versions,
+// because nothing imports them directly.
+replace golang.org/x/mod => golang.org/x/mod v0.40.0
+
+replace github.com/yuin/goldmark => github.com/yuin/goldmark v1.8.5
