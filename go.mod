@@ -111,3 +111,5 @@ replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
 // go mod tidy would otherwise resolve them below the fixed versions,
 // because nothing imports them directly.
 replace golang.org/x/mod => golang.org/x/mod v0.40.0
+
+replace github.com/yuin/goldmark => github.com/yuin/goldmark v1.8.5
