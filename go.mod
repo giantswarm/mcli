@@ -89,7 +89,7 @@ replace filippo.io/edwards25519 => filippo.io/edwards25519 v1.2.0
 
 replace github.com/cloudflare/circl => github.com/cloudflare/circl v1.6.5
 
-replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.4
+replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.5
 
 replace github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
 
