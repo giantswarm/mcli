@@ -2,7 +2,7 @@ module github.com/giantswarm/mcli
 
 go 1.26.0
 
-toolchain go1.27.0
+toolchain go1.27.1
 
 require (
 	filippo.io/age v1.3.2
@@ -89,7 +89,7 @@ replace filippo.io/edwards25519 => filippo.io/edwards25519 v1.2.0
 
 replace github.com/cloudflare/circl => github.com/cloudflare/circl v1.6.5
 
-replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.4
+replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.5
 
 replace github.com/golang-jwt/jwt/v4 => github.com/golang-jwt/jwt/v4 v4.5.2
 
@@ -112,4 +112,4 @@ replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
 // because nothing imports them directly.
 replace golang.org/x/mod => golang.org/x/mod v0.40.0
 
-replace github.com/yuin/goldmark => github.com/yuin/goldmark v1.8.5
+replace github.com/yuin/goldmark/v2 => github.com/yuin/goldmark/v2 v2.0.1
