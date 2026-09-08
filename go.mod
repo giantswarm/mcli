@@ -120,6 +120,6 @@ replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
 // Pin transitive modules flagged by the OSS Index scan (nancy) in CI.
 // go mod tidy would otherwise resolve them below the fixed versions,
 // because nothing imports them directly.
-replace golang.org/x/mod => golang.org/x/mod v0.40.0
+replace golang.org/x/mod => golang.org/x/mod v0.41.0
 
 replace github.com/yuin/goldmark/v2 => github.com/yuin/goldmark/v2 v2.0.1
