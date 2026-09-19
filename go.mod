@@ -107,7 +107,7 @@ replace github.com/hashicorp/go-retryablehttp => github.com/hashicorp/go-retryab
 
 replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.5.1
 
-replace github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.16
+replace github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.17
 
 replace go.opentelemetry.io/otel => go.opentelemetry.io/otel v1.46.0
 
