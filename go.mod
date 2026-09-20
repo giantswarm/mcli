@@ -122,4 +122,4 @@ replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
 // because nothing imports them directly.
 replace golang.org/x/mod => golang.org/x/mod v0.41.0
 
-replace github.com/yuin/goldmark/v2 => github.com/yuin/goldmark/v2 v2.1.3
+replace github.com/yuin/goldmark/v2 => github.com/yuin/goldmark/v2 v2.1.5
