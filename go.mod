@@ -123,3 +123,9 @@ replace go.opentelemetry.io/otel/trace => go.opentelemetry.io/otel/trace v1.46.0
 replace golang.org/x/mod => golang.org/x/mod v0.41.0
 
 replace github.com/yuin/goldmark/v2 => github.com/yuin/goldmark/v2 v2.1.6
+
+replace github.com/yuin/goldmark v1.4.13 => github.com/yuin/goldmark v1.8.6
+
+replace go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 => go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.46.0
+
+replace go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0 => go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.46.0
