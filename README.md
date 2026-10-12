@@ -1,4 +1,4 @@
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/giantswarm/`mcli`/tree/main.svg?style=svg&circle-token=6a77fd68819c9f0d95d09d9ba329ba5e5bf169e6)](https://dl.circleci.com/status-badge/redirect/gh/giantswarm/`mcli`/tree/main)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/giantswarm/mcli/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/giantswarm/mcli/tree/main)
 
 # MCLI
 
@@ -8,7 +8,7 @@ CLI tool for managing Giant Swarm installations.
 
 `mcli` is a golang based CLI tool for managing configuration for Giant Swarm management clusters.
 The idea is to provide a tool that allows for easier review, creation and updates of configuration data.
-Commands found inside the tool are based on scripts that are part of [mc-bootstrap](github.com/giantswarm/mc-bootstrap) with the goal to replace more and more of them as new commands are added to `mcli`.
+Commands found inside the tool are based on scripts that are part of `mc-bootstrap` with the goal to replace more and more of them as new commands are added to `mcli`.
 
 ## Installation
 
@@ -87,11 +87,11 @@ A new cmc repository is created for each customer using the `mcli create cmc` co
 The `mcli pull cmc` and `mcli push cmc` commands can be used to pull and push the configuration for a specific management cluster to the cmc repository.
 
 > [!IMPORTANT]
-> When nothing else is specified via `--customer` or `--cmc-repository` flags, the tool will use the [giantswarm-management-clusters](github.com/giantswarm/giantswarm-management-clusters) repository as the default.
+> When nothing else is specified via `--customer` or `--cmc-repository` flags, the tool will use the `giantswarm-management-clusters` repository as the default.
 
 ### `installations`
 
-The installations repository [`giantswarm/installations`](github.com/giantswarm/installations).
+The installations repository `giantswarm/installations`.
 
 This repository mostly contains configuration for vintage installations.
 However, it also contains basic information about the management cluster.
@@ -100,7 +100,7 @@ The `mcli pull installations` and `mcli push installations` commands can be used
 ## Input
 
 The tool can be used either with an input file or flags.
-To ease integration into [mc-bootstrap](github.com/giantswarm/mc-bootstrap), flags can be read from its environment variables and secret files.
+To ease integration into `mc-bootstrap`, flags can be read from its environment variables and secret files.
 
 ### Input file
 
@@ -125,7 +125,7 @@ For updating a management cluster via flags, only the flags that need to be upda
 ### Environment variables
 
 The tool can read configuration from environment variables.
-The available environment variables are the same as those used by [mc-bootstrap](github.com/giantswarm/mc-bootstrap).
+The available environment variables are the same as those used by `mc-bootstrap`.
 Environment variables are used to set the default values for corresponding flags.
 
 
@@ -264,7 +264,7 @@ Usually, this will be done in the process of running `mc-bootstrap` to create a 
 
 - To create entirely new configuration for testing or otherwise, a new age key pair can be generated via the `age-keygen` command.
 
-- More information on the various secrets and values can be found in the [mc-bootstrap repository](github.com/giantswarm/mc-bootstrap).
+- More information on the various secrets and values can be found in the `mc-bootstrap` repository.
 - The output of the `mcli pull` command can be used as a base for the input file.
 
 _Below examples assume that the cluster either already exists and we are updating it or that the needed secrets are already created and present in the input file or secret folder._
@@ -313,7 +313,7 @@ mcli push cmc --cluster $CLUSTER --customer $CUSTOMER --cert-manager-dns-challen
 > [!NOTE]
 > The `--secret-folder` flag is used here to specify the folder where the secrets are stored.
 > When using the tool with flags the expectation is that the secrets are stored in a folder and the tool will read them from there.
-> More information on the secret folder can be found in the [mc-bootstrap repository](github.com/giantswarm/mc-bootstrap).
+> More information on the secret folder can be found in the `mc-bootstrap` repository.
 
 ## Reference
 
