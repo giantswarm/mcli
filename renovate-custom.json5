@@ -1,0 +1,21 @@
+// Repo-specific Renovate rules, layered on top of the generated renovate.json5
+// (which extends this file last, so these rules win). devctl never touches
+// this file. Rules for a whole class of repos belong in
+// giantswarm/renovate-presets instead.
+{
+  packageRules: [
+    {
+      // kustomize api/kyaml pull in a k8s.io/kube-openapi revision whose
+      // go.mod needs the structured-merge-diff major that the matching k8s.io
+      // minor uses. Bumped on their own they cannot build, so they move in
+      // the preset's "k8s modules" group (k8s.io/*), together with
+      // kube-openapi, in one PR per sweep.
+      groupName: 'k8s modules',
+      matchDepNames: [
+        '/^sigs.k8s.io/kustomize/',
+        '/^k8s.io/',
+        'k8s.io/kube-openapi',
+      ],
+    },
+  ],
+}
