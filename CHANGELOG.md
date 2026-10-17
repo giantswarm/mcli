@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-07-30
+
+### Fixed
+
+- Skip creating the team ownership pull request if one with the same title is already open
+
+## [0.3.0] - 2026-06-25
+
 ### Added
 
 - Add JSON schema headers to `cluster.yaml` if `schema.json` is present in the installation repository
@@ -16,10 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Release binaries now include darwin/amd64, darwin/arm64, windows/amd64, and windows/arm64 alongside the existing linux targets. Windows binaries are named `mcli-windows-<arch>.exe`.
-
-### Fixed
-
-- Skip creating the team ownership pull request if one with the same title is already open
 
 ## [0.2.0] - 2024-12-19
 
@@ -38,7 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `push` command to push configuration of a management cluster.
 - Add `create` command to create a repository.
 
-[Unreleased]: https://github.com/giantswarm/mcli/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/giantswarm/mcli/compare/v0.3.5...HEAD
+[0.3.5]: https://github.com/giantswarm/mcli/compare/v0.3.0...v0.3.5
+[0.3.0]: https://github.com/giantswarm/mcli/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/giantswarm/mcli/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/giantswarm/mcli/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/giantswarm/mcli/releases/tag/v0.1.0
