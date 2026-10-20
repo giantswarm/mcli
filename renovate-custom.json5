@@ -17,5 +17,19 @@
         'k8s.io/kube-openapi',
       ],
     },
+    {
+      // The go.mod replace pins k8s.io/kube-openapi to a revision built
+      // on structured-merge-diff/v6, the major k8s.io/apimachinery v0.37 uses.
+      // Every newer revision needs v7 and cannot compile against v0.37, so
+      // the pin moves by hand: it is dropped, together with this rule, in the
+      // k8s.io v0.38 bump.
+      matchDepNames: [
+        'k8s.io/kube-openapi',
+      ],
+      matchDepTypes: [
+        'replace',
+      ],
+      enabled: false,
+    },
   ],
 }
