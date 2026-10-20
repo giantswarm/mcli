@@ -452,8 +452,8 @@ func (r *Repository) AddCollaborator(ctx context.Context, slug string, permissio
 	}
 
 	log.Debug().Msg(fmt.Sprintf("adding %s as collaborator to repository %s/%s", collaborator, r.Organization, r.Name))
-	_, err = r.Teams.AddTeamRepoBySlug(ctx, r.Organization, slug, r.Organization, r.Name, &github.TeamAddTeamRepoOptions{
-		Permission: permission,
+	_, err = r.Teams.AddTeamRepoBySlug(ctx, r.Organization, slug, r.Organization, r.Name, github.AddTeamRepoRequest{
+		Permission: new(permission),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to add %s as collaborator to repository %s/%s.\n%w", collaborator, r.Organization, r.Name, err)
