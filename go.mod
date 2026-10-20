@@ -131,5 +131,6 @@ replace go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0 
 
 // kustomize v0.21.3 requires a kube-openapi built on structured-merge-diff/v7,
 // which k8s.io/apimachinery v0.37 (structured-merge-diff/v6) cannot compile
-// against. Drop this pin with the k8s.io modules bump to v0.38.
+// against. Drop this pin with the k8s.io modules bump to v0.38, together
+// with the renovate-custom.json5 rule that holds it.
 replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad
